@@ -189,6 +189,20 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
   </div>
   <div id="productModal" class="modal hidden"><div class="modal-card"><div class="modal-head"><div><h2 id="modalTitle">최근 30일 판매 데이터</h2><small>자사몰+네이버 전환수 합산</small></div><button class="btn" id="modalClose">닫기</button></div><div class="chart tall"><canvas id="product30Chart"></canvas></div></div></div>
 </div>
+
+<div id="stockModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-head">
+      <div>
+        <h2 id="stockModalTitle">주력 제품 재고 상세</h2>
+        <small>운영 대시보드 발주관리 · 재고 TOP 기준</small>
+      </div>
+      <button type="button" class="btn" id="stockModalClose">닫기</button>
+    </div>
+    <div id="stockDetailList" class="stock-detail-list"></div>
+  </div>
+</div>
+
 <script>
 const CFG={clientId:'691753741006-9i13kjkk3ci2jv6lr6rupa491j7rlb64.apps.googleusercontent.com',scope:'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',salesId:'1ci6ItqdLhOzg7kdqGLhvfCR3AgJJ2yPnwp2-qV0GiYg',productId:'1dSRAB8r9is6IqAucdXfIThOqL1R-eTrWWJbjTUJ4l3c',productOwn:'2026 자사몰',productNaver:'2026 네이버',adId:'1gcndNdb8XcVn8obftjlzwhmwxwxG6llzimscKE-szvg',profitId:'1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI',profitPlanSheet:'매출데이터',profitPlanRange:'A1:J13',profitDailySheet:'일별 데이터',profitDailyRange:'A1:S500',poId:'1p-ko7c4--yUwYOYE2fL8X6Z1U3O1lWoJ36AZuBanGmQ',b2bId:'1MLo9mYivyHla2ANgJDr4V38VoQfaaa1FLHg93KgcZZ4',inventoryId:'1aAr8wNaNbO8Ts3lQivHxnpBy8aY9IKPB1HokkO7mYq0',inventorySheet:'재고관리_재고',poStockId:'1najWl30V40gEHacr6LaNYDIaEgLHGAcxdLDqneW6MxE'};
 let TOKEN=null, charts={}, DATA={sales:null,products:null,ads:null,profit:null,ops:null};
@@ -464,7 +478,8 @@ function renderProductDetail(){
   }
 }
 document.querySelectorAll('[data-product-view]').forEach(b=>b.onclick=()=>{activeProductView=b.dataset.productView;document.querySelectorAll('[data-product-view]').forEach(x=>x.classList.toggle('active',x===b));renderProductDetail()});
-$('modalClose').onclick=()=>$('productModal').classList.add('hidden');$('productModal').onclick=e=>{if(e.target.id==='productModal')$('productModal').classList.add('hidden')};
+if($('modalClose')) $('modalClose').onclick=()=>$('productModal')?.classList.add('hidden');
+if($('productModal')) $('productModal').onclick=e=>{if(e.target.id==='productModal')$('productModal').classList.add('hidden')};
 
 let activeSalesView='total';
 function openSalesDetail(view='total'){activeSalesView=view;$('salesModal').classList.remove('hidden');syncModalCenter();document.querySelectorAll('[data-sales-view]').forEach(b=>b.classList.toggle('active',b.dataset.salesView===view));renderSales3Week()}
@@ -476,9 +491,10 @@ function renderSales3Week(){
   let sets=weeks.map((wd,i)=>({label:`${md(wd[0])}~${md(wd[6])}`,data:wd.map(dt=>{let r=map.get(iso(dt));return r?(activeSalesView==='total'?r.total:r.selfNaver):null}),borderColor:colors[i],backgroundColor:colors[i],pointRadius:5,borderWidth:i===2?4:2,tension:0,spanGaps:true}));
   draw('sales3WeekChart','line',labels,sets,{money:true,pointValueLabels:true});
 }
-$('salesMainCard').onclick=()=>openSalesDetail('total');
+if($('salesMainCard')) $('salesMainCard').onclick=()=>openSalesDetail('total');
 document.querySelectorAll('[data-sales-view]').forEach(b=>b.onclick=()=>{activeSalesView=b.dataset.salesView;document.querySelectorAll('[data-sales-view]').forEach(x=>x.classList.toggle('active',x===b));renderSales3Week()});
-$('salesModalClose').onclick=()=>$('salesModal').classList.add('hidden');$('salesModal').onclick=e=>{if(e.target.id==='salesModal')$('salesModal').classList.add('hidden')};
+if($('salesModalClose')) $('salesModalClose').onclick=()=>$('salesModal')?.classList.add('hidden');
+if($('salesModal')) $('salesModal').onclick=e=>{if(e.target.id==='salesModal')$('salesModal').classList.add('hidden')};
 
 
 function stockStatusLabel(s){return s==='ok'?'정상':s==='out'?'위험':s==='preorder'?'사전예약':'품절'}
@@ -495,8 +511,8 @@ function openStockDetail(status){
   </div>`).join('')||'<div class="empty">해당 상태의 제품이 없습니다.</div>';
   $('stockModal').classList.remove('hidden');syncModalCenter();
 }
-$('stockModalClose').onclick=()=>$('stockModal').classList.add('hidden');
-$('stockModal').onclick=e=>{if(e.target.id==='stockModal')$('stockModal').classList.add('hidden')};
+if($('stockModalClose')) $('stockModalClose').onclick=()=>$('stockModal')?.classList.add('hidden');
+if($('stockModal')) $('stockModal').onclick=e=>{if(e.target.id==='stockModal')$('stockModal').classList.add('hidden')};
 
 
 async function loadAll(){['srcSales','srcProduct','srcAds','srcProfit','srcOps'].forEach(id=>setSource(id,'loading','로딩'));let jobs=[['sales',loadSales,'srcSales'],['products',loadProducts,'srcProduct'],['ads',loadAds,'srcAds'],['profit',loadProfit,'srcProfit'],['ops',loadOps,'srcOps']];await Promise.all(jobs.map(async([k,fn,id])=>{try{await fn()}catch(e){console.error(k,e);setSource(id,'err','오류')}}));render()}
@@ -545,6 +561,6 @@ function initAuth(){
   }
   setup();
 }
-$('refreshBtn').onclick=()=>TOKEN&&loadAll();$('themeBtn').onclick=()=>{let light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');$('themeBtn').textContent=light?'라이트 모드':'다크 모드';render()};initAuth();
+if($('refreshBtn')) $('refreshBtn').onclick=()=>TOKEN&&loadAll(); if($('themeBtn')) $('themeBtn').onclick=()=>{let light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');$('themeBtn').textContent=light?'라이트 모드':'다크 모드';render()};initAuth();
 </script>
 </body></html>
