@@ -63,6 +63,37 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 @media(max-width:650px){.eval-grid,.product-grid,.ad-metrics,.kpis{grid-template-columns:1fr}}
 </style>
 
+
+<style>
+/* v3 presentation refinements */
+.kpi .meta{font-size:16px!important;font-weight:800!important;line-height:1.45}
+.sales-main-card .chart{height:460px!important}
+.eval-grid{grid-template-columns:repeat(6,minmax(0,1fr));gap:14px}
+.eval-item{min-height:285px!important;padding:16px 12px!important}
+.eval-bars{height:165px!important;margin:14px 0 10px!important}
+.eval-bar-wrap{height:155px!important}
+.eval-bar{max-width:54px!important}
+.eval-rate{font-size:18px!important}
+.ad-metrics{grid-template-columns:repeat(2,1fr)!important;gap:16px!important}
+.forecast-mini{min-height:120px!important;padding:20px!important}
+.forecast-mini .t{font-size:15px!important}
+.forecast-mini .v{font-size:28px!important;margin-top:8px}
+.stock-summary-wrap{cursor:default}
+.stock-chip{cursor:pointer;transition:.15s}
+.stock-chip:hover{transform:translateY(-1px);filter:brightness(1.08)}
+.issue.expense-alert{border-color:rgba(239,68,68,.45);background:rgba(239,68,68,.06)}
+.issue.expense-alert::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--red)}
+.issue{position:relative}
+.modal{align-items:center!important;justify-content:center!important}
+.modal-card{max-height:92vh;overflow:auto}
+.stock-detail-list{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:12px}
+.stock-detail-card{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:15px}
+.stock-detail-card h3{margin:0 0 8px;font-size:15px}
+.stock-detail-row{display:flex;justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:7px;margin-top:7px;font-size:12px}
+@media(max-width:1250px){.eval-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:800px){.stock-detail-list{grid-template-columns:1fr}}
+</style>
+
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -124,8 +155,6 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
     </section>
 
     <section class="card span12"><div class="head"><div><h2>B2B 진행 특이사항</h2><small>고객사 컨펌 '확정' 건 기준</small></div><span class="badge" id="b2bCount">—</span></div><div class="issue-list" id="b2bIssues"><div class="empty">데이터 로딩 중...</div></div></section>
-
-    <section class="card span12"><div class="head"><div><h2>Executive Summary</h2><small>전체회의에서 그대로 읽을 수 있는 요약</small></div><span class="badge" id="updatedAt">—</span></div><div class="summary"><div class="summary-box"><h3>핵심 변화</h3><div class="summary-lines" id="summaryLines"><div class="muted">데이터 집계 후 자동 생성됩니다.</div></div></div><div class="summary-box"><h3>회의 체크포인트</h3><div class="summary-lines" id="actionLines"><div class="muted">재고/발주/B2B 이슈를 자동 요약합니다.</div></div></div></div></section>
   </main>
 
   <div id="productModal" class="modal hidden">
@@ -229,11 +258,13 @@ async function loadProducts(){
 function parseAdRows(vals){return vals.slice(1).map(r=>({date:dateFlexible(r[0],2026),ad:num(r[1])||0,revenue:num(r[2])||0,ratio:num(r[3])})).filter(x=>x.date)}
 async function loadAds(){
   setSource('srcAds','loading','로딩');
-  let prevR=previousRange(RR),tabs=[...new Set([RR.start,RR.end,prevR.start,prevR.end].map(d=>`${String(d.getFullYear()).slice(2)}-${String(d.getMonth()+1).padStart(2,'0')}`))],all=[];
+  let prevR=previousRange(RR),pm=previousMonthRange(RR.end),
+      tabs=[...new Set([RR.start,RR.end,prevR.start,prevR.end,pm.start,pm.end].map(d=>`${String(d.getFullYear()).slice(2)}-${String(d.getMonth()+1).padStart(2,'0')}`))],all=[];
   for(let t of tabs){try{let v=await apiValues(CFG.adId,`'${t}'!O8:R39`,false);all.push(...parseAdRows(v))}catch(e){console.warn('ad tab',t,e)}}
   let current=all.filter(x=>inRange(x.date,RR)),prior=all.filter(x=>inRange(x.date,prevR)),
-      monthRows=all.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&x.date<=RR.end);
-  DATA.ads={spend:sum(current,x=>x.ad),revenue:sum(current,x=>x.revenue),priorSpend:sum(prior,x=>x.ad),priorRevenue:sum(prior,x=>x.revenue),rows:current,priorRows:prior,monthSpend:sum(monthRows,x=>x.ad),monthRevenue:sum(monthRows,x=>x.revenue)};
+      monthRows=all.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&x.date<=RR.end),
+      prevMonthRows=all.filter(x=>x.date.getFullYear()===pm.end.getFullYear()&&x.date.getMonth()===pm.end.getMonth());
+  DATA.ads={spend:sum(current,x=>x.ad),revenue:sum(current,x=>x.revenue),priorSpend:sum(prior,x=>x.ad),priorRevenue:sum(prior,x=>x.revenue),rows:current,priorRows:prior,monthSpend:sum(monthRows,x=>x.ad),monthRevenue:sum(monthRows,x=>x.revenue),prevMonthSpend:sum(prevMonthRows,x=>x.ad),prevMonthRevenue:sum(prevMonthRows,x=>x.revenue)};
   setSource('srcAds','ok','정상');
 }
 function parseProfitDaily(vals){return vals.slice(1).map(c=>({date:dateFlexible(c[0],2026),revenue:num(c[1]),settlement:num(c[2]),ownNaver:num(c[3]),ad:num(c[5]),adCharge:num(c[6]),expOrder:num(c[7]),order:num(c[8]),orderNote:c[9]||'',expFixed:num(c[10]),fixed:num(c[11]),fixedNote:c[12]||'',expVariable:num(c[13]),variable:num(c[14]),variableNote:c[15]||'',expRepay:num(c[16]),repay:num(c[17]),repayNote:c[18]||''})).filter(x=>x.date)}
@@ -278,12 +309,34 @@ async function loadOps(){
 function ratioClass(actual,target,lower=false){if(!target)return'';let r=actual/target;return lower?(r<=1?'good':r<=1.1?'warn':'bad'):(r>=1?'good':r>=.9?'warn':'bad')}
 function evalItem(label,actual,target,lower=false,kind='goal'){
   let rate=target?actual/target*100:0,max=Math.max(Math.abs(actual||0),Math.abs(target||0),1),
-      leftH=Math.max(5,Math.abs(target||0)/max*82),rightH=Math.max(5,Math.abs(actual||0)/max*82),
-      cls=ratioClass(actual,target,lower),leftLabel=kind==='goal'?'목표':'예상',rightLabel=kind==='goal'?'현재':'실제';
+      leftH=Math.max(8,Math.abs(target||0)/max*145),rightH=Math.max(8,Math.abs(actual||0)/max*145),
+      cls=ratioClass(actual,target,lower),leftLabel=kind==='goal'?'목표':'예상',rightLabel=kind==='goal'?'현재':'실제',
+      currentColor=cls==='bad'?'var(--red)':cls==='warn'?'var(--yellow)':'var(--green)';
   return `<div class="eval-item"><div class="et">${label}</div><div class="eval-bars">
-    <div class="eval-bar-wrap"><div class="eval-bar-value">${fmtMoney(target)}</div><div class="eval-bar base" style="height:${leftH}px"></div><div class="eval-bar-label">${leftLabel}</div></div>
-    <div class="eval-bar-wrap"><div class="eval-bar-value">${fmtMoney(actual)}</div><div class="eval-bar current" style="height:${rightH}px"></div><div class="eval-bar-label">${rightLabel}</div></div>
+    <div class="eval-bar-wrap"><div class="eval-bar-value">${fmtMoney(target)}</div><div class="eval-bar base" style="height:${leftH}px;background:#667085"></div><div class="eval-bar-label">${leftLabel}</div></div>
+    <div class="eval-bar-wrap"><div class="eval-bar-value">${fmtMoney(actual)}</div><div class="eval-bar current" style="height:${rightH}px;background:${currentColor}"></div><div class="eval-bar-label">${rightLabel}</div></div>
   </div><div class="eval-rate ${cls}">${rate?rate.toFixed(1):'—'}%</div></div>`
+}
+
+function syncModalCenter(){
+  // nav.js가 사이드바를 펼칠 때 본문을 오른쪽으로 이동시키는 경우를 포함해
+  // 현재 실제 dashboard wrap의 화면상 중앙을 기준으로 팝업을 보정한다.
+  let wrap=document.querySelector('.wrap');
+  if(!wrap)return;
+  let r=wrap.getBoundingClientRect(), viewportCenter=window.innerWidth/2, contentCenter=r.left+r.width/2,
+      offset=Math.round(contentCenter-viewportCenter);
+  document.documentElement.style.setProperty('--modal-offset-x',offset+'px');
+  document.querySelectorAll('.modal .modal-card').forEach(el=>el.style.transform=`translateX(${offset}px)`);
+}
+window.addEventListener('resize',syncModalCenter);
+const _navObserver=new MutationObserver(()=>setTimeout(syncModalCenter,30));
+_navObserver.observe(document.documentElement,{attributes:true,subtree:true,attributeFilter:['class','style']});
+setTimeout(syncModalCenter,300);
+
+function previousMonthRange(ref){
+  let y=ref.getFullYear(),m=ref.getMonth();
+  let end=new Date(y,m,0),start=new Date(end.getFullYear(),end.getMonth(),1);
+  return {start,end};
 }
 function render(){
   let s=DATA.sales,p=DATA.products,a=DATA.ads,pr=DATA.profit,o=DATA.ops;
@@ -291,7 +344,7 @@ function render(){
     let w=pct(s.currentSum,s.priorSum);
     $('kWeekSales').textContent=fmtMoney(s.currentSum);$('kWeekSalesMeta').innerHTML=`전주 대비 <b class="${w>=0?'up':'down'}">${fmtPct(w)}</b>`;
     $('kMtd').textContent=fmtMoney(s.mtd);$('kMtdMeta').textContent=`${s.monthDays.length}일 반영 · 일평균 ${fmtMoney(s.monthDays.length?s.mtd/s.monthDays.length:0)}`;
-    draw('salesChart','bar',s.weeks.map(x=>x.label),[{label:'주간 매출',data:s.weeks.map(x=>x.value),backgroundColor:'#6c7bff',borderRadius:8}],{money:true,valueLabels:true});
+    draw('salesChart','bar',s.weeks.map(x=>x.label),[{label:'주간 매출',data:s.weeks.map(x=>x.value),backgroundColor:s.weeks.map((x,i)=>i===s.weeks.length-1?'#6c7bff':'#667085'),borderRadius:8}],{money:true,valueLabels:true});
   }
   if(p){
     $('productCards').innerHTML=p.rows.map((x,i)=>{
@@ -321,9 +374,11 @@ function render(){
     $('adSpendMini').innerHTML=`${fmtMoney(a.spend)} <small class="${sw>=0?'up':'down'}">(${fmtPct(sw)})</small>`;
     $('adRevenueMini').innerHTML=`${fmtMoney(a.revenue)} <small class="${rw>=0?'up':'down'}">(${fmtPct(rw)})</small>`;
     $('adRoasMini').innerHTML=`${roas.toFixed(0)}% <small class="${rd>=0?'up':'down'}">(전주 대비 ${rd>=0?'+':''}${rd.toFixed(1)}%p)</small>`;
-    let monthRatio=(DATA.sales&&DATA.sales.mtd)?a.monthSpend/DATA.sales.mtd*100:0;
+    let monthRatio=(DATA.sales&&DATA.sales.mtd)?a.monthSpend/DATA.sales.mtd*100:0,
+        prevMonthRatio=a.prevMonthRevenue?a.prevMonthSpend/a.prevMonthRevenue*100:0,
+        monthRatioDelta=monthRatio-prevMonthRatio;
     $('adMonthRatioTitle').textContent=`${RR.end.getMonth()+1}월 누적 광고비/매출액`;
-    $('adMonthRatioMini').innerHTML=`${monthRatio.toFixed(1)}% <small>${fmtMoney(a.monthSpend)} / ${DATA.sales?fmtMoney(DATA.sales.mtd):'—'}</small>`;
+    $('adMonthRatioMini').innerHTML=`${monthRatio.toFixed(1)}% <small class="${monthRatioDelta>=0?'up':'down'}">(전달 대비 ${monthRatioDelta>=0?'+':''}${monthRatioDelta.toFixed(1)}%p)</small>`;
     let days=['금','토','일','월','화','수','목'],
         vals=(rows,r)=>days.map((_,i)=>{let d=addDays(r.start,i),row=rows.find(x=>iso(x.date)===iso(d));return row?row.ad:0});
     draw('adChart','line',days,[
@@ -333,22 +388,26 @@ function render(){
   }
   if(o){
     let today=d0(new Date()),typeLabel={'신':'신규 생산 발주','추':'추가 입고','요':'입고 요청','기':'기존 잔금'},
-        po=o.po.filter(x=>x.date>=addDays(today,-7)&&x.date<=addDays(today,75)).sort((a,b)=>a.date-b.date).slice(0,7);
+        monthEnd=new Date(today.getFullYear(),today.getMonth()+1,0),
+        po=o.po.filter(x=>x.date>=today&&x.date<=addDays(today,75))
+               .filter(x=>!(x.amount>0&&x.date>monthEnd))
+               .sort((a,b)=>a.date-b.date).slice(0,7);
     $('poCount').textContent=`${po.length}건 표시`;
-    $('poIssues').innerHTML=po.map(x=>`<div class="issue"><div class="name">${md(x.date)} · ${typeLabel[x.type]}</div><div class="desc"><b>${x.product}</b>${x.note?' · '+x.note:''}${x.memo?' · '+x.memo:''}</div><div>${x.qty?x.qty.toLocaleString()+'EA ':''}${x.amount?fmtMoney(x.amount):''}</div></div>`).join('')||'<div class="empty">표시할 발주 이슈가 없습니다.</div>';
+    $('poIssues').innerHTML=po.map(x=>`<div class="issue ${x.amount>0?'expense-alert':''}"><div class="name">${md(x.date)} · ${typeLabel[x.type]}</div><div class="desc"><b>${x.product}</b>${x.note?' · '+x.note:''}${x.memo?' · '+x.memo:''}</div><div>${x.qty?x.qty.toLocaleString()+'EA ':''}${x.amount?`<span style="color:var(--red);font-weight:900">${fmtMoney(x.amount)}</span>`:''}</div></div>`).join('')||'<div class="empty">표시할 발주 이슈가 없습니다.</div>';
     let bi=o.b2b.filter(x=>x.date>=addDays(today,-45)).filter(x=>!/(완료|납품완료)/.test(x.delivery)||!/(완료|정산완료|입금완료)/.test(x.settlement)).sort((a,b)=>b.date-a.date).slice(0,8);
     $('b2bCount').textContent=`${bi.length}건 점검`;
     $('b2bIssues').innerHTML=bi.map(x=>`<div class="issue"><div class="name">${x.company}</div><div class="desc"><b>${x.product}</b> · 제작 ${x.production||'-'} · 납품 ${x.delivery||'-'} · 정산 ${x.settlement||'-'}${x.note?' · '+x.note:''}</div><div>${x.qty.toLocaleString()}EA<br>${fmtMoney(x.amount)}</div></div>`).join('')||'<div class="empty">점검할 미완료 B2B가 없습니다.</div>';
     let groups={ok:[],out:[],preorder:[],soldOut:[]};(o.stockItems||[]).forEach(i=>groups[poGetStockStatus(i)].push(i));
     $('inventoryCount').textContent=`${o.stockItems.length}개 품목`;
     $('inventoryList').innerHTML=`<div class="stock-badges">
-      <span class="stock-chip ok">✔ 정상 <strong>${groups.ok.length}개</strong></span>
-      ${groups.out.length?`<span class="stock-chip" style="color:var(--red)">✖ 위험 <strong>${groups.out.length}개</strong></span>`:''}
-      <span class="stock-chip pre">★ 사전예약 <strong>${groups.preorder.length}개</strong></span>
-      <span class="stock-chip sold">◼ 품절 <strong>${groups.soldOut.length}개</strong></span>
-    </div><div class="muted" style="font-size:12px">재고 TOP 시트 기준</div>`;
+      <span class="stock-chip ok" data-stock-status="ok">✔ 정상 <strong>${groups.ok.length}개</strong></span>
+      ${groups.out.length?`<span class="stock-chip" data-stock-status="out" style="color:var(--red)">✖ 위험 <strong>${groups.out.length}개</strong></span>`:''}
+      <span class="stock-chip pre" data-stock-status="preorder">★ 사전예약 <strong>${groups.preorder.length}개</strong></span>
+      <span class="stock-chip sold" data-stock-status="soldOut">◼ 품절 <strong>${groups.soldOut.length}개</strong></span>
+    </div><div class="muted" style="font-size:12px">재고 TOP 시트 기준 · 상태를 클릭하면 상세보기</div>`;
+    document.querySelectorAll('[data-stock-status]').forEach(el=>el.onclick=()=>openStockDetail(el.dataset.stockStatus));
   }
-  renderSummary();$('updatedAt').textContent='업데이트 '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+
 }
 
 const valueLabelPlugin={id:'valueLabelPlugin',afterDatasetsDraw(chart,args,opts){
@@ -382,7 +441,7 @@ function openProduct(i,view='sales'){
   activeProductIndex=i;activeProductView=view;let x=DATA.products.rows[i];
   $('modalTitle').textContent=`${x.name} · 최근 30일 상세`;
   $('modalSub').textContent='자사몰+네이버 합산 · 평균선은 노란색';
-  $('productModal').classList.remove('hidden');
+  $('productModal').classList.remove('hidden');syncModalCenter();
   document.querySelectorAll('[data-product-view]').forEach(b=>b.classList.toggle('active',b.dataset.productView===view));
   renderProductDetail()
 }
@@ -400,7 +459,7 @@ document.querySelectorAll('[data-product-view]').forEach(b=>b.onclick=()=>{activ
 $('modalClose').onclick=()=>$('productModal').classList.add('hidden');$('productModal').onclick=e=>{if(e.target.id==='productModal')$('productModal').classList.add('hidden')};
 
 let activeSalesView='total';
-function openSalesDetail(view='total'){activeSalesView=view;$('salesModal').classList.remove('hidden');document.querySelectorAll('[data-sales-view]').forEach(b=>b.classList.toggle('active',b.dataset.salesView===view));renderSales3Week()}
+function openSalesDetail(view='total'){activeSalesView=view;$('salesModal').classList.remove('hidden');syncModalCenter();document.querySelectorAll('[data-sales-view]').forEach(b=>b.classList.toggle('active',b.dataset.salesView===view));renderSales3Week()}
 function renderSales3Week(){
   if(!DATA.sales)return;
   let all=[...DATA.sales.days].sort((a,b)=>a.date-b.date),ref=all[all.length-1];if(!ref)return;
@@ -413,14 +472,25 @@ $('salesMainCard').onclick=()=>openSalesDetail('total');
 document.querySelectorAll('[data-sales-view]').forEach(b=>b.onclick=()=>{activeSalesView=b.dataset.salesView;document.querySelectorAll('[data-sales-view]').forEach(x=>x.classList.toggle('active',x===b));renderSales3Week()});
 $('salesModalClose').onclick=()=>$('salesModal').classList.add('hidden');$('salesModal').onclick=e=>{if(e.target.id==='salesModal')$('salesModal').classList.add('hidden')};
 
-function renderSummary(){
-  let lines=[],acts=[];
-  if(DATA.sales){let w=pct(DATA.sales.currentSum,DATA.sales.priorSum);lines.push(`<div class="summary-line"><b>매출</b> 이번 주 ${fmtMoney(DATA.sales.currentSum)}, 전주 대비 <span class="${w>=0?'up':'down'}">${fmtPct(w)}</span>.</div>`)}
-  if(DATA.profit){let m=DATA.profit.monthly;lines.push(`<div class="summary-line"><b>월 평가</b> 자사+네이버 일평균은 목표의 ${(m.ownTarget?m.ownActual/m.ownTarget*100:0).toFixed(1)}%, 전체매출 일평균은 목표의 ${(m.totalTargetDaily?m.totalActual/m.totalTargetDaily*100:0).toFixed(1)}% 수준입니다.</div>`)}
-  if(DATA.ads){let roas=DATA.ads.spend?DATA.ads.revenue/DATA.ads.spend*100:0;lines.push(`<div class="summary-line"><b>광고</b> ${fmtMoney(DATA.ads.spend)} 집행 · ROAS ${roas.toFixed(0)}%.</div>`)}
-  if(DATA.ops){let groups={ok:0,out:0,preorder:0,soldOut:0};(DATA.ops.stockItems||[]).forEach(i=>groups[poGetStockStatus(i)]++);if(groups.preorder||groups.soldOut||groups.out)acts.push(`<div class="summary-line"><b>재고</b> 정상 ${groups.ok} · 위험 ${groups.out} · 사전예약 ${groups.preorder} · 품절 ${groups.soldOut}.</div>`);let today=d0(new Date()),po=DATA.ops.po.filter(x=>x.date>=today&&x.date<=addDays(today,45));if(po.length)acts.push(`<div class="summary-line"><b>발주</b> 향후 45일 내 ${po.length}건 일정 확인 필요.</div>`)}
-  $('summaryLines').innerHTML=lines.join('')||'<div class="muted">요약할 데이터가 없습니다.</div>';$('actionLines').innerHTML=acts.join('')||'<div class="summary-line good"><b>정상</b> 자동 감지된 주요 체크포인트가 없습니다.</div>'
+
+function stockStatusLabel(s){return s==='ok'?'정상':s==='out'?'위험':s==='preorder'?'사전예약':'품절'}
+function openStockDetail(status){
+  let items=(DATA.ops?.stockItems||[]).filter(i=>poGetStockStatus(i)===status);
+  $('stockModalTitle').textContent=`주력 제품 재고 · ${stockStatusLabel(status)} ${items.length}개`;
+  $('stockDetailList').innerHTML=items.map(i=>`<div class="stock-detail-card">
+    <h3>${i.name}</h3>
+    <div class="stock-detail-row"><span>품절/소진 예상</span><b>${i.soldOutAt||'—'}</b></div>
+    <div class="stock-detail-row"><span>잔여 일수</span><b>${i.daysLeft||'—'}</b></div>
+    <div class="stock-detail-row"><span>재입고 일정</span><b>${i.restockAt||'—'}</b></div>
+    <div class="stock-detail-row"><span>재입고 수량</span><b>${i.restockQty||'—'}</b></div>
+    ${i.preorderStartAt?`<div class="stock-detail-row"><span>사전예약 시작일</span><b>${i.preorderStartAt}</b></div>`:''}
+  </div>`).join('')||'<div class="empty">해당 상태의 제품이 없습니다.</div>';
+  $('stockModal').classList.remove('hidden');syncModalCenter();
 }
+$('stockModalClose').onclick=()=>$('stockModal').classList.add('hidden');
+$('stockModal').onclick=e=>{if(e.target.id==='stockModal')$('stockModal').classList.add('hidden')};
+
+
 async function loadAll(){['srcSales','srcProduct','srcAds','srcProfit','srcOps'].forEach(id=>setSource(id,'loading','로딩'));let jobs=[['sales',loadSales,'srcSales'],['products',loadProducts,'srcProduct'],['ads',loadAds,'srcAds'],['profit',loadProfit,'srcProfit'],['ops',loadOps,'srcOps']];await Promise.all(jobs.map(async([k,fn,id])=>{try{await fn()}catch(e){console.error(k,e);setSource(id,'err','오류')}}));render()}
 function initAuth(){let wait=()=>{if(!window.google||!google.accounts||!google.accounts.oauth2)return setTimeout(wait,150);let tc=google.accounts.oauth2.initTokenClient({client_id:CFG.clientId,scope:CFG.scope,callback:async resp=>{if(resp.error){$('authErr').textContent='로그인 실패: '+resp.error;return}TOKEN=resp.access_token;$('authGate').classList.add('hidden');await loadAll()}});$('loginBtn').onclick=()=>tc.requestAccessToken({prompt:'consent'})};wait()}
 $('refreshBtn').onclick=()=>TOKEN&&loadAll();$('themeBtn').onclick=()=>{let light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');$('themeBtn').textContent=light?'라이트 모드':'다크 모드';render()};initAuth();
