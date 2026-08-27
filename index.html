@@ -94,10 +94,18 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 @media(max-width:800px){.stock-detail-list{grid-template-columns:1fr}}
 </style>
 
+
+<style>
+#authGate{z-index:2147483647!important;pointer-events:auto!important}
+#authGate .auth-card{position:relative;z-index:2147483647;pointer-events:auto!important}
+#loginBtn{position:relative;z-index:2147483647;pointer-events:auto!important;cursor:pointer!important;opacity:1!important}
+#loginBtn:disabled{opacity:.65!important;cursor:wait!important}
+</style>
+
 </head>
 <body>
 <div id="authGate" class="auth-gate">
-  <div class="auth-card"><h2>Weekly Report</h2><p>매출 · 광고 · 영업이익 비공개 Google Sheet를 읽기 위해<br>기존 대시보드와 동일한 Google 로그인이 필요합니다.</p><button id="loginBtn" class="btn primary" style="width:100%;padding:13px">Google 계정으로 로그인</button><div id="authErr" class="bad" style="font-size:11px;margin-top:12px"></div></div>
+  <div class="auth-card"><h2>Weekly Report</h2><p>매출 · 광고 · 영업이익 비공개 Google Sheet를 읽기 위해<br>기존 대시보드와 동일한 Google 로그인이 필요합니다.</p><button type="button" id="loginBtn" class="btn primary" style="width:100%;padding:13px">Google 계정으로 로그인</button><div id="authErr" class="bad" style="font-size:12px;margin-top:12px;min-height:18px"></div></div>
 </div>
 <div class="wrap">
   <header class="top">
@@ -492,7 +500,51 @@ $('stockModal').onclick=e=>{if(e.target.id==='stockModal')$('stockModal').classL
 
 
 async function loadAll(){['srcSales','srcProduct','srcAds','srcProfit','srcOps'].forEach(id=>setSource(id,'loading','로딩'));let jobs=[['sales',loadSales,'srcSales'],['products',loadProducts,'srcProduct'],['ads',loadAds,'srcAds'],['profit',loadProfit,'srcProfit'],['ops',loadOps,'srcOps']];await Promise.all(jobs.map(async([k,fn,id])=>{try{await fn()}catch(e){console.error(k,e);setSource(id,'err','오류')}}));render()}
-function initAuth(){let wait=()=>{if(!window.google||!google.accounts||!google.accounts.oauth2)return setTimeout(wait,150);let tc=google.accounts.oauth2.initTokenClient({client_id:CFG.clientId,scope:CFG.scope,callback:async resp=>{if(resp.error){$('authErr').textContent='로그인 실패: '+resp.error;return}TOKEN=resp.access_token;$('authGate').classList.add('hidden');await loadAll()}});$('loginBtn').onclick=()=>tc.requestAccessToken({prompt:'consent'})};wait()}
+let tokenClient=null;
+function setLoginLoading(on){
+  const btn=$('loginBtn'); if(!btn)return;
+  btn.disabled=!!on;
+  btn.textContent=on?'로그인 확인 중…':'Google 계정으로 로그인';
+}
+function initAuth(){
+  const btn=$('loginBtn'), err=$('authErr');
+  if(!btn)return;
+  // 클릭 리스너는 Google 라이브러리 로딩 여부와 무관하게 먼저 붙인다.
+  btn.addEventListener('click',()=>{
+    if(!tokenClient){
+      if(err)err.textContent='Google 로그인 모듈을 불러오는 중입니다. 잠시 후 다시 눌러주세요.';
+      return;
+    }
+    if(err)err.textContent='';
+    setLoginLoading(true);
+    try{tokenClient.requestAccessToken({prompt:'consent'})}
+    catch(e){setLoginLoading(false);if(err)err.textContent='로그인 창을 열지 못했습니다: '+(e?.message||e)}
+  });
+  function setup(){
+    if(!window.google||!google.accounts||!google.accounts.oauth2){
+      setTimeout(setup,200); return;
+    }
+    try{
+      tokenClient=google.accounts.oauth2.initTokenClient({
+        client_id:CFG.clientId,
+        scope:CFG.scope,
+        callback:async(resp)=>{
+          setLoginLoading(false);
+          if(resp.error){if(err)err.textContent='로그인에 실패했습니다: '+resp.error+' 다시 시도해 주세요.';return}
+          TOKEN=resp.access_token;
+          $('authGate').classList.add('hidden');
+          await loadAll();
+        }
+      });
+      if(err)err.textContent='';
+      setLoginLoading(false);
+    }catch(e){
+      setLoginLoading(false);
+      if(err)err.textContent='Google 로그인 초기화 오류: '+(e?.message||e);
+    }
+  }
+  setup();
+}
 $('refreshBtn').onclick=()=>TOKEN&&loadAll();$('themeBtn').onclick=()=>{let light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');$('themeBtn').textContent=light?'라이트 모드':'다크 모드';render()};initAuth();
 </script>
 </body></html>
