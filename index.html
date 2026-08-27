@@ -11,8 +11,8 @@
 :root{--bg:#0d1017;--panel:#151a24;--panel2:#1b2130;--line:#272e3d;--text:#edf1f7;--sub:#949eae;--blue:#6c7bff;--green:#34d399;--red:#fb7185;--yellow:#fbbf24;--cyan:#22d3ee;--radius:16px;--shadow:0 14px 40px rgba(0,0,0,.22)}
 html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5ec;--text:#141820;--sub:#667085;--blue:#5265f2;--green:#15803d;--red:#dc2648;--yellow:#a16207;--cyan:#0891b2;--shadow:0 8px 28px rgba(20,30,50,.08)}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Pretendard,-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}.wrap{max-width:1500px;margin:0 auto;padding:24px 28px 60px}.top{display:flex;justify-content:space-between;align-items:flex-start;gap:18px;margin-bottom:20px}.title h1{margin:0 0 7px;font-size:26px;letter-spacing:-.04em}.title p{margin:0;color:var(--sub);font-size:13px}.actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.btn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:10px;padding:9px 13px;font-size:12px;font-weight:700;cursor:pointer}.btn.primary{background:var(--blue);border-color:var(--blue);color:white}.period{display:inline-flex;align-items:center;gap:8px;margin-top:11px;padding:8px 12px;border:1px solid rgba(108,123,255,.4);background:rgba(108,123,255,.09);border-radius:999px;font-size:13px;font-weight:800}.status-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:14px}.source{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:11px;color:var(--sub);display:flex;align-items:center;gap:7px}.dot{width:7px;height:7px;border-radius:50%;background:var(--sub)}.source.ok .dot{background:var(--green);box-shadow:0 0 8px var(--green)}.source.err .dot{background:var(--red)}.source.loading .dot{background:var(--yellow)}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;min-width:0}.kpi{min-height:128px}.kpi .label{font-size:12px;color:var(--sub);margin-bottom:10px}.kpi .value{font-size:27px;font-weight:900;letter-spacing:-.045em}.kpi .meta{margin-top:8px;font-size:11.5px;color:var(--sub);line-height:1.5}.up{color:var(--red)!important}.down{color:#60a5fa!important}.good{color:var(--green)!important}.warn{color:var(--yellow)!important}.bad{color:var(--red)!important}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.span8{grid-column:span 8}.span7{grid-column:span 7}.span6{grid-column:span 6}.span5{grid-column:span 5}.span4{grid-column:span 4}.span12{grid-column:span 12}.head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.head h2{font-size:15px;margin:0}.head small{color:var(--sub);font-size:11px}.chart{height:245px}.chart.tall{height:285px}.table{width:100%;border-collapse:collapse;font-size:12px}.table th,.table td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:right;white-space:nowrap}.table th:first-child,.table td:first-child{text-align:left}.table th{color:var(--sub);font-weight:700}.badge{display:inline-block;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:800;background:var(--panel2);color:var(--sub)}.badge.good{background:rgba(52,211,153,.12)}.badge.warn{background:rgba(251,191,36,.12)}.badge.bad{background:rgba(251,113,133,.12)}.summary{display:grid;grid-template-columns:1.3fr .7fr;gap:14px}.summary-box{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:15px}.summary-box h3{font-size:12px;margin:0 0 10px;color:var(--sub)}.summary-lines{display:flex;flex-direction:column;gap:9px;font-size:12.5px;line-height:1.5}.summary-line b{margin-right:8px}.issue-list{display:flex;flex-direction:column;gap:9px}.issue{display:grid;grid-template-columns:90px 1fr auto;gap:10px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:11.5px}.issue .name{font-weight:800}.issue .desc{color:var(--sub);overflow:hidden;text-overflow:ellipsis}.muted{color:var(--sub)}.empty{color:var(--sub);font-size:12px;padding:18px 0}.auth-gate{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}.auth-card{width:min(440px,100%);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:36px;text-align:center;box-shadow:var(--shadow)}.auth-card h2{margin:0 0 10px;font-size:22px}.auth-card p{margin:0 0 22px;color:var(--sub);font-size:13px;line-height:1.6}.hidden{display:none!important}.loading-text{opacity:.6}.progress{height:8px;background:var(--panel2);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-top:12px}.progress>i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));width:0%}.forecast-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.forecast-mini{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}.forecast-mini .t{font-size:10px;color:var(--sub)}.forecast-mini .v{font-size:17px;font-weight:900;margin-top:5px}
-@media(max-width:1150px){.kpis{grid-template-columns:repeat(3,1fr)}.span8,.span7,.span6,.span5,.span4{grid-column:span 12}.status-strip{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){.wrap{padding:18px 14px 40px}.top{flex-direction:column}.kpis{grid-template-columns:1fr 1fr}.summary{grid-template-columns:1fr}.issue{grid-template-columns:1fr}.status-strip{grid-template-columns:1fr}}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;min-width:0}.kpi{min-height:154px;padding:22px 24px}.kpi .label{font-size:15px;color:var(--sub);margin-bottom:10px}.kpi .value{font-size:34px;font-weight:900;letter-spacing:-.045em}.kpi .meta{margin-top:10px;font-size:13px;color:var(--sub);line-height:1.5}.up{color:var(--red)!important}.down{color:#60a5fa!important}.good{color:var(--green)!important}.warn{color:var(--yellow)!important}.bad{color:var(--red)!important}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.span8{grid-column:span 8}.span7{grid-column:span 7}.span6{grid-column:span 6}.span5{grid-column:span 5}.span4{grid-column:span 4}.span12{grid-column:span 12}.head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.head h2{font-size:19px;margin:0}.head small{color:var(--sub);font-size:12.5px}.chart{height:330px}.chart.tall{height:360px}.table{width:100%;border-collapse:collapse;font-size:12px}.table th,.table td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:right;white-space:nowrap}.table th:first-child,.table td:first-child{text-align:left}.table th{color:var(--sub);font-weight:700}.badge{display:inline-block;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:800;background:var(--panel2);color:var(--sub)}.badge.good{background:rgba(52,211,153,.12)}.badge.warn{background:rgba(251,191,36,.12)}.badge.bad{background:rgba(251,113,133,.12)}.summary{display:grid;grid-template-columns:1.3fr .7fr;gap:14px}.summary-box{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:15px}.summary-box h3{font-size:12px;margin:0 0 10px;color:var(--sub)}.summary-lines{display:flex;flex-direction:column;gap:9px;font-size:12.5px;line-height:1.5}.summary-line b{margin-right:8px}.issue-list{display:flex;flex-direction:column;gap:9px}.issue{display:grid;grid-template-columns:90px 1fr auto;gap:10px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:11.5px}.issue .name{font-weight:800}.issue .desc{color:var(--sub);overflow:hidden;text-overflow:ellipsis}.muted{color:var(--sub)}.empty{color:var(--sub);font-size:12px;padding:18px 0}.auth-gate{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}.auth-card{width:min(440px,100%);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:36px;text-align:center;box-shadow:var(--shadow)}.auth-card h2{margin:0 0 10px;font-size:22px}.auth-card p{margin:0 0 22px;color:var(--sub);font-size:13px;line-height:1.6}.hidden{display:none!important}.loading-text{opacity:.6}.progress{height:8px;background:var(--panel2);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-top:12px}.progress>i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));width:0%}.forecast-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.forecast-mini{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}.forecast-mini .t{font-size:10px;color:var(--sub)}.forecast-mini .v{font-size:17px;font-weight:900;margin-top:5px}
+@media(max-width:1150px){.kpis{grid-template-columns:repeat(2,1fr)}.span8,.span7,.span6,.span5,.span4{grid-column:span 12}.status-strip{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){.wrap{padding:18px 14px 40px}.top{flex-direction:column}.kpis{grid-template-columns:1fr 1fr}.summary{grid-template-columns:1fr}.issue{grid-template-columns:1fr}.status-strip{grid-template-columns:1fr}}
 </style>
 
 <style>
@@ -20,10 +20,53 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 .product-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.product-card{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:15px;cursor:pointer;transition:.15s;position:relative}.product-card:hover{transform:translateY(-2px);border-color:var(--blue)}.product-card h3{margin:0 0 13px;font-size:15px}.product-state{position:absolute;right:12px;top:12px}.product-metrics{display:grid;gap:8px}.pm{display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding-top:8px;font-size:11px}.pm span{color:var(--sub)}.pm b{text-align:right}.ad-metrics{display:grid;grid-template-columns:1fr 1fr 2fr;gap:10px;margin-top:12px}.roas-wide .v{font-size:21px}.inventory-list{display:grid;gap:8px}.inventory-row{display:grid;grid-template-columns:1.3fr auto auto;gap:10px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:11px}.inventory-row .iname{font-weight:800}.inventory-row .isub{color:var(--sub);margin-top:3px}.modal{position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:24px}.modal-card{width:min(1100px,96vw);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow)}.modal-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px}.modal-head h2{margin:0 0 4px;font-size:18px}.modal-head small{color:var(--sub)}
 @media(max-width:1000px){.product-grid{grid-template-columns:1fr 1fr}.eval-grid{grid-template-columns:1fr}.ad-metrics{grid-template-columns:1fr 1fr}.roas-wide{grid-column:span 2}}@media(max-width:650px){.product-grid{grid-template-columns:1fr}}
 </style>
+
+<style>
+/* Weekly Report presentation mode */
+.sales-main-card{cursor:pointer;transition:.15s}
+.sales-main-card:hover{border-color:var(--blue);transform:translateY(-1px)}
+.product-grid{grid-template-columns:repeat(4,1fr);gap:16px}
+.product-card{padding:20px;min-height:170px}
+.product-card h3{font-size:18px;margin-bottom:17px}
+.pm{font-size:13px;padding-top:11px}
+.pm em{font-style:normal}
+.eval-grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px}
+.eval-item{padding:14px 12px;min-height:205px;display:flex;flex-direction:column}
+.eval-item .et{font-size:13px;font-weight:800;color:var(--text);min-height:34px}
+.eval-bars{display:flex;align-items:flex-end;justify-content:center;gap:14px;height:100px;margin:10px 0 8px;border-bottom:1px solid var(--line)}
+.eval-bar-wrap{width:44%;height:92px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}
+.eval-bar{width:100%;max-width:42px;border-radius:7px 7px 2px 2px;min-height:4px}
+.eval-bar.base{background:#667085}
+.eval-bar.current{background:var(--blue)}
+.eval-bar-label{font-size:10px;color:var(--sub);font-weight:700}
+.eval-bar-value{font-size:10.5px;font-weight:800;white-space:nowrap}
+.eval-rate{text-align:center;font-size:15px;font-weight:900;margin-top:auto}
+.ad-metrics{grid-template-columns:repeat(4,1fr);gap:12px}
+.forecast-mini{padding:14px}
+.forecast-mini .t{font-size:12px}
+.forecast-mini .v{font-size:20px}
+.roas-wide .v{font-size:20px}
+.stock-summary-wrap{display:flex;align-items:center;justify-content:space-between;gap:14px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:18px}
+.stock-badges{display:flex;gap:10px;flex-wrap:wrap}
+.stock-chip{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:9px 13px;font-size:13px;font-weight:800;border:1px solid var(--line);background:var(--panel)}
+.stock-chip.ok{color:var(--green);border-color:rgba(52,211,153,.35);background:rgba(52,211,153,.08)}
+.stock-chip.pre{color:var(--yellow);border-color:rgba(251,191,36,.35);background:rgba(251,191,36,.08)}
+.stock-chip.sold{color:var(--sub)}
+.modal-card{width:min(1220px,97vw)}
+.modal-chart-toggle{display:flex;gap:7px;flex-wrap:wrap;margin:0 0 12px}
+.modal-chart-toggle .btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.sales-toggle{display:flex;gap:7px;align-items:center}
+.sales-toggle .btn.active{background:var(--blue);border-color:var(--blue);color:#fff}
+.chart.xl{height:440px}
+@media(max-width:1250px){.eval-grid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:950px){.product-grid{grid-template-columns:repeat(2,1fr)}.ad-metrics{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:650px){.eval-grid,.product-grid,.ad-metrics,.kpis{grid-template-columns:1fr}}
+</style>
+
 </head>
 <body>
 <div id="authGate" class="auth-gate">
-  <div class="auth-card"><h2>FRAMEBY 전체회의 대시보드</h2><p>매출 · 광고 · 영업이익 비공개 Google Sheet를 읽기 위해<br>기존 대시보드와 동일한 Google 로그인이 필요합니다.</p><button id="loginBtn" class="btn primary" style="width:100%;padding:13px">Google 계정으로 로그인</button><div id="authErr" class="bad" style="font-size:11px;margin-top:12px"></div></div>
+  <div class="auth-card"><h2>Weekly Report</h2><p>매출 · 광고 · 영업이익 비공개 Google Sheet를 읽기 위해<br>기존 대시보드와 동일한 Google 로그인이 필요합니다.</p><button id="loginBtn" class="btn primary" style="width:100%;padding:13px">Google 계정으로 로그인</button><div id="authErr" class="bad" style="font-size:11px;margin-top:12px"></div></div>
 </div>
 <div class="wrap">
   <header class="top">
@@ -44,26 +87,73 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
     <div class="card kpi"><div class="label">이번 주 광고비</div><div class="value" id="kAdSpend">—</div><div class="meta" id="kAdMeta">—</div></div>
   </section>
   <main class="grid">
-    <section class="card span8"><div class="head"><div><h2>최근 8주 매출 추이</h2><small>금요일~목요일 7일 합산 · 막대 상단 금액은 만원 단위</small></div><span class="badge">전체 플랫폼</span></div><div class="chart"><canvas id="salesChart"></canvas></div></section>
-    <section class="card span4"><div class="head"><div><h2 id="evalTitle">월 평가 지표</h2><small>계획/예상 대비 현재 진행 수준</small></div></div><div id="monthEval" class="eval-grid"><div class="empty">데이터 로딩 중...</div></div></section>
+    <section class="card span12 sales-main-card" id="salesMainCard">
+      <div class="head"><div><h2>최근 8주 매출 추이</h2><small>금요일~목요일 7일 합산 · 클릭하면 최근 3주 요일별 매출 비교</small></div><span class="badge">전체 플랫폼</span></div>
+      <div class="chart xl"><canvas id="salesChart"></canvas></div>
+    </section>
 
-    <section class="card span12"><div class="head"><div><h2>제품별 성과 현황</h2><small>4개 주력제품 · 이번 주 vs 전주 · 카드를 누르면 최근 30일 판매량 표시</small></div><span class="badge">담김 데이터 제외</span></div><div id="productCards" class="product-grid"><div class="empty">데이터 로딩 중...</div></div></section>
+    <section class="card span12">
+      <div class="head"><div><h2>제품별 성과 현황</h2><small>4개 주력제품 · 이번 주 vs 전주 · 클릭하면 최근 30일 상세 추이</small></div><span class="badge">담김 제외</span></div>
+      <div id="productCards" class="product-grid"><div class="empty">데이터 로딩 중...</div></div>
+    </section>
 
-    <section class="card span12"><div class="head"><div><h2>광고 성과</h2><small>요일별 이번 주 vs 지난주 광고비</small></div></div><div class="chart tall"><canvas id="adChart"></canvas></div><div class="ad-metrics"><div class="forecast-mini"><div class="t">광고비</div><div class="v" id="adSpendMini">—</div></div><div class="forecast-mini"><div class="t">유입매출</div><div class="v" id="adRevenueMini">—</div></div><div class="forecast-mini roas-wide"><div class="t">ROAS</div><div class="v" id="adRoasMini">—</div></div></div></section>
+    <section class="card span12">
+      <div class="head"><div><h2 id="evalTitle">월 평가 지표</h2><small>매출·광고비는 목표 vs 현재 · 비용은 예상 vs 실제</small></div></div>
+      <div id="monthEval" class="eval-grid"><div class="empty">데이터 로딩 중...</div></div>
+    </section>
 
-    <section class="card span12"><div class="head"><div><h2 id="weeklyEvalTitle">주차별 영업이익 점검 · 항목별 평가</h2><small>영업이익 대시보드 일별 데이터 · 예상 vs 실제</small></div></div><div class="chart tall"><canvas id="weeklyEvalChart"></canvas></div></section>
+    <section class="card span12">
+      <div class="head"><div><h2>광고 성과</h2><small>요일별 이번 주 vs 지난주 광고비 · 직선 비교</small></div></div>
+      <div class="chart xl"><canvas id="adChart"></canvas></div>
+      <div class="ad-metrics">
+        <div class="forecast-mini"><div class="t">이번주차 광고비</div><div class="v" id="adSpendMini">—</div></div>
+        <div class="forecast-mini"><div class="t">이번주차 유입매출</div><div class="v" id="adRevenueMini">—</div></div>
+        <div class="forecast-mini"><div class="t">이번주차 ROAS</div><div class="v" id="adRoasMini">—</div></div>
+        <div class="forecast-mini"><div class="t" id="adMonthRatioTitle">이번달 누적 광고비/매출액</div><div class="v" id="adMonthRatioMini">—</div></div>
+      </div>
+    </section>
 
-    <section class="card span6"><div class="head"><div><h2>주력제품 재고 현황</h2><small>운영 대시보드 · 재고관리_재고 기준</small></div><span class="badge" id="inventoryCount">—</span></div><div id="inventoryList" class="inventory-list"><div class="empty">데이터 로딩 중...</div></div></section>
-    <section class="card span6"><div class="head"><div><h2>발주 관련 특이사항</h2><small>향후 일정/지출 중심</small></div><span class="badge" id="poCount">—</span></div><div class="issue-list" id="poIssues"><div class="empty">데이터 로딩 중...</div></div></section>
+    <section class="card span6">
+      <div class="head"><div><h2>주력 제품 재고 현황</h2><small>운영 대시보드 발주관리 · 재고 TOP 기준</small></div><span class="badge" id="inventoryCount">실시간</span></div>
+      <div id="inventoryList" class="stock-summary-wrap"><div class="empty">데이터 로딩 중...</div></div>
+    </section>
+
+    <section class="card span6">
+      <div class="head"><div><h2>발주 관련 특이사항</h2><small>향후 일정/지출 중심</small></div><span class="badge" id="poCount">—</span></div>
+      <div class="issue-list" id="poIssues"><div class="empty">데이터 로딩 중...</div></div>
+    </section>
 
     <section class="card span12"><div class="head"><div><h2>B2B 진행 특이사항</h2><small>고객사 컨펌 '확정' 건 기준</small></div><span class="badge" id="b2bCount">—</span></div><div class="issue-list" id="b2bIssues"><div class="empty">데이터 로딩 중...</div></div></section>
 
     <section class="card span12"><div class="head"><div><h2>Executive Summary</h2><small>전체회의에서 그대로 읽을 수 있는 요약</small></div><span class="badge" id="updatedAt">—</span></div><div class="summary"><div class="summary-box"><h3>핵심 변화</h3><div class="summary-lines" id="summaryLines"><div class="muted">데이터 집계 후 자동 생성됩니다.</div></div></div><div class="summary-box"><h3>회의 체크포인트</h3><div class="summary-lines" id="actionLines"><div class="muted">재고/발주/B2B 이슈를 자동 요약합니다.</div></div></div></div></section>
   </main>
+
+  <div id="productModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-head"><div><h2 id="modalTitle">최근 30일 제품 상세</h2><small id="modalSub">자사몰+네이버 합산</small></div><button class="btn" id="modalClose">닫기</button></div>
+      <div class="modal-chart-toggle">
+        <button class="btn active" data-product-view="sales">판매수량</button>
+        <button class="btn" data-product-view="exposure">노출량</button>
+        <button class="btn" data-product-view="rate">전환율</button>
+      </div>
+      <div class="chart xl"><canvas id="product30Chart"></canvas></div>
+    </div>
+  </div>
+
+  <div id="salesModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-head"><div><h2>최근 3주 요일별 매출 추이</h2><small>최근 입력일 기준 21일을 7일씩 비교</small></div><button class="btn" id="salesModalClose">닫기</button></div>
+      <div class="sales-toggle">
+        <button class="btn active" data-sales-view="total">전체 플랫폼 합산</button>
+        <button class="btn" data-sales-view="selfNaver">자사몰+네이버 합산</button>
+      </div>
+      <div class="chart xl" style="margin-top:12px"><canvas id="sales3WeekChart"></canvas></div>
+    </div>
+  </div>
   <div id="productModal" class="modal hidden"><div class="modal-card"><div class="modal-head"><div><h2 id="modalTitle">최근 30일 판매 데이터</h2><small>자사몰+네이버 전환수 합산</small></div><button class="btn" id="modalClose">닫기</button></div><div class="chart tall"><canvas id="product30Chart"></canvas></div></div></div>
 </div>
 <script>
-const CFG={clientId:'691753741006-9i13kjkk3ci2jv6lr6rupa491j7rlb64.apps.googleusercontent.com',scope:'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',salesId:'1ci6ItqdLhOzg7kdqGLhvfCR3AgJJ2yPnwp2-qV0GiYg',productId:'1dSRAB8r9is6IqAucdXfIThOqL1R-eTrWWJbjTUJ4l3c',productOwn:'2026 자사몰',productNaver:'2026 네이버',adId:'1gcndNdb8XcVn8obftjlzwhmwxwxG6llzimscKE-szvg',profitId:'1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI',profitPlanSheet:'매출데이터',profitPlanRange:'A1:J13',profitDailySheet:'일별 데이터',profitDailyRange:'A1:S500',poId:'1p-ko7c4--yUwYOYE2fL8X6Z1U3O1lWoJ36AZuBanGmQ',b2bId:'1MLo9mYivyHla2ANgJDr4V38VoQfaaa1FLHg93KgcZZ4',inventoryId:'1aAr8wNaNbO8Ts3lQivHxnpBy8aY9IKPB1HokkO7mYq0',inventorySheet:'재고관리_재고'};
+const CFG={clientId:'691753741006-9i13kjkk3ci2jv6lr6rupa491j7rlb64.apps.googleusercontent.com',scope:'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile',salesId:'1ci6ItqdLhOzg7kdqGLhvfCR3AgJJ2yPnwp2-qV0GiYg',productId:'1dSRAB8r9is6IqAucdXfIThOqL1R-eTrWWJbjTUJ4l3c',productOwn:'2026 자사몰',productNaver:'2026 네이버',adId:'1gcndNdb8XcVn8obftjlzwhmwxwxG6llzimscKE-szvg',profitId:'1OiHdw4mfEg_4rfPaLsVnCCBJVuDRpoNEaC4waW5NcdI',profitPlanSheet:'매출데이터',profitPlanRange:'A1:J13',profitDailySheet:'일별 데이터',profitDailyRange:'A1:S500',poId:'1p-ko7c4--yUwYOYE2fL8X6Z1U3O1lWoJ36AZuBanGmQ',b2bId:'1MLo9mYivyHla2ANgJDr4V38VoQfaaa1FLHg93KgcZZ4',inventoryId:'1aAr8wNaNbO8Ts3lQivHxnpBy8aY9IKPB1HokkO7mYq0',inventorySheet:'재고관리_재고',poStockId:'1najWl30V40gEHacr6LaNYDIaEgLHGAcxdLDqneW6MxE'};
 let TOKEN=null, charts={}, DATA={sales:null,products:null,ads:null,profit:null,ops:null};
 const $=id=>document.getElementById(id); const fmtWon=n=>n==null||!isFinite(n)?'—':Math.round(n).toLocaleString('ko-KR')+'원'; const fmtMan=n=>n==null||!isFinite(n)?'—':Math.round(n/10000).toLocaleString('ko-KR')+'만원'; const fmtEok=n=>n==null||!isFinite(n)?'—':(n/1e8).toFixed(n>=1e9?1:2)+'억원'; const fmtMoney=n=>Math.abs(n)>=1e8?fmtEok(n):fmtMan(n); const pct=(cur,prev)=>prev?((cur-prev)/prev*100):null; const fmtPct=n=>n==null||!isFinite(n)?'—':(n>=0?'+':'')+n.toFixed(1)+'%';
 function d0(d){return new Date(d.getFullYear(),d.getMonth(),d.getDate())} function addDays(d,n){let x=d0(d);x.setDate(x.getDate()+n);return x} function iso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`} function md(d){return `${d.getMonth()+1}/${d.getDate()}`} function rangeLabel(a,b){return `${md(a)}(${['일','월','화','수','목','금','토'][a.getDay()]}) ~ ${md(b)}(${['일','월','화','수','목','금','토'][b.getDay()]})`}
@@ -75,23 +165,262 @@ async function publicCSV(id,sheet,extra=''){let u=`https://docs.google.com/sprea
 function num(v){if(v==null||String(v).trim()==='')return null;let s=String(v).replace(/[₩,%\s]/g,'').replace(/,/g,'');let neg=/^\(.*\)$/.test(s);s=s.replace(/[()]/g,'');let n=parseFloat(s);return isNaN(n)?null:(neg?-n:n)}
 function dateFlexible(v,year=2026){if(v==null)return null;if(typeof v==='number'){let base=new Date(1899,11,30);return addDays(base,Math.floor(v))}let s=String(v).trim();let m=s.match(/(\d{4})[-.\/]\s*(\d{1,2})[-.\/]\s*(\d{1,2})/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);m=s.match(/(\d{2})[-.\/]\s*(\d{1,2})[-.\/]\s*(\d{1,2})/);if(m)return new Date(2000+(+m[1]),+m[2]-1,+m[3]);m=s.match(/(\d{1,2})\s*[월\/]\s*(\d{1,2})\s*일?/);if(m)return new Date(year,+m[1]-1,+m[2]);return null}
 function normalizeProduct(s){let n=String(s||'').toUpperCase().replace(/[\s_\-–—·.()]/g,'');if(n==='MK'||n.includes('킥프레임')||n.includes('KICKFRAME'))return'킥프레임';if(n==='PH'||n.includes('PHSTAND')||n.startsWith('PH'))return'PH STAND';if(n.includes('DW프로')||n.includes('DWPRO'))return'DW PRO';if(n.includes('DW플러스')||n.includes('DWPLUS'))return'DW PLUS';return String(s||'').trim()}
-async function loadSales(){setSource('srcSales','loading','로딩');let tab=`${RR.end.getFullYear()}-${String(RR.end.getMonth()+1).padStart(2,'0')}`, prev=addDays(new Date(RR.end.getFullYear(),RR.end.getMonth(),1),-1), prevTab=`${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}`;let vals1=await apiValues(CFG.salesId,`'${tab}'!B:AZ`), vals2=tab===prevTab?[]:await apiValues(CFG.salesId,`'${prevTab}'!B:AZ`);function parse(vals,year){let hi=vals.findIndex(r=>r.map(x=>String(x).trim().toUpperCase()).includes('TOTAL')&&r.some(x=>String(x).trim()==='일자'));if(hi<0)return[];let h=vals[hi],di=h.findIndex(x=>String(x).trim()==='일자'),ti=h.findIndex(x=>String(x).trim().toUpperCase()==='TOTAL');let rows=[];for(let r of vals.slice(hi+1)){let d=dateFlexible(r[di],year);if(!d)continue;let total=0;for(let i=di+1;i<ti;i++)total+=num(r[i])||0;if(total>0)rows.push({date:d,total})}return rows}let days=[...parse(vals2,prev.getFullYear()),...parse(vals1,RR.end.getFullYear())].sort((a,b)=>a.date-b.date);let current=days.filter(x=>inRange(x.date,RR)), prior=days.filter(x=>inRange(x.date,previousRange(RR))), currentSum=sum(current,x=>x.total), priorSum=sum(prior,x=>x.total);let monthDays=days.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&x.date<=RR.end), mtd=sum(monthDays,x=>x.total), dim=new Date(RR.end.getFullYear(),RR.end.getMonth()+1,0).getDate(), forecast=monthDays.length?mtd/monthDays.length*dim:0;let weeks=[];for(let i=7;i>=0;i--){let r=previousRange(RR,i);weeks.push({label:`${md(r.start)}~${md(r.end)}`,value:sum(days.filter(x=>inRange(x.date,r)),x=>x.total)})}DATA.sales={days,currentSum,priorSum,mtd,forecast,monthDays,weeks};setSource('srcSales','ok','정상');}
+async function loadSales(){
+  setSource('srcSales','loading','로딩');
+  let tab=`${RR.end.getFullYear()}-${String(RR.end.getMonth()+1).padStart(2,'0')}`,
+      prev=addDays(new Date(RR.end.getFullYear(),RR.end.getMonth(),1),-1),
+      prevTab=`${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}`;
+  let vals1=await apiValues(CFG.salesId,`'${tab}'!B:AZ`),
+      vals2=tab===prevTab?[]:await apiValues(CFG.salesId,`'${prevTab}'!B:AZ`);
+  function parse(vals,year){
+    let hi=vals.findIndex(r=>r.map(x=>String(x).trim().toUpperCase()).includes('TOTAL')&&r.some(x=>String(x).trim()==='일자'));
+    if(hi<0)return[];
+    let h=vals[hi],di=h.findIndex(x=>String(x).trim()==='일자'),ti=h.findIndex(x=>String(x).trim().toUpperCase()==='TOTAL');
+    let channelCols=[];
+    for(let i=di+1;i<ti;i++){
+      let name=String(h[i]||'').trim(), n=name.replace(/\s/g,'').toLowerCase();
+      if(!name||name==='요일')continue;
+      let canonical=n.includes('자사')?'self':(n.includes('네이버')||n.includes('스마트스토어'))?'naver':null;
+      channelCols.push({i,name,canonical});
+    }
+    if(channelCols.length>=4){
+      let last4=channelCols.slice(-4);
+      if(!channelCols.some(x=>x.canonical==='self')) last4[0].canonical='self';
+      if(!channelCols.some(x=>x.canonical==='naver')) last4[1].canonical='naver';
+    }
+    let rows=[];
+    for(let r of vals.slice(hi+1)){
+      let d=dateFlexible(r[di],year); if(!d)continue;
+      let total=0,self=0,naver=0;
+      channelCols.forEach(c=>{let v=num(r[c.i])||0;total+=v;if(c.canonical==='self')self+=v;if(c.canonical==='naver')naver+=v});
+      if(total>0)rows.push({date:d,total,self,naver,selfNaver:self+naver});
+    }
+    return rows
+  }
+  let days=[...parse(vals2,prev.getFullYear()),...parse(vals1,RR.end.getFullYear())].sort((a,b)=>a.date-b.date);
+  let current=days.filter(x=>inRange(x.date,RR)), prior=days.filter(x=>inRange(x.date,previousRange(RR))),
+      currentSum=sum(current,x=>x.total), priorSum=sum(prior,x=>x.total);
+  let monthDays=days.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&x.date<=RR.end),
+      mtd=sum(monthDays,x=>x.total), dim=new Date(RR.end.getFullYear(),RR.end.getMonth()+1,0).getDate(),
+      forecast=monthDays.length?mtd/monthDays.length*dim:0;
+  let weeks=[];for(let i=7;i>=0;i--){let r=previousRange(RR,i);weeks.push({label:`${md(r.start)}~${md(r.end)}`,value:sum(days.filter(x=>inRange(x.date,r)),x=>x.total)})}
+  DATA.sales={days,currentSum,priorSum,mtd,forecast,monthDays,weeks};setSource('srcSales','ok','정상');
+}
 function findHeader(rows){for(let i=0;i<Math.min(rows.length,12);i++)if(rows[i].some(x=>String(x).trim()==='노출수'))return i;return 1}function findNameRow(rows,hi){return Math.max(0,hi-1)}function norm(s){return String(s||'').replace(/\s/g,'').toLowerCase()}function detectBlocks(nameRow,header){let out=[];for(let i=0;i<header.length;i++){let lab=String(header[i]||'').trim();if(norm(lab).endsWith('일자')){let name=lab.replace(/일자$/,'').trim()||String(nameRow[i]||nameRow[i+1]||'').trim()||`제품${out.length+1}`;out.push({name,start:i,metrics:['일자']})}else if(out.length&&lab)out[out.length-1].metrics.push(lab)}return out}
 function parseProductCSV(text){let rows=parseCSV(text),hi=findHeader(rows),ni=findNameRow(rows,hi),blocks=detectBlocks(rows[ni]||[],rows[hi]||[]),out={};blocks.forEach(b=>out[normalizeProduct(b.name)]=[]);for(let r of rows.slice(hi+1)){let d=dateFlexible(r[0],2026);if(!d)continue;for(let b of blocks){let ms=b.metrics.map(norm),e=ms.indexOf('노출수'),a=ms.indexOf('담김수'),c=ms.indexOf('전환수');let exposure=e>=0?num(r[b.start+e]):null;if(exposure==null)continue;let key=normalizeProduct(b.name);out[key].push({date:d,exposure,add:a>=0?(num(r[b.start+a])||0):0,conversion:c>=0?(num(r[b.start+c])||0):0})}}return out}
-async function loadProducts(){setSource('srcProduct','loading','로딩');let [o,n]=await Promise.all([publicCSV(CFG.productId,CFG.productOwn),publicCSV(CFG.productId,CFG.productNaver)]),own=parseProductCSV(o),nav=parseProductCSV(n),names=['킥프레임','PH STAND','DW PRO','DW PLUS'];let rows=names.map(k=>{let all=[...(own[k]||[]),...(nav[k]||[])].sort((a,b)=>a.date-b.date),c=all.filter(x=>inRange(x.date,RR)),p=all.filter(x=>inRange(x.date,previousRange(RR))),ce=sum(c,x=>x.exposure),cc=sum(c,x=>x.conversion),pe=sum(p,x=>x.exposure),pc=sum(p,x=>x.conversion),cr=ce?cc/ce:0,pr=pe?pc/pe:0;let end=RR.end,start=addDays(end,-29),daily=[];for(let d=start;d<=end;d=addDays(d,1)){let z=all.filter(x=>iso(x.date)===iso(d));daily.push({date:new Date(d),sales:sum(z,x=>x.conversion)})}return{name:k,exposure:ce,conversion:cc,rate:cr,prevExposure:pe,prevConversion:pc,prevRate:pr,wowExposure:pct(ce,pe),wowConv:pct(cc,pc),rateDelta:(cr-pr)*100,daily}});DATA.products={rows};setSource('srcProduct','ok','정상');}
+async function loadProducts(){
+  setSource('srcProduct','loading','로딩');
+  let [o,n]=await Promise.all([publicCSV(CFG.productId,CFG.productOwn),publicCSV(CFG.productId,CFG.productNaver)]),
+      own=parseProductCSV(o),nav=parseProductCSV(n),names=['킥프레임','PH STAND','DW PRO','DW PLUS'];
+  let rows=names.map(k=>{
+    let all=[...(own[k]||[]),...(nav[k]||[])].sort((a,b)=>a.date-b.date),
+        c=all.filter(x=>inRange(x.date,RR)),p=all.filter(x=>inRange(x.date,previousRange(RR))),
+        ce=sum(c,x=>x.exposure),cc=sum(c,x=>x.conversion),pe=sum(p,x=>x.exposure),pc=sum(p,x=>x.conversion),
+        cr=ce?cc/ce:0,pr=pe?pc/pe:0;
+    let end=RR.end,start=addDays(end,-29),daily=[];
+    for(let d=start;d<=end;d=addDays(d,1)){
+      let z=all.filter(x=>iso(x.date)===iso(d)),ex=sum(z,x=>x.exposure),cv=sum(z,x=>x.conversion);
+      daily.push({date:new Date(d),sales:cv,exposure:ex,rate:ex?cv/ex*100:0});
+    }
+    return{name:k,exposure:ce,conversion:cc,rate:cr,prevExposure:pe,prevConversion:pc,prevRate:pr,wowExposure:pct(ce,pe),wowConv:pct(cc,pc),rateDelta:(cr-pr)*100,daily}
+  });
+  DATA.products={rows};setSource('srcProduct','ok','정상');
+}
 function parseAdRows(vals){return vals.slice(1).map(r=>({date:dateFlexible(r[0],2026),ad:num(r[1])||0,revenue:num(r[2])||0,ratio:num(r[3])})).filter(x=>x.date)}
-async function loadAds(){setSource('srcAds','loading','로딩');let prevR=previousRange(RR),tabs=[...new Set([RR.start,RR.end,prevR.start,prevR.end].map(d=>`${String(d.getFullYear()).slice(2)}-${String(d.getMonth()+1).padStart(2,'0')}`))],all=[];for(let t of tabs){try{let v=await apiValues(CFG.adId,`'${t}'!O8:R39`,false);all.push(...parseAdRows(v))}catch(e){console.warn('ad tab',t,e)}}let current=all.filter(x=>inRange(x.date,RR)),prior=all.filter(x=>inRange(x.date,prevR));DATA.ads={spend:sum(current,x=>x.ad),revenue:sum(current,x=>x.revenue),priorSpend:sum(prior,x=>x.ad),priorRevenue:sum(prior,x=>x.revenue),rows:current,priorRows:prior};setSource('srcAds','ok','정상');}
+async function loadAds(){
+  setSource('srcAds','loading','로딩');
+  let prevR=previousRange(RR),tabs=[...new Set([RR.start,RR.end,prevR.start,prevR.end].map(d=>`${String(d.getFullYear()).slice(2)}-${String(d.getMonth()+1).padStart(2,'0')}`))],all=[];
+  for(let t of tabs){try{let v=await apiValues(CFG.adId,`'${t}'!O8:R39`,false);all.push(...parseAdRows(v))}catch(e){console.warn('ad tab',t,e)}}
+  let current=all.filter(x=>inRange(x.date,RR)),prior=all.filter(x=>inRange(x.date,prevR)),
+      monthRows=all.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&x.date<=RR.end);
+  DATA.ads={spend:sum(current,x=>x.ad),revenue:sum(current,x=>x.revenue),priorSpend:sum(prior,x=>x.ad),priorRevenue:sum(prior,x=>x.revenue),rows:current,priorRows:prior,monthSpend:sum(monthRows,x=>x.ad),monthRevenue:sum(monthRows,x=>x.revenue)};
+  setSource('srcAds','ok','정상');
+}
 function parseProfitDaily(vals){return vals.slice(1).map(c=>({date:dateFlexible(c[0],2026),revenue:num(c[1]),settlement:num(c[2]),ownNaver:num(c[3]),ad:num(c[5]),adCharge:num(c[6]),expOrder:num(c[7]),order:num(c[8]),orderNote:c[9]||'',expFixed:num(c[10]),fixed:num(c[11]),fixedNote:c[12]||'',expVariable:num(c[13]),variable:num(c[14]),variableNote:c[15]||'',expRepay:num(c[16]),repay:num(c[17]),repayNote:c[18]||''})).filter(x=>x.date)}
 async function loadProfit(){setSource('srcProfit','loading','로딩');let [daily,plan]=await Promise.all([apiValues(CFG.profitId,`'${CFG.profitDailySheet}'!${CFG.profitDailyRange}`,false),apiValues(CFG.profitId,`'${CFG.profitPlanSheet}'!A1:K13`,false)]),rows=parseProfitDaily(daily),mk=`${String(RR.end.getFullYear()).slice(2)}-${String(RR.end.getMonth()+1).padStart(2,'0')}`,planRow=plan.slice(1).find(r=>String(r[0]||'').trim()===mk)||[],dim=new Date(RR.end.getFullYear(),RR.end.getMonth()+1,0).getDate(),monthRows=rows.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&x.date<=RR.end),weekRows=rows.filter(x=>inRange(x.date,RR));function av(key,a=monthRows){let z=a.filter(x=>x[key]!=null);return z.length?sum(z,x=>x[key])/z.length:0}function sm(key,a=monthRows){return sum(a,x=>x[key]||0)}let monthly={ownTarget:num(planRow[1])||0,totalTargetDaily:(num(planRow[2])||0)/dim,adTargetDaily:(num(planRow[5])||0)/dim,ownActual:av('ownNaver'),totalActual:av('revenue'),adActual:av('ad'),orderExpected:sm('expOrder'),orderActual:sm('order'),fixedExpected:sm('expFixed'),fixedActual:sm('fixed'),variableExpected:sm('expVariable'),variableActual:sm('variable')};let weekly={ownExpected:num(planRow[1])||0,ownActual:av('ownNaver',weekRows),totalExpected:(num(planRow[2])||0)/dim,totalActual:av('revenue',weekRows),adExpected:(num(planRow[5])||0)/dim,adActual:av('ad',weekRows),orderExpected:sm('expOrder',weekRows),orderActual:sm('order',weekRows),fixedExpected:sm('expFixed',weekRows),fixedActual:sm('fixed',weekRows),variableExpected:sm('expVariable',weekRows),variableActual:sm('variable',weekRows)};DATA.profit={monthly,weekly,planRow,rows};setSource('srcProfit','ok','정상');}
-async function loadOps(){setSource('srcOps','loading','로딩');let [poText,b2bText,invText]=await Promise.all([publicCSV(CFG.poId,'타임라인'),publicCSV(CFG.b2bId,'B2B 현황','&range=B5:L'),publicCSV(CFG.inventoryId,CFG.inventorySheet)]);let pr=parseCSV(poText),ph=(pr[0]||[]).map(x=>String(x).trim()),po=pr.slice(1).map(r=>{let o={};ph.forEach((h,i)=>o[h]=r[i]||'');return{date:dateFlexible(o['날짜']||o['date'],2026),type:String(o['유형']||o['type']||'').trim(),product:String(o['제품명']||o['product']||'').trim(),qty:num(o['수량']||o['qty']),amount:num(o['금액']||o['amount']),note:o['비고']||'',memo:o['협의사항']||''}}).filter(x=>x.date&&['신','추','요','기'].includes(x.type));let br=parseCSV(b2bText),bh=(br[0]||[]).map(x=>String(x).trim()),b2b=br.slice(1).map(r=>{let o={};bh.forEach((h,i)=>o[h]=r[i]||'');return{date:dateFlexible(o['일자'],2026),company:String(o['기업명']||'').trim(),product:String(o['제품명']||'').trim(),confirm:String(o['고객사 컨펌현황']||'').trim(),production:String(o['제작현황']||'').trim(),delivery:String(o['납품현황']||'').trim(),qty:num(o['수량'])||0,amount:num(o['견적금액 (VAT포함)'])||0,settlement:String(o['정산현황']||'').trim(),note:String(o['비고']||'').trim()}}).filter(x=>x.date&&x.confirm==='확정');let ir=parseCSV(invText),ih=ir[0]||[],starts=ih.map((h,i)=>/^(제품|제품명|상품명|품목명|품목)$/.test(String(h).trim())?i:-1).filter(i=>i>=0),inventory=[];function findIdx(st,en,keys){for(let i=st;i<en;i++){let h=String(ih[i]||'').replace(/\s/g,'');if(keys.some(k=>h.includes(k)))return i}return-1}starts.forEach((st,bi)=>{let en=starts[bi+1]??ih.length,si=findIdx(st,en,['재고수량','현재재고','현재고','재고']),mi=findIdx(st,en,['소진기간']),di=findIdx(st,en,['소진시점','품절예상일','예상소진일']),ri=findIdx(st,en,['재입고','입고예정']);ir.slice(1).forEach(r=>{let product=String(r[st]||'').trim();if(!product)return;let qty=si>=0?(num(r[si])||0):0,months=mi>=0?(num(r[mi])||0):0,sellout=di>=0?String(r[di]||'').trim():'',restock=ri>=0?String(r[ri]||'').trim():'';inventory.push({product,qty,months,sellout,restock})})});DATA.ops={po,b2b,inventory};setSource('srcOps','ok','정상');}
+function poParseKoreanDate(str){if(!str||str==='재입고 예정 없음'||str==='-'||str==='품절')return null;let m=String(str).match(/(\d+)년\s*(\d+)월\s*(\d+)일/);if(m)return new Date(2000+parseInt(m[1]),parseInt(m[2])-1,parseInt(m[3]));m=String(str).match(/(\d+)월\s*(\d+)일/);if(m)return new Date(2026,parseInt(m[1])-1,parseInt(m[2]));return null}
+const PO_PRODUCT_ORDER=['킥프레임','PH - 실버','PH - 블랙','DW프로 - 실버','DW프로 - 블랙','DW플러스 - 실버','DW플러스 - 블랙','DW플러스 - 그린'];
+const PO_LEAD_TIMES={'킥프레임':30,'PH - 실버':50,'PH - 블랙':50,'DW프로 - 실버':50,'DW프로 - 블랙':50,'DW플러스 - 실버':50,'DW플러스 - 블랙':50,'DW플러스 - 그린':50};
+function poIsDiscontinued(item){return /단종\s*\/\s*리뉴얼\s*예정/.test(String(item.restockAt||'').trim())}
+function poGetStockStatus(item){
+  if(item.preorderStartAt&&poParseKoreanDate(item.preorderStartAt))return'preorder';
+  if(item.soldOutAt==='품절')return'soldOut';
+  const dl=parseInt(String(item.daysLeft||'').replace(/[^\d]/g,''));
+  if(!isNaN(dl)&&dl===0)return'soldOut';
+  if(poIsDiscontinued(item))return'ok';
+  const leadTime=PO_LEAD_TIMES[item.name]||50,daysLeftNum=isNaN(dl)?9999:dl,restockDate=poParseKoreanDate(item.restockAt),soldOutDate=poParseKoreanDate(item.soldOutAt);
+  if(!restockDate)return daysLeftNum>leadTime+14?'ok':'out';
+  if(!soldOutDate)return'ok';
+  const diffDays=Math.round((soldOutDate-restockDate)/86400000);
+  return diffDays>=0?'ok':'out'
+}
+async function loadPOStock(){
+  let text=await publicCSV(CFG.poStockId,'TOP'),rows=parseCSV(text),
+      headerIdx=rows.findIndex(r=>r.some(c=>String(c).trim()==='제품명'));
+  if(headerIdx<0)throw new Error('재고 TOP 헤더 없음');
+  let header=rows[headerIdx],nameCol=header.findIndex(c=>String(c).trim()==='제품명');if(nameCol<0)nameCol=0;
+  let items=[];
+  for(let i=headerIdx+1;i<rows.length&&items.length<8;i++){
+    let row=rows[i],name=String(row[nameCol]||'').trim();if(!PO_PRODUCT_ORDER.includes(name))continue;
+    items.push({name,soldOutAt:String(row[nameCol+1]||'').trim(),daysLeft:String(row[nameCol+2]||'').trim(),restockAt:String(row[nameCol+3]||'').trim(),restockQty:String(row[nameCol+4]||'').trim(),preorderStartAt:String(row[nameCol+5]||'').trim()})
+  }
+  return items
+}
+async function loadOps(){
+  setSource('srcOps','loading','로딩');
+  let [poText,b2bText,stockItems]=await Promise.all([publicCSV(CFG.poId,'타임라인'),publicCSV(CFG.b2bId,'B2B 현황','&range=B5:L'),loadPOStock()]);
+  let pr=parseCSV(poText),ph=(pr[0]||[]).map(x=>String(x).trim()),
+      po=pr.slice(1).map(r=>{let o={};ph.forEach((h,i)=>o[h]=r[i]||'');return{date:dateFlexible(o['날짜']||o['date'],2026),type:String(o['유형']||o['type']||'').trim(),product:String(o['제품명']||o['product']||'').trim(),qty:num(o['수량']||o['qty']),amount:num(o['금액']||o['amount']),note:o['비고']||'',memo:o['협의사항']||''}}).filter(x=>x.date&&['신','추','요','기'].includes(x.type));
+  let br=parseCSV(b2bText),bh=(br[0]||[]).map(x=>String(x).trim()),
+      b2b=br.slice(1).map(r=>{let o={};bh.forEach((h,i)=>o[h]=r[i]||'');return{date:dateFlexible(o['일자'],2026),company:String(o['기업명']||'').trim(),product:String(o['제품명']||'').trim(),confirm:String(o['고객사 컨펌현황']||'').trim(),production:String(o['제작현황']||'').trim(),delivery:String(o['납품현황']||'').trim(),qty:num(o['수량'])||0,amount:num(o['견적금액 (VAT포함)'])||0,settlement:String(o['정산현황']||'').trim(),note:String(o['비고']||'').trim()}}).filter(x=>x.date&&x.confirm==='확정');
+  DATA.ops={po,b2b,stockItems};setSource('srcOps','ok','정상');
+}
 function ratioClass(actual,target,lower=false){if(!target)return'';let r=actual/target;return lower?(r<=1?'good':r<=1.1?'warn':'bad'):(r>=1?'good':r>=.9?'warn':'bad')}
-function evalItem(label,actual,target,lower=false,unit='money'){let rate=target?actual/target*100:null,cls=ratioClass(actual,target,lower),val=unit==='pct'?actual.toFixed(1)+'%':fmtMoney(actual),tar=unit==='pct'?target.toFixed(1)+'%':fmtMoney(target);return `<div class="eval-item"><div class="et">${label}</div><div class="ev ${cls}">${val}</div><div class="es">기준 ${tar} · ${rate==null?'—':rate.toFixed(1)+'%'}</div><div class="mini-progress"><i style="width:${Math.min(100,Math.max(0,rate||0))}%;background:${cls==='bad'?'var(--red)':cls==='warn'?'var(--yellow)':'var(--green)'}"></i></div></div>`}
-function render(){let s=DATA.sales,p=DATA.products,a=DATA.ads,pr=DATA.profit,o=DATA.ops;if(s){let w=pct(s.currentSum,s.priorSum);$('kWeekSales').textContent=fmtMoney(s.currentSum);$('kWeekSalesMeta').innerHTML=`전주 대비 <b class="${w>=0?'up':'down'}">${fmtPct(w)}</b>`;$('kMtd').textContent=fmtMoney(s.mtd);$('kMtdMeta').textContent=`${s.monthDays.length}일 반영 · 일평균 ${fmtMoney(s.monthDays.length?s.mtd/s.monthDays.length:0)}`;draw('salesChart','bar',s.weeks.map(x=>x.label),[{label:'주간 매출',data:s.weeks.map(x=>x.value),backgroundColor:'#6c7bff',borderRadius:7}],{money:true,valueLabels:true})}if(pr){let m=pr.monthly,month=RR.end.getMonth()+1;$('evalTitle').textContent=`${month}월 평가 지표`;$('kTotalAvg').textContent=fmtMoney(m.totalActual);let tr=m.totalTargetDaily?m.totalActual/m.totalTargetDaily*100:null;$('kTotalAvgMeta').innerHTML=`목표 ${fmtMoney(m.totalTargetDaily)} · <b class="${ratioClass(m.totalActual,m.totalTargetDaily)}">${tr?tr.toFixed(1)+'%':'—'}</b>`;$('monthEval').innerHTML=[evalItem('자사+네이버 일평균',m.ownActual,m.ownTarget),evalItem('전체매출 일평균',m.totalActual,m.totalTargetDaily),evalItem('광고비 일평균',m.adActual,m.adTargetDaily,true),evalItem('발주비 누적',m.orderActual,m.orderExpected,true),evalItem('고정비 누적',m.fixedActual,m.fixedExpected,true),evalItem('변동비 누적',m.variableActual,m.variableExpected,true)].join('');let w=pr.weekly,labels=['자사+네이버','전체매출','광고비','발주비','고정비','변동비'],exp=[w.ownExpected,w.totalExpected,w.adExpected,w.orderExpected,w.fixedExpected,w.variableExpected],act=[w.ownActual,w.totalActual,w.adActual,w.orderActual,w.fixedActual,w.variableActual];$('weeklyEvalTitle').textContent=`${RR.end.getMonth()+1}월 주차별 점검 · ${md(RR.start)}~${md(RR.end)} 항목별 평가`;draw('weeklyEvalChart','bar',labels,[{label:'예상',data:exp,backgroundColor:'#667085',borderRadius:5},{label:'실제',data:act,backgroundColor:'#6c7bff',borderRadius:5}],{money:true})}if(p){$('productCards').innerHTML=p.rows.map((x,i)=>{let positives=[x.wowExposure,x.wowConv,x.rateDelta].filter(v=>v!=null).filter(v=>v>=0).length,state=positives>=2?'good':positives===1?'warn':'bad',stateText=state==='good'?'개선':state==='warn'?'점검':'주의';return `<div class="product-card" data-product="${i}"><span class="badge ${state} product-state">${stateText}</span><h3>${x.name}</h3><div class="product-metrics"><div class="pm"><span>노출</span><b>${Math.round(x.exposure).toLocaleString()} <em class="${x.wowExposure>=0?'up':'down'}">(${fmtPct(x.wowExposure)})</em></b></div><div class="pm"><span>전환</span><b>${Math.round(x.conversion).toLocaleString()} <em class="${x.wowConv>=0?'up':'down'}">(${fmtPct(x.wowConv)})</em></b></div><div class="pm"><span>전환율</span><b>${(x.rate*100).toFixed(2)}% <em class="${x.rateDelta>=0?'up':'down'}">(${x.rateDelta>=0?'+':''}${x.rateDelta.toFixed(2)}%p)</em></b></div></div></div>`}).join('');document.querySelectorAll('.product-card').forEach(el=>el.onclick=()=>openProduct(+el.dataset.product))}if(a){let sw=pct(a.spend,a.priorSpend),rw=pct(a.revenue,a.priorRevenue),roas=a.spend?a.revenue/a.spend*100:0,proas=a.priorSpend?a.priorRevenue/a.priorSpend*100:0,rd=roas-proas;$('kAdSpend').textContent=fmtMoney(a.spend);$('kAdMeta').innerHTML=`전주 대비 <b class="${sw<=0?'good':'up'}">${fmtPct(sw)}</b> · ROAS ${roas.toFixed(0)}%`;$('adSpendMini').innerHTML=`${fmtMoney(a.spend)} <small class="${sw>=0?'up':'down'}">(${fmtPct(sw)})</small>`;$('adRevenueMini').innerHTML=`${fmtMoney(a.revenue)} <small class="${rw>=0?'up':'down'}">(${fmtPct(rw)})</small>`;$('adRoasMini').innerHTML=`${roas.toFixed(0)}% <small class="${rd>=0?'up':'down'}">(전주 대비 ${rd>=0?'+':''}${rd.toFixed(1)}%p)</small>`;let days=['금','토','일','월','화','수','목'],vals=r=>days.map((_,i)=>{let d=addDays(r.start,i),row=(r===RR?a.rows:a.priorRows).find(x=>iso(x.date)===iso(d));return row?row.ad:0});draw('adChart','line',days,[{label:'이번 주',data:vals(RR),borderColor:'#22d3ee',backgroundColor:'#22d3ee',tension:.25,pointRadius:4},{label:'지난주',data:vals(previousRange(RR)),borderColor:'#667085',backgroundColor:'#667085',tension:.25,pointRadius:3}],{money:true})}if(o){let today=d0(new Date()),typeLabel={'신':'신규 생산 발주','추':'추가 입고','요':'입고 요청','기':'기존 잔금'},po=o.po.filter(x=>x.date>=addDays(today,-7)&&x.date<=addDays(today,75)).sort((a,b)=>a.date-b.date).slice(0,7);$('poCount').textContent=`${po.length}건 표시`;$('poIssues').innerHTML=po.map(x=>`<div class="issue"><div class="name">${md(x.date)} · ${typeLabel[x.type]}</div><div class="desc"><b>${x.product}</b>${x.note?' · '+x.note:''}${x.memo?' · '+x.memo:''}</div><div>${x.qty?x.qty.toLocaleString()+'EA ':''}${x.amount?fmtMoney(x.amount):''}</div></div>`).join('')||'<div class="empty">표시할 발주 이슈가 없습니다.</div>';let bi=o.b2b.filter(x=>x.date>=addDays(today,-45)).filter(x=>!/(완료|납품완료)/.test(x.delivery)||!/(완료|정산완료|입금완료)/.test(x.settlement)).sort((a,b)=>b.date-a.date).slice(0,8);$('b2bCount').textContent=`${bi.length}건 점검`;$('b2bIssues').innerHTML=bi.map(x=>`<div class="issue"><div class="name">${x.company}</div><div class="desc"><b>${x.product}</b> · 제작 ${x.production||'-'} · 납품 ${x.delivery||'-'} · 정산 ${x.settlement||'-'}${x.note?' · '+x.note:''}</div><div>${x.qty.toLocaleString()}EA<br>${fmtMoney(x.amount)}</div></div>`).join('')||'<div class="empty">점검할 미완료 B2B가 없습니다.</div>';let inv=[...o.inventory].sort((a,b)=>(a.months||999)-(b.months||999)).slice(0,8);$('inventoryCount').textContent=`${o.inventory.length}개 옵션`;$('inventoryList').innerHTML=inv.map(x=>{let cls=x.qty<=0||(x.months>0&&x.months<=1)?'bad':x.months>0&&x.months<=2?'warn':'good';return `<div class="inventory-row"><div><div class="iname">${x.product}</div><div class="isub">예상 소진 ${x.sellout||'-'} · 재입고 ${x.restock||'-'}</div></div><b>${Math.round(x.qty).toLocaleString()}EA</b><span class="badge ${cls}">${cls==='bad'?'위험':cls==='warn'?'주의':'정상'}</span></div>`}).join('')||'<div class="empty">재고 데이터가 없습니다.</div>'}renderSummary();$('updatedAt').textContent='업데이트 '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'})}
-const valueLabelPlugin={id:'valueLabelPlugin',afterDatasetsDraw(chart,args,opts){if(!opts.enabled)return;let ctx=chart.ctx;ctx.save();ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--text').trim();ctx.font='700 10px Pretendard';ctx.textAlign='center';chart.getDatasetMeta(0).data.forEach((bar,i)=>{let v=chart.data.datasets[0].data[i];ctx.fillText(Math.round(v/10000).toLocaleString()+'만',bar.x,bar.y-7)});ctx.restore()}};Chart.register(valueLabelPlugin);
-function draw(id,type,labels,datasets,opt={}){if(charts[id])charts[id].destroy();let cs=getComputedStyle(document.documentElement),text=cs.getPropertyValue('--sub').trim(),line=cs.getPropertyValue('--line').trim();charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,plugins:{valueLabelPlugin:{enabled:!!opt.valueLabels},legend:{display:opt.legend!==false,labels:{color:text,boxWidth:10,font:{size:10}}},tooltip:{callbacks:{label:c=>opt.money?`${c.dataset.label}: ${fmtMoney(c.raw)}`:`${c.dataset.label}: ${c.raw}`}}},scales:{x:{ticks:{color:text,font:{size:10}},grid:{display:false}},y:{ticks:{color:text,font:{size:10},callback:v=>opt.money?(Math.abs(v)>=1e8?(v/1e8).toFixed(1)+'억':Math.round(v/1e4)+'만'):v},grid:{color:line}}}}})}
-function openProduct(i){let x=DATA.products.rows[i];$('modalTitle').textContent=`${x.name} · 최근 30일 판매 데이터`;$('productModal').classList.remove('hidden');draw('product30Chart','bar',x.daily.map(r=>md(r.date)),[{label:'판매량(전환)',data:x.daily.map(r=>r.sales),backgroundColor:'#6c7bff',borderRadius:5}],{legend:false})}
+function evalItem(label,actual,target,lower=false,kind='goal'){
+  let rate=target?actual/target*100:0,max=Math.max(Math.abs(actual||0),Math.abs(target||0),1),
+      leftH=Math.max(5,Math.abs(target||0)/max*82),rightH=Math.max(5,Math.abs(actual||0)/max*82),
+      cls=ratioClass(actual,target,lower),leftLabel=kind==='goal'?'목표':'예상',rightLabel=kind==='goal'?'현재':'실제';
+  return `<div class="eval-item"><div class="et">${label}</div><div class="eval-bars">
+    <div class="eval-bar-wrap"><div class="eval-bar-value">${fmtMoney(target)}</div><div class="eval-bar base" style="height:${leftH}px"></div><div class="eval-bar-label">${leftLabel}</div></div>
+    <div class="eval-bar-wrap"><div class="eval-bar-value">${fmtMoney(actual)}</div><div class="eval-bar current" style="height:${rightH}px"></div><div class="eval-bar-label">${rightLabel}</div></div>
+  </div><div class="eval-rate ${cls}">${rate?rate.toFixed(1):'—'}%</div></div>`
+}
+function render(){
+  let s=DATA.sales,p=DATA.products,a=DATA.ads,pr=DATA.profit,o=DATA.ops;
+  if(s){
+    let w=pct(s.currentSum,s.priorSum);
+    $('kWeekSales').textContent=fmtMoney(s.currentSum);$('kWeekSalesMeta').innerHTML=`전주 대비 <b class="${w>=0?'up':'down'}">${fmtPct(w)}</b>`;
+    $('kMtd').textContent=fmtMoney(s.mtd);$('kMtdMeta').textContent=`${s.monthDays.length}일 반영 · 일평균 ${fmtMoney(s.monthDays.length?s.mtd/s.monthDays.length:0)}`;
+    draw('salesChart','bar',s.weeks.map(x=>x.label),[{label:'주간 매출',data:s.weeks.map(x=>x.value),backgroundColor:'#6c7bff',borderRadius:8}],{money:true,valueLabels:true});
+  }
+  if(p){
+    $('productCards').innerHTML=p.rows.map((x,i)=>{
+      let positives=[x.wowExposure,x.wowConv,x.rateDelta].filter(v=>v!=null&&v>=0).length,state=positives>=2?'good':positives===1?'warn':'bad',stateText=state==='good'?'개선':state==='warn'?'점검':'주의';
+      return `<div class="product-card" data-product="${i}"><span class="badge ${state} product-state">${stateText}</span><h3>${x.name}</h3><div class="product-metrics">
+      <div class="pm"><span>노출</span><b>${Math.round(x.exposure).toLocaleString()} <em class="${x.wowExposure>=0?'up':'down'}">(${fmtPct(x.wowExposure)})</em></b></div>
+      <div class="pm"><span>전환</span><b>${Math.round(x.conversion).toLocaleString()} <em class="${x.wowConv>=0?'up':'down'}">(${fmtPct(x.wowConv)})</em></b></div>
+      <div class="pm"><span>전환율</span><b>${(x.rate*100).toFixed(2)}% <em class="${x.rateDelta>=0?'up':'down'}">(${x.rateDelta>=0?'+':''}${x.rateDelta.toFixed(2)}%p)</em></b></div></div></div>`
+    }).join('');
+    document.querySelectorAll('.product-card').forEach(el=>el.onclick=()=>openProduct(+el.dataset.product,'sales'));
+  }
+  if(pr){
+    let m=pr.monthly,month=RR.end.getMonth()+1;$('evalTitle').textContent=`${month}월 평가 지표`;
+    $('kTotalAvg').textContent=fmtMoney(m.totalActual);let tr=m.totalTargetDaily?m.totalActual/m.totalTargetDaily*100:null;$('kTotalAvgMeta').innerHTML=`목표 ${fmtMoney(m.totalTargetDaily)} · <b class="${ratioClass(m.totalActual,m.totalTargetDaily)}">${tr?tr.toFixed(1)+'%':'—'}</b>`;
+    $('monthEval').innerHTML=[
+      evalItem('자사+네이버 일평균',m.ownActual,m.ownTarget,false,'goal'),
+      evalItem('전체매출 일평균',m.totalActual,m.totalTargetDaily,false,'goal'),
+      evalItem('광고비 일평균',m.adActual,m.adTargetDaily,true,'goal'),
+      evalItem('발주비 누적',m.orderActual,m.orderExpected,true,'expected'),
+      evalItem('고정비 누적',m.fixedActual,m.fixedExpected,true,'expected'),
+      evalItem('변동비 누적',m.variableActual,m.variableExpected,true,'expected')
+    ].join('');
+  }
+  if(a){
+    let sw=pct(a.spend,a.priorSpend),rw=pct(a.revenue,a.priorRevenue),roas=a.spend?a.revenue/a.spend*100:0,proas=a.priorSpend?a.priorRevenue/a.priorSpend*100:0,rd=roas-proas;
+    $('kAdSpend').textContent=fmtMoney(a.spend);$('kAdMeta').innerHTML=`전주 대비 <b class="${sw<=0?'good':'up'}">${fmtPct(sw)}</b> · ROAS ${roas.toFixed(0)}%`;
+    $('adSpendMini').innerHTML=`${fmtMoney(a.spend)} <small class="${sw>=0?'up':'down'}">(${fmtPct(sw)})</small>`;
+    $('adRevenueMini').innerHTML=`${fmtMoney(a.revenue)} <small class="${rw>=0?'up':'down'}">(${fmtPct(rw)})</small>`;
+    $('adRoasMini').innerHTML=`${roas.toFixed(0)}% <small class="${rd>=0?'up':'down'}">(전주 대비 ${rd>=0?'+':''}${rd.toFixed(1)}%p)</small>`;
+    let monthRatio=(DATA.sales&&DATA.sales.mtd)?a.monthSpend/DATA.sales.mtd*100:0;
+    $('adMonthRatioTitle').textContent=`${RR.end.getMonth()+1}월 누적 광고비/매출액`;
+    $('adMonthRatioMini').innerHTML=`${monthRatio.toFixed(1)}% <small>${fmtMoney(a.monthSpend)} / ${DATA.sales?fmtMoney(DATA.sales.mtd):'—'}</small>`;
+    let days=['금','토','일','월','화','수','목'],
+        vals=(rows,r)=>days.map((_,i)=>{let d=addDays(r.start,i),row=rows.find(x=>iso(x.date)===iso(d));return row?row.ad:0});
+    draw('adChart','line',days,[
+      {label:'지난주',data:vals(a.priorRows,previousRange(RR)),borderColor:'#667085',backgroundColor:'#667085',tension:0,pointRadius:5,borderWidth:2},
+      {label:'이번주',data:vals(a.rows,RR),borderColor:'#22d3ee',backgroundColor:'#22d3ee',tension:0,pointRadius:6,borderWidth:3}
+    ],{money:true,pointValueLabels:true});
+  }
+  if(o){
+    let today=d0(new Date()),typeLabel={'신':'신규 생산 발주','추':'추가 입고','요':'입고 요청','기':'기존 잔금'},
+        po=o.po.filter(x=>x.date>=addDays(today,-7)&&x.date<=addDays(today,75)).sort((a,b)=>a.date-b.date).slice(0,7);
+    $('poCount').textContent=`${po.length}건 표시`;
+    $('poIssues').innerHTML=po.map(x=>`<div class="issue"><div class="name">${md(x.date)} · ${typeLabel[x.type]}</div><div class="desc"><b>${x.product}</b>${x.note?' · '+x.note:''}${x.memo?' · '+x.memo:''}</div><div>${x.qty?x.qty.toLocaleString()+'EA ':''}${x.amount?fmtMoney(x.amount):''}</div></div>`).join('')||'<div class="empty">표시할 발주 이슈가 없습니다.</div>';
+    let bi=o.b2b.filter(x=>x.date>=addDays(today,-45)).filter(x=>!/(완료|납품완료)/.test(x.delivery)||!/(완료|정산완료|입금완료)/.test(x.settlement)).sort((a,b)=>b.date-a.date).slice(0,8);
+    $('b2bCount').textContent=`${bi.length}건 점검`;
+    $('b2bIssues').innerHTML=bi.map(x=>`<div class="issue"><div class="name">${x.company}</div><div class="desc"><b>${x.product}</b> · 제작 ${x.production||'-'} · 납품 ${x.delivery||'-'} · 정산 ${x.settlement||'-'}${x.note?' · '+x.note:''}</div><div>${x.qty.toLocaleString()}EA<br>${fmtMoney(x.amount)}</div></div>`).join('')||'<div class="empty">점검할 미완료 B2B가 없습니다.</div>';
+    let groups={ok:[],out:[],preorder:[],soldOut:[]};(o.stockItems||[]).forEach(i=>groups[poGetStockStatus(i)].push(i));
+    $('inventoryCount').textContent=`${o.stockItems.length}개 품목`;
+    $('inventoryList').innerHTML=`<div class="stock-badges">
+      <span class="stock-chip ok">✔ 정상 <strong>${groups.ok.length}개</strong></span>
+      ${groups.out.length?`<span class="stock-chip" style="color:var(--red)">✖ 위험 <strong>${groups.out.length}개</strong></span>`:''}
+      <span class="stock-chip pre">★ 사전예약 <strong>${groups.preorder.length}개</strong></span>
+      <span class="stock-chip sold">◼ 품절 <strong>${groups.soldOut.length}개</strong></span>
+    </div><div class="muted" style="font-size:12px">재고 TOP 시트 기준</div>`;
+  }
+  renderSummary();$('updatedAt').textContent='업데이트 '+new Date().toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+}
+
+const valueLabelPlugin={id:'valueLabelPlugin',afterDatasetsDraw(chart,args,opts){
+  let ctx=chart.ctx;ctx.save();
+  if(opts.barLabels){
+    ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--text').trim();ctx.font='700 11px Pretendard';ctx.textAlign='center';
+    chart.getDatasetMeta(0).data.forEach((bar,i)=>{let v=chart.data.datasets[0].data[i];ctx.fillText(Math.round(v/10000).toLocaleString()+'만',bar.x,bar.y-8)})
+  }
+  if(opts.pointLabels){
+    chart.data.datasets.forEach((ds,di)=>{ctx.fillStyle=ds.borderColor||'#fff';ctx.font='700 10px Pretendard';ctx.textAlign='center';chart.getDatasetMeta(di).data.forEach((pt,i)=>{let v=ds.data[i];if(v!=null)ctx.fillText(Math.round(v/10000).toLocaleString()+'만',pt.x,pt.y-10)})})
+  }
+  if(opts.rawBarLabels){
+    ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--text').trim();ctx.font='800 10px Pretendard';ctx.textAlign='center';
+    chart.getDatasetMeta(0).data.forEach((bar,i)=>{let v=chart.data.datasets[0].data[i];ctx.fillText(Number(v).toLocaleString(),bar.x,bar.y-7)})
+  }
+  if(opts.rateLabels){
+    ctx.fillStyle=chart.data.datasets[0].borderColor||'#fff';ctx.font='800 10px Pretendard';ctx.textAlign='center';
+    chart.getDatasetMeta(0).data.forEach((pt,i)=>{let v=chart.data.datasets[0].data[i];ctx.fillText(Number(v).toFixed(2)+'%',pt.x,pt.y-9)})
+  }
+  ctx.restore()
+}};Chart.register(valueLabelPlugin);
+
+function draw(id,type,labels,datasets,opt={}){
+  if(charts[id])charts[id].destroy();
+  let cs=getComputedStyle(document.documentElement),text=cs.getPropertyValue('--sub').trim(),line=cs.getPropertyValue('--line').trim();
+  charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:opt.barLabels||opt.pointLabels||opt.rawBarLabels||opt.rateLabels?28:6}},plugins:{valueLabelPlugin:{barLabels:!!opt.valueLabels,pointLabels:!!opt.pointValueLabels,rawBarLabels:!!opt.rawBarLabels,rateLabels:!!opt.rateLabels},legend:{display:opt.legend!==false,labels:{color:text,boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:c=>opt.money?`${c.dataset.label}: ${fmtMoney(c.raw)}`:opt.percent?`${c.dataset.label}: ${Number(c.raw).toFixed(2)}%`:`${c.dataset.label}: ${c.raw}`}}},scales:{x:{ticks:{color:text,font:{size:11}},grid:{display:false}},y:{beginAtZero:true,ticks:{color:text,font:{size:10},callback:v=>opt.money?(Math.abs(v)>=1e8?(v/1e8).toFixed(1)+'억':Math.round(v/1e4)+'만'):opt.percent?v+'%':v},grid:{color:line}}}}})
+}
+
+let activeProductIndex=0,activeProductView='sales';
+function openProduct(i,view='sales'){
+  activeProductIndex=i;activeProductView=view;let x=DATA.products.rows[i];
+  $('modalTitle').textContent=`${x.name} · 최근 30일 상세`;
+  $('modalSub').textContent='자사몰+네이버 합산 · 평균선은 노란색';
+  $('productModal').classList.remove('hidden');
+  document.querySelectorAll('[data-product-view]').forEach(b=>b.classList.toggle('active',b.dataset.productView===view));
+  renderProductDetail()
+}
+function renderProductDetail(){
+  let x=DATA.products.rows[activeProductIndex],rows=x.daily,view=activeProductView,labels=rows.map(r=>md(r.date)),yellow='#fbbf24';
+  if(view==='sales'||view==='exposure'){
+    let key=view==='sales'?'sales':'exposure',title=view==='sales'?'판매수량':'노출량',vals=rows.map(r=>r[key]),av=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+    draw('product30Chart','bar',labels,[{label:title,data:vals,backgroundColor:'#6c7bff',borderRadius:5},{label:`평균 ${view==='sales'?av.toFixed(1):Math.round(av).toLocaleString()}`,data:labels.map(()=>av),type:'line',borderColor:yellow,backgroundColor:yellow,pointRadius:0,borderWidth:3,tension:0}],{rawBarLabels:true});
+  }else{
+    let vals=rows.map(r=>r.rate),av=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
+    draw('product30Chart','line',labels,[{label:'전환율',data:vals,borderColor:'#6c7bff',backgroundColor:'#6c7bff',pointRadius:4,borderWidth:2,tension:0},{label:`평균 ${av.toFixed(2)}%`,data:labels.map(()=>av),borderColor:yellow,backgroundColor:yellow,pointRadius:0,borderWidth:3,tension:0}],{percent:true,rateLabels:true});
+  }
+}
+document.querySelectorAll('[data-product-view]').forEach(b=>b.onclick=()=>{activeProductView=b.dataset.productView;document.querySelectorAll('[data-product-view]').forEach(x=>x.classList.toggle('active',x===b));renderProductDetail()});
 $('modalClose').onclick=()=>$('productModal').classList.add('hidden');$('productModal').onclick=e=>{if(e.target.id==='productModal')$('productModal').classList.add('hidden')};
-function renderSummary(){let lines=[],acts=[];if(DATA.sales){let w=pct(DATA.sales.currentSum,DATA.sales.priorSum);lines.push(`<div class="summary-line"><b>매출</b> 이번 주 ${fmtMoney(DATA.sales.currentSum)}, 전주 대비 <span class="${w>=0?'up':'down'}">${fmtPct(w)}</span>.</div>`)}if(DATA.profit){let m=DATA.profit.monthly;lines.push(`<div class="summary-line"><b>월 평가</b> 자사+네이버 일평균은 목표의 ${(m.ownTarget?m.ownActual/m.ownTarget*100:0).toFixed(1)}%, 전체매출 일평균은 목표의 ${(m.totalTargetDaily?m.totalActual/m.totalTargetDaily*100:0).toFixed(1)}% 수준입니다.</div>`)}if(DATA.ads){let roas=DATA.ads.spend?DATA.ads.revenue/DATA.ads.spend*100:0;lines.push(`<div class="summary-line"><b>광고</b> ${fmtMoney(DATA.ads.spend)} 집행 · ROAS ${roas.toFixed(0)}%.</div>`)}if(DATA.ops){let risk=DATA.ops.inventory.filter(x=>x.qty<=0||(x.months>0&&x.months<=1)).length;if(risk)acts.push(`<div class="summary-line"><b>재고</b> 위험 기준 옵션 ${risk}건 우선 점검.</div>`);let today=d0(new Date()),po=DATA.ops.po.filter(x=>x.date>=today&&x.date<=addDays(today,45));if(po.length)acts.push(`<div class="summary-line"><b>발주</b> 향후 45일 내 ${po.length}건 일정 확인 필요.</div>`);let open=DATA.ops.b2b.filter(x=>x.date>=addDays(today,-60)&&(!/(완료|납품완료)/.test(x.delivery)||!/(완료|정산완료|입금완료)/.test(x.settlement)));if(open.length)acts.push(`<div class="summary-line"><b>B2B</b> 최근 60일 확정 건 중 납품/정산 미완료 ${open.length}건 점검.</div>`)}$('summaryLines').innerHTML=lines.join('')||'<div class="muted">요약할 데이터가 없습니다.</div>';$('actionLines').innerHTML=acts.join('')||'<div class="summary-line good"><b>정상</b> 자동 감지된 주요 체크포인트가 없습니다.</div>'}
+
+let activeSalesView='total';
+function openSalesDetail(view='total'){activeSalesView=view;$('salesModal').classList.remove('hidden');document.querySelectorAll('[data-sales-view]').forEach(b=>b.classList.toggle('active',b.dataset.salesView===view));renderSales3Week()}
+function renderSales3Week(){
+  if(!DATA.sales)return;
+  let all=[...DATA.sales.days].sort((a,b)=>a.date-b.date),ref=all[all.length-1];if(!ref)return;
+  let dayList=[];for(let i=20;i>=0;i--)dayList.push(addDays(ref.date,-i));
+  let weeks=[dayList.slice(0,7),dayList.slice(7,14),dayList.slice(14,21)],map=new Map(all.map(d=>[iso(d.date),d])),labels=weeks[0].map(d=>['일','월','화','수','목','금','토'][d.getDay()]),colors=['#fb7185','#fbbf24','#6c7bff'];
+  let sets=weeks.map((wd,i)=>({label:`${md(wd[0])}~${md(wd[6])}`,data:wd.map(dt=>{let r=map.get(iso(dt));return r?(activeSalesView==='total'?r.total:r.selfNaver):null}),borderColor:colors[i],backgroundColor:colors[i],pointRadius:5,borderWidth:i===2?4:2,tension:0,spanGaps:true}));
+  draw('sales3WeekChart','line',labels,sets,{money:true,pointValueLabels:true});
+}
+$('salesMainCard').onclick=()=>openSalesDetail('total');
+document.querySelectorAll('[data-sales-view]').forEach(b=>b.onclick=()=>{activeSalesView=b.dataset.salesView;document.querySelectorAll('[data-sales-view]').forEach(x=>x.classList.toggle('active',x===b));renderSales3Week()});
+$('salesModalClose').onclick=()=>$('salesModal').classList.add('hidden');$('salesModal').onclick=e=>{if(e.target.id==='salesModal')$('salesModal').classList.add('hidden')};
+
+function renderSummary(){
+  let lines=[],acts=[];
+  if(DATA.sales){let w=pct(DATA.sales.currentSum,DATA.sales.priorSum);lines.push(`<div class="summary-line"><b>매출</b> 이번 주 ${fmtMoney(DATA.sales.currentSum)}, 전주 대비 <span class="${w>=0?'up':'down'}">${fmtPct(w)}</span>.</div>`)}
+  if(DATA.profit){let m=DATA.profit.monthly;lines.push(`<div class="summary-line"><b>월 평가</b> 자사+네이버 일평균은 목표의 ${(m.ownTarget?m.ownActual/m.ownTarget*100:0).toFixed(1)}%, 전체매출 일평균은 목표의 ${(m.totalTargetDaily?m.totalActual/m.totalTargetDaily*100:0).toFixed(1)}% 수준입니다.</div>`)}
+  if(DATA.ads){let roas=DATA.ads.spend?DATA.ads.revenue/DATA.ads.spend*100:0;lines.push(`<div class="summary-line"><b>광고</b> ${fmtMoney(DATA.ads.spend)} 집행 · ROAS ${roas.toFixed(0)}%.</div>`)}
+  if(DATA.ops){let groups={ok:0,out:0,preorder:0,soldOut:0};(DATA.ops.stockItems||[]).forEach(i=>groups[poGetStockStatus(i)]++);if(groups.preorder||groups.soldOut||groups.out)acts.push(`<div class="summary-line"><b>재고</b> 정상 ${groups.ok} · 위험 ${groups.out} · 사전예약 ${groups.preorder} · 품절 ${groups.soldOut}.</div>`);let today=d0(new Date()),po=DATA.ops.po.filter(x=>x.date>=today&&x.date<=addDays(today,45));if(po.length)acts.push(`<div class="summary-line"><b>발주</b> 향후 45일 내 ${po.length}건 일정 확인 필요.</div>`)}
+  $('summaryLines').innerHTML=lines.join('')||'<div class="muted">요약할 데이터가 없습니다.</div>';$('actionLines').innerHTML=acts.join('')||'<div class="summary-line good"><b>정상</b> 자동 감지된 주요 체크포인트가 없습니다.</div>'
+}
 async function loadAll(){['srcSales','srcProduct','srcAds','srcProfit','srcOps'].forEach(id=>setSource(id,'loading','로딩'));let jobs=[['sales',loadSales,'srcSales'],['products',loadProducts,'srcProduct'],['ads',loadAds,'srcAds'],['profit',loadProfit,'srcProfit'],['ops',loadOps,'srcOps']];await Promise.all(jobs.map(async([k,fn,id])=>{try{await fn()}catch(e){console.error(k,e);setSource(id,'err','오류')}}));render()}
 function initAuth(){let wait=()=>{if(!window.google||!google.accounts||!google.accounts.oauth2)return setTimeout(wait,150);let tc=google.accounts.oauth2.initTokenClient({client_id:CFG.clientId,scope:CFG.scope,callback:async resp=>{if(resp.error){$('authErr').textContent='로그인 실패: '+resp.error;return}TOKEN=resp.access_token;$('authGate').classList.add('hidden');await loadAll()}});$('loginBtn').onclick=()=>tc.requestAccessToken({prompt:'consent'})};wait()}
 $('refreshBtn').onclick=()=>TOKEN&&loadAll();$('themeBtn').onclick=()=>{let light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');$('themeBtn').textContent=light?'라이트 모드':'다크 모드';render()};initAuth();
