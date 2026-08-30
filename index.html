@@ -115,7 +115,13 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 .preorder-detail{grid-column:1/-1;border:2px solid rgba(251,191,36,.5);background:linear-gradient(180deg,rgba(251,191,36,.06),var(--panel2));padding:22px;border-radius:18px}
 .preorder-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.preorder-title h3{font-size:20px;margin:0}.preorder-badge{color:var(--yellow);border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.1);padding:8px 12px;border-radius:999px;font-weight:900}
 .preorder-top{display:grid;gap:8px;font-size:14px;margin:8px 0 16px}.preorder-top .r,.preorder-extra .r{display:flex;justify-content:space-between;gap:18px}.preorder-top span,.preorder-extra span{color:var(--sub)}.preorder-top b,.preorder-extra b{text-align:right}.preorder-divider{height:1px;background:var(--line);margin:14px 0}.preorder-extra{display:grid;gap:10px;font-size:13px}.preorder-extra .r{border-top:1px solid rgba(255,255,255,.04);padding-top:9px}
-@media(max-width:750px){.detail-stats{grid-template-columns:1fr}.product-toolbar{align-items:flex-start;flex-direction:column}}
+.eval-detail-visual{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:22px 24px;margin:12px 0 4px}
+.eval-detail-title{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px}.eval-detail-title h3{margin:0;font-size:17px}.eval-detail-title small{color:var(--sub);font-size:12px}
+.eval-detail-bars{height:330px;display:flex;align-items:flex-end;justify-content:center;gap:56px;border-bottom:1px solid var(--line);padding:22px 8% 0;margin-top:8px}
+.eval-detail-bar-wrap{width:min(150px,34%);height:285px;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:9px}
+.eval-detail-bar-value{font-size:18px;font-weight:900;white-space:nowrap}.eval-detail-bar{width:100%;max-width:92px;min-height:8px;border-radius:12px 12px 3px 3px}.eval-detail-bar.base{background:#667085}.eval-detail-bar-label{font-size:13px;color:var(--sub);font-weight:800}
+.eval-detail-rate{text-align:center;font-size:30px;font-weight:900;margin-top:18px}.eval-detail-rate span{font-size:16px;font-weight:800;margin-left:6px}.eval-detail-foot{text-align:center;color:var(--sub);font-size:12px;margin-top:8px}
+@media(max-width:750px){.detail-stats{grid-template-columns:1fr}.product-toolbar{align-items:flex-start;flex-direction:column}.eval-detail-bars{gap:24px;padding-left:2%;padding-right:2%;height:285px}.eval-detail-bar-wrap{height:240px}.eval-detail-rate{font-size:25px}}
 </style>
 </head>
 <body>
@@ -602,13 +608,24 @@ function openAdRatioDetail(){
     `<div class="detail-stats">${statCard('매출액 대비 광고비',ratio.toFixed(1)+'%',`~${md(common)}`)}${statCard('누적 광고비',fmtMoney(spend),'월 누적')}${statCard('누적 매출액',fmtMoney(sales),'월 누적')}</div>`);
 }
 const EVAL_META=[
-  ['자사+네이버 일평균','ownActual','ownTarget','목표','현재'],['전체매출 일평균','totalActual','totalTargetDaily','목표','현재'],['광고비 일평균','adActual','adTargetDaily','목표','현재'],
-  ['발주비 누적','orderActual','orderExpected','예상','실제'],['고정비 누적','fixedActual','fixedExpected','예상','실제'],['변동비 누적','variableActual','variableExpected','예상','실제']
+  ['자사+네이버 일평균','ownActual','ownTarget','목표','현재',false,'goal'],['전체매출 일평균','totalActual','totalTargetDaily','목표','현재',false,'goal'],['광고비 일평균','adActual','adTargetDaily','목표','현재',true,'goal'],
+  ['발주비 누적','orderActual','orderExpected','예상','실제',true,'expected'],['고정비 누적','fixedActual','fixedExpected','예상','실제',true,'expected'],['변동비 누적','variableActual','variableExpected','예상','실제',true,'expected']
 ];
+function evalDetailVisual(label,actual,target,leftLabel,rightLabel,lower,latestDate){
+  let rate=target?actual/target*100:0,max=Math.max(Math.abs(actual||0),Math.abs(target||0),1),
+      leftH=Math.max(10,Math.abs(target||0)/max*250),rightH=Math.max(10,Math.abs(actual||0)/max*250),
+      cls=ratioClass(actual,target,lower),currentColor=cls==='bad'?'var(--red)':cls==='warn'?'var(--yellow)':'var(--green)',delta=rate-100;
+  return `<div class="eval-detail-visual"><div class="eval-detail-title"><h3>${label}</h3><small>8/1~${md(latestDate)} 최신 입력분</small></div>
+    <div class="eval-detail-bars">
+      <div class="eval-detail-bar-wrap"><div class="eval-detail-bar-value">${fmtMoney(target)}</div><div class="eval-detail-bar base" style="height:${leftH}px"></div><div class="eval-detail-bar-label">${leftLabel}</div></div>
+      <div class="eval-detail-bar-wrap"><div class="eval-detail-bar-value">${fmtMoney(actual)}</div><div class="eval-detail-bar" style="height:${rightH}px;background:${currentColor}"></div><div class="eval-detail-bar-label">${rightLabel}</div></div>
+    </div>
+    <div class="eval-detail-rate ${cls}">${target?rate.toFixed(1):'—'}%${target?` <span>(${delta>=0?'+':''}${delta.toFixed(1)}%)</span>`:''}</div>
+    <div class="eval-detail-foot">${leftLabel} 대비 ${rightLabel} · 월 누적 최신 데이터 기준</div></div>`;
+}
 function openEvalDetail(idx){
-  let pr=DATA.profit;if(!pr)return;let [label,ak,tk,tl,al]=EVAL_META[idx],m=pr.monthlyLatest,actual=m[ak]||0,target=m[tk]||0,rate=target?actual/target*100:0;
-  openDetailModal(`${label} · ${RR.end.getMonth()+1}월 누적`,`8/1~${md(pr.latestDate)} 최신 입력분 전체 집계`,
-    `<div class="detail-stats">${statCard(`${tl}`,fmtMoney(target),'누적/일평균 기준은 항목 특성에 따름')}${statCard(`${al}`,fmtMoney(actual),`~${md(pr.latestDate)}`)}${statCard('대비',rate.toFixed(1)+'%',`${rate-100>=0?'+':''}${(rate-100).toFixed(1)}%`)}</div>`);
+  let pr=DATA.profit;if(!pr)return;let [label,ak,tk,tl,al,lower]=EVAL_META[idx],m=pr.monthlyLatest,actual=m[ak]||0,target=m[tk]||0;
+  openDetailModal(`${label} · ${RR.end.getMonth()+1}월 누적`,`8/1~${md(pr.latestDate)} 최신 입력분 전체 집계`,evalDetailVisual(label,actual,target,tl,al,lower,pr.latestDate));
 }
 function openAdMonthDetail(){
   let a=DATA.ads;if(!a)return;let rows=a.monthAll||[];
