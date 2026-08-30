@@ -102,6 +102,21 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 #loginBtn:disabled{opacity:.65!important;cursor:wait!important}
 </style>
 
+
+<style>
+/* delayed-report drilldown enhancements */
+.kpi.clickable,.eval-item.clickable,.ad-chart-card{cursor:pointer;transition:.15s}
+.kpi.clickable:hover,.eval-item.clickable:hover,.ad-chart-card:hover{border-color:var(--blue);transform:translateY(-1px)}
+.detail-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0 16px}
+.detail-stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:15px}
+.detail-stat .t{font-size:11px;color:var(--sub);margin-bottom:7px}.detail-stat .v{font-size:22px;font-weight:900}.detail-stat .s{font-size:11px;color:var(--sub);margin-top:5px}
+.product-toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.product-granularity{display:flex;gap:7px}.product-granularity .btn.active{background:var(--blue);border-color:var(--blue);color:white}
+.ad-chart-card{border:1px solid transparent;border-radius:13px;padding:8px;margin:-8px}
+.preorder-detail{grid-column:1/-1;border:2px solid rgba(251,191,36,.5);background:linear-gradient(180deg,rgba(251,191,36,.06),var(--panel2));padding:22px;border-radius:18px}
+.preorder-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.preorder-title h3{font-size:20px;margin:0}.preorder-badge{color:var(--yellow);border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.1);padding:8px 12px;border-radius:999px;font-weight:900}
+.preorder-top{display:grid;gap:8px;font-size:14px;margin:8px 0 16px}.preorder-top .r,.preorder-extra .r{display:flex;justify-content:space-between;gap:18px}.preorder-top span,.preorder-extra span{color:var(--sub)}.preorder-top b,.preorder-extra b{text-align:right}.preorder-divider{height:1px;background:var(--line);margin:14px 0}.preorder-extra{display:grid;gap:10px;font-size:13px}.preorder-extra .r{border-top:1px solid rgba(255,255,255,.04);padding-top:9px}
+@media(max-width:750px){.detail-stats{grid-template-columns:1fr}.product-toolbar{align-items:flex-start;flex-direction:column}}
+</style>
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -121,9 +136,9 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
   </div>
   <section class="kpis">
     <div class="card kpi"><div class="label">이번 주 매출</div><div class="value" id="kWeekSales">—</div><div class="meta" id="kWeekSalesMeta">지난 금~목 기준</div></div>
-    <div class="card kpi"><div class="label">월 누적 매출</div><div class="value" id="kMtd">—</div><div class="meta" id="kMtdMeta">—</div></div>
-    <div class="card kpi"><div class="label">현재 전체매출 일평균</div><div class="value" id="kTotalAvg">—</div><div class="meta" id="kTotalAvgMeta">월 계획 대비</div></div>
-    <div class="card kpi"><div class="label">이번주 매출액 대비 광고비</div><div class="value" id="kAdSpend">—</div><div class="meta" id="kAdMeta">—</div></div>
+    <div class="card kpi clickable" id="kMtdCard"><div class="label">월 누적 매출</div><div class="value" id="kMtd">—</div><div class="meta" id="kMtdMeta">—</div></div>
+    <div class="card kpi clickable" id="kTotalAvgCard"><div class="label">현재 전체매출 일평균</div><div class="value" id="kTotalAvg">—</div><div class="meta" id="kTotalAvgMeta">월 계획 대비</div></div>
+    <div class="card kpi clickable" id="kAdRatioCard"><div class="label">이번주 매출액 대비 광고비</div><div class="value" id="kAdSpend">—</div><div class="meta" id="kAdMeta">—</div></div>
   </section>
   <main class="grid">
     <section class="card span12 sales-main-card" id="salesMainCard">
@@ -143,7 +158,7 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 
     <section class="card span12">
       <div class="head"><div><h2>광고 성과</h2><small>요일별 이번 주 vs 지난주 광고비 · 직선 비교</small></div></div>
-      <div class="chart xl"><canvas id="adChart"></canvas></div>
+      <div class="ad-chart-card" id="adChartCard" title="클릭하면 이번달 일별 광고비를 봅니다"><div class="chart xl"><canvas id="adChart"></canvas></div></div>
       <div class="ad-metrics">
         <div class="forecast-mini"><div class="t">이번주차 광고비</div><div class="v" id="adSpendMini">—</div></div>
         <div class="forecast-mini"><div class="t">이번주차 유입매출</div><div class="v" id="adRevenueMini">—</div></div>
@@ -168,10 +183,17 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
   <div id="productModal" class="modal hidden">
     <div class="modal-card">
       <div class="modal-head"><div><h2 id="modalTitle">최근 30일 제품 상세</h2><small id="modalSub">자사몰+네이버 합산</small></div><button class="btn" id="modalClose">닫기</button></div>
-      <div class="modal-chart-toggle">
-        <button class="btn active" data-product-view="sales">판매수량</button>
-        <button class="btn" data-product-view="exposure">노출량</button>
-        <button class="btn" data-product-view="rate">전환율</button>
+      <div id="productDetailStats" class="detail-stats"></div>
+      <div class="product-toolbar">
+        <div class="modal-chart-toggle">
+          <button class="btn active" data-product-view="sales">판매수량</button>
+          <button class="btn" data-product-view="exposure">노출량</button>
+          <button class="btn" data-product-view="rate">전환율</button>
+        </div>
+        <div class="product-granularity">
+          <button class="btn active" data-product-granularity="daily">일별</button>
+          <button class="btn" data-product-granularity="weekly">주차별</button>
+        </div>
       </div>
       <div class="chart xl"><canvas id="product30Chart"></canvas></div>
     </div>
@@ -187,7 +209,6 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
       <div class="chart xl" style="margin-top:12px"><canvas id="sales3WeekChart"></canvas></div>
     </div>
   </div>
-  <div id="productModal" class="modal hidden"><div class="modal-card"><div class="modal-head"><div><h2 id="modalTitle">최근 30일 판매 데이터</h2><small>자사몰+네이버 전환수 합산</small></div><button class="btn" id="modalClose">닫기</button></div><div class="chart tall"><canvas id="product30Chart"></canvas></div></div></div>
 </div>
 
 <div id="stockModal" class="modal hidden">
@@ -200,6 +221,15 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
       <button type="button" class="btn" id="stockModalClose">닫기</button>
     </div>
     <div id="stockDetailList" class="stock-detail-list"></div>
+  </div>
+</div>
+
+
+<div id="detailModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-head"><div><h2 id="detailModalTitle">상세 데이터</h2><small id="detailModalSub">최신 입력 데이터 기준</small></div><button type="button" class="btn" id="detailModalClose">닫기</button></div>
+    <div id="detailModalBody"></div>
+    <div id="detailChartWrap" class="chart xl hidden"><canvas id="detailChart"></canvas></div>
   </div>
 </div>
 
@@ -251,11 +281,13 @@ async function loadSales(){
   let days=[...parse(vals2,prev.getFullYear()),...parse(vals1,RR.end.getFullYear())].sort((a,b)=>a.date-b.date);
   let current=days.filter(x=>inRange(x.date,RR)), prior=days.filter(x=>inRange(x.date,previousRange(RR))),
       currentSum=sum(current,x=>x.total), priorSum=sum(prior,x=>x.total);
-  let monthDays=days.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&x.date<=RR.end),
-      mtd=sum(monthDays,x=>x.total), dim=new Date(RR.end.getFullYear(),RR.end.getMonth()+1,0).getDate(),
+  let monthAll=days.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&x.date<=d0(new Date())),
+      monthDays=monthAll.filter(x=>x.date<=RR.end),
+      latestDate=monthAll.length?monthAll[monthAll.length-1].date:RR.end,
+      mtd=sum(monthDays,x=>x.total),latestMtd=sum(monthAll,x=>x.total),dim=new Date(RR.end.getFullYear(),RR.end.getMonth()+1,0).getDate(),
       forecast=monthDays.length?mtd/monthDays.length*dim:0;
   let weeks=[];for(let i=7;i>=0;i--){let r=previousRange(RR,i);weeks.push({label:`${md(r.start)}~${md(r.end)}`,value:sum(days.filter(x=>inRange(x.date,r)),x=>x.total)})}
-  DATA.sales={days,currentSum,priorSum,mtd,forecast,monthDays,weeks};setSource('srcSales','ok','정상');
+  DATA.sales={days,currentSum,priorSum,mtd,forecast,monthDays,monthAll,latestMtd,latestDate,weeks};setSource('srcSales','ok','정상');
 }
 function findHeader(rows){for(let i=0;i<Math.min(rows.length,12);i++)if(rows[i].some(x=>String(x).trim()==='노출수'))return i;return 1}function findNameRow(rows,hi){return Math.max(0,hi-1)}function norm(s){return String(s||'').replace(/\s/g,'').toLowerCase()}function detectBlocks(nameRow,header){let out=[];for(let i=0;i<header.length;i++){let lab=String(header[i]||'').trim();if(norm(lab).endsWith('일자')){let name=lab.replace(/일자$/,'').trim()||String(nameRow[i]||nameRow[i+1]||'').trim()||`제품${out.length+1}`;out.push({name,start:i,metrics:['일자']})}else if(out.length&&lab)out[out.length-1].metrics.push(lab)}return out}
 function parseProductCSV(text){let rows=parseCSV(text),hi=findHeader(rows),ni=findNameRow(rows,hi),blocks=detectBlocks(rows[ni]||[],rows[hi]||[]),out={};blocks.forEach(b=>out[normalizeProduct(b.name)]=[]);for(let r of rows.slice(hi+1)){let d=dateFlexible(r[0],2026);if(!d)continue;for(let b of blocks){let ms=b.metrics.map(norm),e=ms.indexOf('노출수'),a=ms.indexOf('담김수'),c=ms.indexOf('전환수');let exposure=e>=0?num(r[b.start+e]):null;if(exposure==null)continue;let key=normalizeProduct(b.name);out[key].push({date:d,exposure,add:a>=0?(num(r[b.start+a])||0):0,conversion:c>=0?(num(r[b.start+c])||0):0})}}return out}
@@ -268,29 +300,45 @@ async function loadProducts(){
         c=all.filter(x=>inRange(x.date,RR)),p=all.filter(x=>inRange(x.date,previousRange(RR))),
         ce=sum(c,x=>x.exposure),cc=sum(c,x=>x.conversion),pe=sum(p,x=>x.exposure),pc=sum(p,x=>x.conversion),
         cr=ce?cc/ce:0,pr=pe?pc/pe:0;
-    let end=RR.end,start=addDays(end,-29),daily=[];
+    let latestCandidates=all.filter(x=>x.date<=d0(new Date())),end=latestCandidates.length?latestCandidates[latestCandidates.length-1].date:RR.end,start=addDays(end,-29),daily=[];
     for(let d=start;d<=end;d=addDays(d,1)){
       let z=all.filter(x=>iso(x.date)===iso(d)),ex=sum(z,x=>x.exposure),cv=sum(z,x=>x.conversion);
       daily.push({date:new Date(d),sales:cv,exposure:ex,rate:ex?cv/ex*100:0});
     }
-    return{name:k,exposure:ce,conversion:cc,rate:cr,prevExposure:pe,prevConversion:pc,prevRate:pr,wowExposure:pct(ce,pe),wowConv:pct(cc,pc),rateDelta:(cr-pr)*100,daily}
+    return{name:k,exposure:ce,conversion:cc,rate:cr,prevExposure:pe,prevConversion:pc,prevRate:pr,wowExposure:pct(ce,pe),wowConv:pct(cc,pc),rateDelta:(cr-pr)*100,daily,latestDate:end}
   });
   DATA.products={rows};setSource('srcProduct','ok','정상');
 }
-function parseAdRows(vals){return vals.slice(1).map(r=>({date:dateFlexible(r[0],2026),ad:num(r[1])||0,revenue:num(r[2])||0,ratio:num(r[3])})).filter(x=>x.date)}
+function parseAdRows(vals){return vals.slice(1).map(r=>{let av=num(r[1]),rv=num(r[2]),ratio=num(r[3]);return{date:dateFlexible(r[0],2026),ad:av||0,revenue:rv||0,ratio,hasData:av!=null||rv!=null||ratio!=null}}).filter(x=>x.date&&x.hasData)}
 async function loadAds(){
   setSource('srcAds','loading','로딩');
   let prevR=previousRange(RR),pm=previousMonthRange(RR.end),
       tabs=[...new Set([RR.start,RR.end,prevR.start,prevR.end,pm.start,pm.end].map(d=>`${String(d.getFullYear()).slice(2)}-${String(d.getMonth()+1).padStart(2,'0')}`))],all=[];
   for(let t of tabs){try{let v=await apiValues(CFG.adId,`'${t}'!O8:R39`,false);all.push(...parseAdRows(v))}catch(e){console.warn('ad tab',t,e)}}
   let current=all.filter(x=>inRange(x.date,RR)),prior=all.filter(x=>inRange(x.date,prevR)),
-      monthRows=all.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&x.date<=RR.end),
-      prevMonthRows=all.filter(x=>x.date.getFullYear()===pm.end.getFullYear()&&x.date.getMonth()===pm.end.getMonth());
-  DATA.ads={spend:sum(current,x=>x.ad),revenue:sum(current,x=>x.revenue),priorSpend:sum(prior,x=>x.ad),priorRevenue:sum(prior,x=>x.revenue),rows:current,priorRows:prior,monthSpend:sum(monthRows,x=>x.ad),monthRevenue:sum(monthRows,x=>x.revenue),prevMonthSpend:sum(prevMonthRows,x=>x.ad),prevMonthRevenue:sum(prevMonthRows,x=>x.revenue)};
+      monthAll=all.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&x.date<=d0(new Date())).sort((a,b)=>a.date-b.date),
+      monthRows=monthAll.filter(x=>x.date<=RR.end),
+      prevMonthRows=all.filter(x=>x.date.getFullYear()===pm.end.getFullYear()&&x.date.getMonth()===pm.end.getMonth()),
+      latestDate=monthAll.length?monthAll[monthAll.length-1].date:RR.end;
+  DATA.ads={spend:sum(current,x=>x.ad),revenue:sum(current,x=>x.revenue),priorSpend:sum(prior,x=>x.ad),priorRevenue:sum(prior,x=>x.revenue),rows:current,priorRows:prior,monthRows,monthAll,latestDate,monthSpend:sum(monthRows,x=>x.ad),monthRevenue:sum(monthRows,x=>x.revenue),latestMonthSpend:sum(monthAll,x=>x.ad),latestMonthRevenue:sum(monthAll,x=>x.revenue),prevMonthSpend:sum(prevMonthRows,x=>x.ad),prevMonthRevenue:sum(prevMonthRows,x=>x.revenue)};
   setSource('srcAds','ok','정상');
 }
 function parseProfitDaily(vals){return vals.slice(1).map(c=>({date:dateFlexible(c[0],2026),revenue:num(c[1]),settlement:num(c[2]),ownNaver:num(c[3]),ad:num(c[5]),adCharge:num(c[6]),expOrder:num(c[7]),order:num(c[8]),orderNote:c[9]||'',expFixed:num(c[10]),fixed:num(c[11]),fixedNote:c[12]||'',expVariable:num(c[13]),variable:num(c[14]),variableNote:c[15]||'',expRepay:num(c[16]),repay:num(c[17]),repayNote:c[18]||''})).filter(x=>x.date)}
-async function loadProfit(){setSource('srcProfit','loading','로딩');let [daily,plan]=await Promise.all([apiValues(CFG.profitId,`'${CFG.profitDailySheet}'!${CFG.profitDailyRange}`,false),apiValues(CFG.profitId,`'${CFG.profitPlanSheet}'!A1:K13`,false)]),rows=parseProfitDaily(daily),mk=`${String(RR.end.getFullYear()).slice(2)}-${String(RR.end.getMonth()+1).padStart(2,'0')}`,planRow=plan.slice(1).find(r=>String(r[0]||'').trim()===mk)||[],dim=new Date(RR.end.getFullYear(),RR.end.getMonth()+1,0).getDate(),monthRows=rows.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&x.date<=RR.end),weekRows=rows.filter(x=>inRange(x.date,RR));function av(key,a=monthRows){let z=a.filter(x=>x[key]!=null);return z.length?sum(z,x=>x[key])/z.length:0}function sm(key,a=monthRows){return sum(a,x=>x[key]||0)}let monthly={ownTarget:num(planRow[1])||0,totalTargetDaily:(num(planRow[2])||0)/dim,adTargetDaily:(num(planRow[5])||0)/dim,ownActual:av('ownNaver'),totalActual:av('revenue'),adActual:av('ad'),orderExpected:sm('expOrder'),orderActual:sm('order'),fixedExpected:sm('expFixed'),fixedActual:sm('fixed'),variableExpected:sm('expVariable'),variableActual:sm('variable')};let weekly={ownExpected:num(planRow[1])||0,ownActual:av('ownNaver',weekRows),totalExpected:(num(planRow[2])||0)/dim,totalActual:av('revenue',weekRows),adExpected:(num(planRow[5])||0)/dim,adActual:av('ad',weekRows),orderExpected:sm('expOrder',weekRows),orderActual:sm('order',weekRows),fixedExpected:sm('expFixed',weekRows),fixedActual:sm('fixed',weekRows),variableExpected:sm('expVariable',weekRows),variableActual:sm('variable',weekRows)};DATA.profit={monthly,weekly,planRow,rows};setSource('srcProfit','ok','정상');}
+async function loadProfit(){
+  setSource('srcProfit','loading','로딩');
+  let [daily,plan]=await Promise.all([apiValues(CFG.profitId,`'${CFG.profitDailySheet}'!${CFG.profitDailyRange}`,false),apiValues(CFG.profitId,`'${CFG.profitPlanSheet}'!A1:K13`,false)]),
+      rows=parseProfitDaily(daily),mk=`${String(RR.end.getFullYear()).slice(2)}-${String(RR.end.getMonth()+1).padStart(2,'0')}`,planRow=plan.slice(1).find(r=>String(r[0]||'').trim()===mk)||[],
+      dim=new Date(RR.end.getFullYear(),RR.end.getMonth()+1,0).getDate(),today=d0(new Date()),
+      monthCandidates=rows.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&x.date<=today),
+      actualRows=monthCandidates.filter(x=>['revenue','ownNaver','ad','order','fixed','variable'].some(k=>x[k]!=null)),
+      latestDate=actualRows.length?actualRows[actualRows.length-1].date:RR.end,
+      monthRows=monthCandidates.filter(x=>x.date<=RR.end),monthRowsLatest=monthCandidates.filter(x=>x.date<=latestDate),weekRows=rows.filter(x=>inRange(x.date,RR));
+  function av(key,a){let z=a.filter(x=>x[key]!=null);return z.length?sum(z,x=>x[key])/z.length:0}
+  function sm(key,a){return sum(a,x=>x[key]||0)}
+  function pack(a){return {ownTarget:num(planRow[1])||0,totalTargetDaily:(num(planRow[2])||0)/dim,adTargetDaily:(num(planRow[5])||0)/dim,ownActual:av('ownNaver',a),totalActual:av('revenue',a),adActual:av('ad',a),orderExpected:sm('expOrder',a),orderActual:sm('order',a),fixedExpected:sm('expFixed',a),fixedActual:sm('fixed',a),variableExpected:sm('expVariable',a),variableActual:sm('variable',a)}}
+  let monthly=pack(monthRows),monthlyLatest=pack(monthRowsLatest),weekly=pack(weekRows);
+  DATA.profit={monthly,monthlyLatest,weekly,planRow,rows,latestDate,monthRowsLatest};setSource('srcProfit','ok','정상');
+}
 function poParseKoreanDate(str){if(!str||str==='재입고 예정 없음'||str==='-'||str==='품절')return null;let m=String(str).match(/(\d+)년\s*(\d+)월\s*(\d+)일/);if(m)return new Date(2000+parseInt(m[1]),parseInt(m[2])-1,parseInt(m[3]));m=String(str).match(/(\d+)월\s*(\d+)일/);if(m)return new Date(2026,parseInt(m[1])-1,parseInt(m[2]));return null}
 const PO_PRODUCT_ORDER=['킥프레임','PH - 실버','PH - 블랙','DW프로 - 실버','DW프로 - 블랙','DW플러스 - 실버','DW플러스 - 블랙','DW플러스 - 그린'];
 const PO_LEAD_TIMES={'킥프레임':30,'PH - 실버':50,'PH - 블랙':50,'DW프로 - 실버':50,'DW프로 - 블랙':50,'DW플러스 - 실버':50,'DW플러스 - 블랙':50,'DW플러스 - 그린':50};
@@ -330,12 +378,12 @@ async function loadOps(){
   DATA.ops={po,b2b,stockItems};setSource('srcOps','ok','정상');
 }
 function ratioClass(actual,target,lower=false){if(!target)return'';let r=actual/target;return lower?(r<=1?'good':r<=1.1?'warn':'bad'):(r>=1?'good':r>=.9?'warn':'bad')}
-function evalItem(label,actual,target,lower=false,kind='goal'){
+function evalItem(label,actual,target,lower=false,kind='goal',idx=null){
   let rate=target?actual/target*100:0,max=Math.max(Math.abs(actual||0),Math.abs(target||0),1),
       leftH=Math.max(8,Math.abs(target||0)/max*145),rightH=Math.max(8,Math.abs(actual||0)/max*145),
       cls=ratioClass(actual,target,lower),leftLabel=kind==='goal'?'목표':'예상',rightLabel=kind==='goal'?'현재':'실제',
       currentColor=cls==='bad'?'var(--red)':cls==='warn'?'var(--yellow)':'var(--green)';
-  return `<div class="eval-item"><div class="et">${label}</div><div class="eval-bars">
+  return `<div class="eval-item clickable" ${idx!=null?`data-eval-index="${idx}"`:''}><div class="et">${label}</div><div class="eval-bars">
     <div class="eval-bar-wrap"><div class="eval-bar-value">${fmtMoney(target)}</div><div class="eval-bar base" style="height:${leftH}px;background:#667085"></div><div class="eval-bar-label">${leftLabel}</div></div>
     <div class="eval-bar-wrap"><div class="eval-bar-value">${fmtMoney(actual)}</div><div class="eval-bar current" style="height:${rightH}px;background:${currentColor}"></div><div class="eval-bar-label">${rightLabel}</div></div>
   </div><div class="eval-rate ${cls}">${rate?rate.toFixed(1):'—'}% ${rate?`<span style="font-size:.78em;font-weight:800">(${rate-100>=0?'+':''}${(rate-100).toFixed(1)}%)</span>`:''}</div></div>`
@@ -380,16 +428,17 @@ function render(){
     document.querySelectorAll('.product-card').forEach(el=>el.onclick=()=>openProduct(+el.dataset.product,'sales'));
   }
   if(pr){
-    let m=pr.monthly,month=RR.end.getMonth()+1;$('evalTitle').textContent=`${month}월 평가 지표`;
+    let m=pr.monthly,wk=pr.weekly,month=RR.end.getMonth()+1;$('evalTitle').textContent=`${month}월 평가 지표`;
     $('kTotalAvg').textContent=fmtMoney(m.totalActual);let tr=m.totalTargetDaily?m.totalActual/m.totalTargetDaily*100:null;$('kTotalAvgMeta').innerHTML=`목표 ${fmtMoney(m.totalTargetDaily)} · <b class="${ratioClass(m.totalActual,m.totalTargetDaily)}">${tr?tr.toFixed(1)+'%':'—'}</b>`;
     $('monthEval').innerHTML=[
-      evalItem('자사+네이버 일평균',m.ownActual,m.ownTarget,false,'goal'),
-      evalItem('전체매출 일평균',m.totalActual,m.totalTargetDaily,false,'goal'),
-      evalItem('광고비 일평균',m.adActual,m.adTargetDaily,true,'goal'),
-      evalItem('발주비 누적',m.orderActual,m.orderExpected,true,'expected'),
-      evalItem('고정비 누적',m.fixedActual,m.fixedExpected,true,'expected'),
-      evalItem('변동비 누적',m.variableActual,m.variableExpected,true,'expected')
+      evalItem('자사+네이버 일평균',wk.ownActual,wk.ownTarget,false,'goal',0),
+      evalItem('전체매출 일평균',wk.totalActual,wk.totalTargetDaily,false,'goal',1),
+      evalItem('광고비 일평균',wk.adActual,wk.adTargetDaily,true,'goal',2),
+      evalItem('발주비 누적',wk.orderActual,wk.orderExpected,true,'expected',3),
+      evalItem('고정비 누적',wk.fixedActual,wk.fixedExpected,true,'expected',4),
+      evalItem('변동비 누적',wk.variableActual,wk.variableExpected,true,'expected',5)
     ].join('');
+    document.querySelectorAll('[data-eval-index]').forEach(el=>el.onclick=()=>openEvalDetail(+el.dataset.evalIndex));
   }
   if(a){
     let sw=pct(a.spend,a.priorSpend),rw=pct(a.revenue,a.priorRevenue),roas=a.spend?a.revenue/a.spend*100:0,proas=a.priorSpend?a.priorRevenue/a.priorSpend*100:0,rd=roas-proas;
@@ -461,26 +510,40 @@ function draw(id,type,labels,datasets,opt={}){
   charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:opt.barLabels||opt.pointLabels||opt.rawBarLabels||opt.rateLabels?28:6}},plugins:{valueLabelPlugin:{barLabels:!!opt.valueLabels,pointLabels:!!opt.pointValueLabels,rawBarLabels:!!opt.rawBarLabels,rateLabels:!!opt.rateLabels},legend:{display:opt.legend!==false,labels:{color:text,boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:c=>opt.money?`${c.dataset.label}: ${fmtMoney(c.raw)}`:opt.percent?`${c.dataset.label}: ${Number(c.raw).toFixed(2)}%`:`${c.dataset.label}: ${c.raw}`}}},scales:{x:{ticks:{color:text,font:{size:11}},grid:{display:false}},y:{beginAtZero:true,ticks:{color:text,font:{size:10},callback:v=>opt.money?(Math.abs(v)>=1e8?(v/1e8).toFixed(1)+'억':Math.round(v/1e4)+'만'):opt.percent?v+'%':v},grid:{color:line}}}}})
 }
 
-let activeProductIndex=0,activeProductView='sales';
+let activeProductIndex=0,activeProductView='sales',activeProductGranularity='daily';
 function openProduct(i,view='sales'){
-  activeProductIndex=i;activeProductView=view;let x=DATA.products.rows[i];
-  $('modalTitle').textContent=`${x.name} · 최근 30일 상세`;
-  $('modalSub').textContent='자사몰+네이버 합산 · 평균선은 노란색';
+  activeProductIndex=i;activeProductView=view;activeProductGranularity='daily';let x=DATA.products.rows[i];
+  $('modalTitle').textContent=`${x.name} · 최신 입력 데이터 상세`;
+  $('modalSub').textContent=`자사몰+네이버 합산 · ${md(x.daily[0].date)}~${md(x.latestDate)} · 주간 보고 기준일 이후 입력분 포함`;
   $('productModal').classList.remove('hidden');syncModalCenter();
   document.querySelectorAll('[data-product-view]').forEach(b=>b.classList.toggle('active',b.dataset.productView===view));
+  document.querySelectorAll('[data-product-granularity]').forEach(b=>b.classList.toggle('active',b.dataset.productGranularity==='daily'));
   renderProductDetail()
 }
 function renderProductDetail(){
-  let x=DATA.products.rows[activeProductIndex],rows=x.daily,view=activeProductView,labels=rows.map(r=>md(r.date)),yellow='#fbbf24';
-  if(view==='sales'||view==='exposure'){
-    let key=view==='sales'?'sales':'exposure',title=view==='sales'?'판매수량':'노출량',vals=rows.map(r=>r[key]),av=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
-    draw('product30Chart','bar',labels,[{label:title,data:vals,backgroundColor:'#6c7bff',borderRadius:5},{label:`평균 ${view==='sales'?av.toFixed(1):Math.round(av).toLocaleString()}`,data:labels.map(()=>av),type:'line',borderColor:yellow,backgroundColor:yellow,pointRadius:0,borderWidth:3,tension:0}],{rawBarLabels:true});
-  }else{
-    let vals=rows.map(r=>r.rate),av=vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:0;
-    draw('product30Chart','line',labels,[{label:'전환율',data:vals,borderColor:'#6c7bff',backgroundColor:'#6c7bff',pointRadius:4,borderWidth:2,tension:0},{label:`평균 ${av.toFixed(2)}%`,data:labels.map(()=>av),borderColor:yellow,backgroundColor:yellow,pointRadius:0,borderWidth:3,tension:0}],{percent:true,rateLabels:true});
+  let x=DATA.products.rows[activeProductIndex],rows=x.daily,view=activeProductView,labels=rows.map(r=>md(r.date));
+  let totalEx=sum(rows,r=>r.exposure),totalCv=sum(rows,r=>r.sales),rate=totalEx?totalCv/totalEx*100:0;
+  $('productDetailStats').innerHTML=`
+    <div class="detail-stat"><div class="t">최근 30일 노출</div><div class="v">${Math.round(totalEx).toLocaleString()}</div><div class="s">${md(rows[0].date)}~${md(x.latestDate)}</div></div>
+    <div class="detail-stat"><div class="t">최근 30일 판매수량</div><div class="v">${Math.round(totalCv).toLocaleString()}개</div><div class="s">자사몰+네이버 합산</div></div>
+    <div class="detail-stat"><div class="t">최근 30일 전환율</div><div class="v">${rate.toFixed(2)}%</div><div class="s">최신 입력일 ${md(x.latestDate)}</div></div>`;
+  if(activeProductGranularity==='daily'){
+    if(view==='sales'||view==='exposure'){
+      let key=view==='sales'?'sales':'exposure',title=view==='sales'?'판매수량':'노출량',vals=rows.map(r=>r[key]);
+      draw('product30Chart','bar',labels,[{label:title,data:vals,backgroundColor:'#6c7bff',borderRadius:5}],{rawBarLabels:true,legend:false});
+    }else{
+      let vals=rows.map(r=>r.rate);
+      draw('product30Chart','line',labels,[{label:'전환율',data:vals,borderColor:'#6c7bff',backgroundColor:'#6c7bff',pointRadius:4,borderWidth:2,tension:0}],{percent:true,rateLabels:true,legend:false});
+    }
+    return;
   }
+  let ref=x.latestDate,weekDays=[];for(let wi=2;wi>=0;wi--){let we=addDays(ref,-7*wi),ws=addDays(we,-6),arr=[];for(let d=ws;d<=we;d=addDays(d,1))arr.push(d);weekDays.push(arr)}
+  let map=new Map(rows.map(r=>[iso(r.date),r])),dayLabels=weekDays[0].map(d=>['일','월','화','수','목','금','토'][d.getDay()]),colors=['#fb7185','#fbbf24','#6c7bff'];
+  let sets=weekDays.map((wd,i)=>({label:`${md(wd[0])}~${md(wd[6])}`,data:wd.map(dt=>{let r=map.get(iso(dt));if(!r)return null;return view==='sales'?r.sales:view==='exposure'?r.exposure:r.rate}),borderColor:colors[i],backgroundColor:colors[i],pointRadius:5,borderWidth:i===2?4:2,tension:0,spanGaps:true}));
+  draw('product30Chart','line',dayLabels,sets,view==='rate'?{percent:true,rateLabels:false}:{rawBarLabels:false});
 }
 document.querySelectorAll('[data-product-view]').forEach(b=>b.onclick=()=>{activeProductView=b.dataset.productView;document.querySelectorAll('[data-product-view]').forEach(x=>x.classList.toggle('active',x===b));renderProductDetail()});
+document.querySelectorAll('[data-product-granularity]').forEach(b=>b.onclick=()=>{activeProductGranularity=b.dataset.productGranularity;document.querySelectorAll('[data-product-granularity]').forEach(x=>x.classList.toggle('active',x===b));renderProductDetail()});
 if($('modalClose')) $('modalClose').onclick=()=>$('productModal')?.classList.add('hidden');
 if($('productModal')) $('productModal').onclick=e=>{if(e.target.id==='productModal')$('productModal').classList.add('hidden')};
 
@@ -500,18 +563,79 @@ if($('salesModalClose')) $('salesModalClose').onclick=()=>$('salesModal')?.class
 if($('salesModal')) $('salesModal').onclick=e=>{if(e.target.id==='salesModal')$('salesModal').classList.add('hidden')};
 
 
+
+function openDetailModal(title,sub,body,chartFn=null){
+  $('detailModalTitle').textContent=title;$('detailModalSub').textContent=sub||'최신 입력 데이터 기준';$('detailModalBody').innerHTML=body||'';
+  let wrap=$('detailChartWrap');wrap.classList.toggle('hidden',!chartFn);$('detailModal').classList.remove('hidden');syncModalCenter();
+  if(chartFn)setTimeout(chartFn,20);
+}
+function statCard(t,v,s=''){return `<div class="detail-stat"><div class="t">${t}</div><div class="v">${v}</div>${s?`<div class="s">${s}</div>`:''}</div>`}
+function openMtdDetail(){
+  let s=DATA.sales;if(!s)return;let days=s.monthAll||[],avgv=days.length?s.latestMtd/days.length:0;
+  openDetailModal(`${RR.end.getMonth()+1}월 누적 매출 · 최신 반영`,`주간 보고 기준 ${md(RR.end)} 이후 추가 입력 데이터까지 집계`,
+    `<div class="detail-stats">${statCard('최신 누적 매출',fmtMoney(s.latestMtd),`${days.length}일 반영 · ~${md(s.latestDate)}`)}${statCard('최신 일평균',fmtMoney(avgv),`${days.length}일 기준`)}${statCard('주간 보고 기준 누적',fmtMoney(s.mtd),`${s.monthDays.length}일 반영 · ~${md(RR.end)}`)}</div>`);
+}
+function openTotalAvgDetail(){
+  let pr=DATA.profit;if(!pr)return;let m=pr.monthlyLatest,target=m.totalTargetDaily,rate=target?m.totalActual/target*100:0;
+  openDetailModal('전체매출 일평균 · 최신 반영',`월 1일~${md(pr.latestDate)} 실제 입력 데이터 기준`,
+    `<div class="detail-stats">${statCard('최신 전체매출 일평균',fmtMoney(m.totalActual),`~${md(pr.latestDate)}`)}${statCard('목표 일평균',fmtMoney(target),'월 계획 기준')}${statCard('목표 달성률',rate.toFixed(1)+'%',`${rate-100>=0?'+':''}${(rate-100).toFixed(1)}%`)}</div>`);
+}
+function openAdRatioDetail(){
+  let a=DATA.ads,s=DATA.sales;if(!a||!s)return;let common=a.latestDate<s.latestDate?a.latestDate:s.latestDate,
+      sales=sum((s.monthAll||[]).filter(x=>x.date<=common),x=>x.total),spend=sum((a.monthAll||[]).filter(x=>x.date<=common),x=>x.ad),ratio=sales?spend/sales*100:0;
+  openDetailModal(`${RR.end.getMonth()+1}월 누적 매출액 대비 광고비`,`월 1일~${md(common)} · 매출/광고 공통 최신 입력일까지 집계`,
+    `<div class="detail-stats">${statCard('매출액 대비 광고비',ratio.toFixed(1)+'%',`~${md(common)}`)}${statCard('누적 광고비',fmtMoney(spend),'월 누적')}${statCard('누적 매출액',fmtMoney(sales),'월 누적')}</div>`);
+}
+const EVAL_META=[
+  ['자사+네이버 일평균','ownActual','ownTarget','목표','현재'],['전체매출 일평균','totalActual','totalTargetDaily','목표','현재'],['광고비 일평균','adActual','adTargetDaily','목표','현재'],
+  ['발주비 누적','orderActual','orderExpected','예상','실제'],['고정비 누적','fixedActual','fixedExpected','예상','실제'],['변동비 누적','variableActual','variableExpected','예상','실제']
+];
+function openEvalDetail(idx){
+  let pr=DATA.profit;if(!pr)return;let [label,ak,tk,tl,al]=EVAL_META[idx],m=pr.monthlyLatest,actual=m[ak]||0,target=m[tk]||0,rate=target?actual/target*100:0;
+  openDetailModal(`${label} · ${RR.end.getMonth()+1}월 누적`,`8/1~${md(pr.latestDate)} 최신 입력분 전체 집계`,
+    `<div class="detail-stats">${statCard(`${tl}`,fmtMoney(target),'누적/일평균 기준은 항목 특성에 따름')}${statCard(`${al}`,fmtMoney(actual),`~${md(pr.latestDate)}`)}${statCard('대비',rate.toFixed(1)+'%',`${rate-100>=0?'+':''}${(rate-100).toFixed(1)}%`)}</div>`);
+}
+function openAdMonthDetail(){
+  let a=DATA.ads;if(!a)return;let rows=a.monthAll||[];
+  openDetailModal(`${RR.end.getMonth()+1}월 일별 광고비 지출`,`월 1일~${md(a.latestDate)} · 최신 입력 데이터까지 표시`,
+    `<div class="detail-stats">${statCard('누적 광고비',fmtMoney(a.latestMonthSpend),`${rows.length}일 반영`)}${statCard('일평균 광고비',fmtMoney(rows.length?a.latestMonthSpend/rows.length:0),'입력일 기준')}${statCard('최신 입력일',md(a.latestDate),'주간 보고 기준일 이후 포함')}</div>`,()=>{
+      draw('detailChart','bar',rows.map(r=>md(r.date)),[{label:'광고비',data:rows.map(r=>r.ad),backgroundColor:'#6c7bff',borderRadius:5}],{money:true,valueLabels:true,legend:false});
+    });
+}
+if($('kMtdCard'))$('kMtdCard').onclick=openMtdDetail;
+if($('kTotalAvgCard'))$('kTotalAvgCard').onclick=openTotalAvgDetail;
+if($('kAdRatioCard'))$('kAdRatioCard').onclick=openAdRatioDetail;
+if($('adChartCard'))$('adChartCard').onclick=openAdMonthDetail;
+if($('detailModalClose'))$('detailModalClose').onclick=()=>$('detailModal')?.classList.add('hidden');
+if($('detailModal'))$('detailModal').onclick=e=>{if(e.target.id==='detailModal')$('detailModal').classList.add('hidden')};
+
 function stockStatusLabel(s){return s==='ok'?'정상':s==='out'?'위험':s==='preorder'?'사전예약':'품절'}
+function rawValue(raw,names){
+  for(let n of names){let k=Object.keys(raw||{}).find(x=>norm(x)===norm(n)||norm(x).includes(norm(n)));if(k&&raw[k])return raw[k]}return '—'
+}
 function openStockDetail(status){
   let items=(DATA.ops?.stockItems||[]).filter(i=>poGetStockStatus(i)===status);
   $('stockModalTitle').textContent=`주력 제품 재고 · ${stockStatusLabel(status)} ${items.length}개`;
-  $('stockDetailList').innerHTML=items.map(i=>`<div class="stock-detail-card">
-    <h3>${i.name}</h3>
-    <div class="stock-detail-row"><span>품절/소진 예상</span><b>${i.soldOutAt||'—'}</b></div>
-    <div class="stock-detail-row"><span>잔여 일수</span><b>${i.daysLeft||'—'}</b></div>
-    <div class="stock-detail-row"><span>재입고 일정</span><b>${i.restockAt||'—'}</b></div>
-    <div class="stock-detail-row"><span>재입고 수량</span><b>${i.restockQty||'—'}</b></div>
-    ${status==='preorder'&&i.raw?Object.entries(i.raw).filter(([k,v])=>v&&k&&k!=='제품명').map(([k,v])=>`<div class="stock-detail-row"><span>${k}</span><b>${v}</b></div>`).join(''):(i.preorderStartAt?`<div class="stock-detail-row"><span>사전예약 시작일</span><b>${i.preorderStartAt}</b></div>`:'')}
-  </div>`).join('')||'<div class="empty">해당 상태의 제품이 없습니다.</div>';
+  if(status==='preorder'){
+    $('stockDetailList').innerHTML=items.map(i=>{
+      let raw=i.raw||{},used=new Set(['제품명']);
+      let fields=[
+        ['사전예약 시작일',['사전예약 시작일','사전예약시작일']],['누적 판매수량',['누적 판매수량','사전예약 누적 판매수량','누적판매수량']],['현재 잔여수량',['현재 잔여수량','현재잔여수량']],
+        ['입고시 예상 누적',['입고시 예상 누적','입고 시 예상 누적','입고시예상누적']],['입고시 예상 잔여',['입고시 예상 잔여','입고 시 예상 잔여','입고시예상잔여']]
+      ];
+      let coreKeys=new Set();Object.keys(raw).forEach(k=>{if(['제품명'].includes(k))coreKeys.add(k)});
+      let extra=fields.map(([label,names])=>`<div class="r"><span>${label}</span><b>${rawValue(raw,names)}</b></div>`).join('');
+      let knownNorm=new Set(['제품명','품절예상일','품절/소진예상','남은기간','잔여일수','재입고일자','재입고일정','입고수량','재입고수량','사전예약시작일','누적판매수량','사전예약누적판매수량','현재잔여수량','입고시예상누적','입고시예상잔여'].map(norm));
+      let rest=Object.entries(raw).filter(([k,v])=>v&&k&&!knownNorm.has(norm(k))).map(([k,v])=>`<div class="r"><span>${k}</span><b>${v}</b></div>`).join('');
+      return `<div class="preorder-detail"><div class="preorder-title"><h3>${i.name}</h3><span class="preorder-badge">사전예약</span></div>
+        <div class="preorder-top">
+          <div class="r"><span>품절 예상일</span><b>${i.soldOutAt||'—'}</b></div><div class="r"><span>남은 기간</span><b>${i.daysLeft||'—'}</b></div>
+          <div class="r"><span>재입고 일자</span><b>${i.restockAt||'—'}</b></div><div class="r"><span>입고 수량</span><b>${i.restockQty||'—'}</b></div>
+        </div><div class="preorder-divider"></div><div class="preorder-extra">${extra}${rest}</div></div>`;
+    }).join('')||'<div class="empty">사전예약 중인 제품이 없습니다.</div>';
+  }else{
+    $('stockDetailList').innerHTML=items.map(i=>`<div class="stock-detail-card"><h3>${i.name}</h3><div class="stock-detail-row"><span>품절/소진 예상</span><b>${i.soldOutAt||'—'}</b></div><div class="stock-detail-row"><span>잔여 일수</span><b>${i.daysLeft||'—'}</b></div><div class="stock-detail-row"><span>재입고 일정</span><b>${i.restockAt||'—'}</b></div><div class="stock-detail-row"><span>재입고 수량</span><b>${i.restockQty||'—'}</b></div></div>`).join('')||'<div class="empty">해당 상태의 제품이 없습니다.</div>';
+  }
   $('stockModal').classList.remove('hidden');syncModalCenter();
 }
 if($('stockModalClose')) $('stockModalClose').onclick=()=>$('stockModal')?.classList.add('hidden');
