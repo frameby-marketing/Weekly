@@ -123,7 +123,7 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
     <div class="card kpi"><div class="label">이번 주 매출</div><div class="value" id="kWeekSales">—</div><div class="meta" id="kWeekSalesMeta">지난 금~목 기준</div></div>
     <div class="card kpi"><div class="label">월 누적 매출</div><div class="value" id="kMtd">—</div><div class="meta" id="kMtdMeta">—</div></div>
     <div class="card kpi"><div class="label">현재 전체매출 일평균</div><div class="value" id="kTotalAvg">—</div><div class="meta" id="kTotalAvgMeta">월 계획 대비</div></div>
-    <div class="card kpi"><div class="label">이번 주 광고비</div><div class="value" id="kAdSpend">—</div><div class="meta" id="kAdMeta">—</div></div>
+    <div class="card kpi"><div class="label">이번주 매출액 대비 광고비</div><div class="value" id="kAdSpend">—</div><div class="meta" id="kAdMeta">—</div></div>
   </section>
   <main class="grid">
     <section class="card span12 sales-main-card" id="salesMainCard">
@@ -315,7 +315,8 @@ async function loadPOStock(){
   let items=[];
   for(let i=headerIdx+1;i<rows.length&&items.length<8;i++){
     let row=rows[i],name=String(row[nameCol]||'').trim();if(!PO_PRODUCT_ORDER.includes(name))continue;
-    items.push({name,soldOutAt:String(row[nameCol+1]||'').trim(),daysLeft:String(row[nameCol+2]||'').trim(),restockAt:String(row[nameCol+3]||'').trim(),restockQty:String(row[nameCol+4]||'').trim(),preorderStartAt:String(row[nameCol+5]||'').trim()})
+    let raw={}; header.forEach((h,idx)=>{let key=String(h||'').trim();if(key)raw[key]=String(row[idx]??'').trim()});
+    items.push({name,soldOutAt:String(row[nameCol+1]||'').trim(),daysLeft:String(row[nameCol+2]||'').trim(),restockAt:String(row[nameCol+3]||'').trim(),restockQty:String(row[nameCol+4]||'').trim(),preorderStartAt:String(row[nameCol+5]||'').trim(),raw})
   }
   return items
 }
@@ -337,7 +338,7 @@ function evalItem(label,actual,target,lower=false,kind='goal'){
   return `<div class="eval-item"><div class="et">${label}</div><div class="eval-bars">
     <div class="eval-bar-wrap"><div class="eval-bar-value">${fmtMoney(target)}</div><div class="eval-bar base" style="height:${leftH}px;background:#667085"></div><div class="eval-bar-label">${leftLabel}</div></div>
     <div class="eval-bar-wrap"><div class="eval-bar-value">${fmtMoney(actual)}</div><div class="eval-bar current" style="height:${rightH}px;background:${currentColor}"></div><div class="eval-bar-label">${rightLabel}</div></div>
-  </div><div class="eval-rate ${cls}">${rate?rate.toFixed(1):'—'}%</div></div>`
+  </div><div class="eval-rate ${cls}">${rate?rate.toFixed(1):'—'}% ${rate?`<span style="font-size:.78em;font-weight:800">(${rate-100>=0?'+':''}${(rate-100).toFixed(1)}%)</span>`:''}</div></div>`
 }
 
 function syncModalCenter(){
@@ -392,7 +393,9 @@ function render(){
   }
   if(a){
     let sw=pct(a.spend,a.priorSpend),rw=pct(a.revenue,a.priorRevenue),roas=a.spend?a.revenue/a.spend*100:0,proas=a.priorSpend?a.priorRevenue/a.priorSpend*100:0,rd=roas-proas;
-    $('kAdSpend').textContent=fmtMoney(a.spend);$('kAdMeta').innerHTML=`전주 대비 <b class="${sw<=0?'good':'up'}">${fmtPct(sw)}</b> · ROAS ${roas.toFixed(0)}%`;
+    let weekAdRatio=(s&&s.currentSum)?a.spend/s.currentSum*100:null;
+    $('kAdSpend').textContent=weekAdRatio!=null?weekAdRatio.toFixed(1)+'%':'—';
+    $('kAdMeta').innerHTML=`광고비 <b>${fmtMoney(a.spend)}</b> · 전주 대비 <b class="${sw<=0?'good':'up'}">${fmtPct(sw)}</b>`;
     $('adSpendMini').innerHTML=`${fmtMoney(a.spend)} <small class="${sw>=0?'up':'down'}">(${fmtPct(sw)})</small>`;
     $('adRevenueMini').innerHTML=`${fmtMoney(a.revenue)} <small class="${rw>=0?'up':'down'}">(${fmtPct(rw)})</small>`;
     $('adRoasMini').innerHTML=`${roas.toFixed(0)}% <small class="${rd>=0?'up':'down'}">(전주 대비 ${rd>=0?'+':''}${rd.toFixed(1)}%p)</small>`;
@@ -507,7 +510,7 @@ function openStockDetail(status){
     <div class="stock-detail-row"><span>잔여 일수</span><b>${i.daysLeft||'—'}</b></div>
     <div class="stock-detail-row"><span>재입고 일정</span><b>${i.restockAt||'—'}</b></div>
     <div class="stock-detail-row"><span>재입고 수량</span><b>${i.restockQty||'—'}</b></div>
-    ${i.preorderStartAt?`<div class="stock-detail-row"><span>사전예약 시작일</span><b>${i.preorderStartAt}</b></div>`:''}
+    ${status==='preorder'&&i.raw?Object.entries(i.raw).filter(([k,v])=>v&&k&&k!=='제품명').map(([k,v])=>`<div class="stock-detail-row"><span>${k}</span><b>${v}</b></div>`).join(''):(i.preorderStartAt?`<div class="stock-detail-row"><span>사전예약 시작일</span><b>${i.preorderStartAt}</b></div>`:'')}
   </div>`).join('')||'<div class="empty">해당 상태의 제품이 없습니다.</div>';
   $('stockModal').classList.remove('hidden');syncModalCenter();
 }
