@@ -501,13 +501,26 @@ const valueLabelPlugin={id:'valueLabelPlugin',afterDatasetsDraw(chart,args,opts)
     ctx.fillStyle=chart.data.datasets[0].borderColor||'#fff';ctx.font='800 10px Pretendard';ctx.textAlign='center';
     chart.getDatasetMeta(0).data.forEach((pt,i)=>{let v=chart.data.datasets[0].data[i];ctx.fillText(Number(v).toFixed(2)+'%',pt.x,pt.y-9)})
   }
+  if(opts.multiPointLabels){
+    chart.data.datasets.forEach((ds,di)=>{
+      ctx.fillStyle=ds.borderColor||'#fff';ctx.font='800 10px Pretendard';ctx.textAlign='center';
+      chart.getDatasetMeta(di).data.forEach((pt,i)=>{let v=ds.data[i];if(v==null)return;let label=opts.multiPointPercent?Number(v).toFixed(2)+'%':Number(v).toLocaleString();ctx.fillText(label,pt.x,pt.y-(di*12+9))})
+    })
+  }
+  if(opts.averageLine!=null&&isFinite(opts.averageLine)){
+    let y=chart.scales.y.getPixelForValue(opts.averageLine),left=chart.chartArea.left,right=chart.chartArea.right;
+    ctx.save();ctx.strokeStyle='#fbbf24';ctx.lineWidth=2;ctx.setLineDash([7,5]);ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke();ctx.setLineDash([]);
+    ctx.fillStyle='#fbbf24';ctx.font='900 11px Pretendard';ctx.textAlign='right';ctx.textBaseline='bottom';
+    let label=opts.averagePercent?`평균 ${Number(opts.averageLine).toFixed(2)}%`:`평균 ${Number(opts.averageLine).toLocaleString()}`;
+    ctx.fillText(label,right-4,y-5);ctx.restore();
+  }
   ctx.restore()
 }};Chart.register(valueLabelPlugin);
 
 function draw(id,type,labels,datasets,opt={}){
   if(charts[id])charts[id].destroy();
   let cs=getComputedStyle(document.documentElement),text=cs.getPropertyValue('--sub').trim(),line=cs.getPropertyValue('--line').trim();
-  charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:opt.barLabels||opt.pointLabels||opt.rawBarLabels||opt.rateLabels?28:6}},plugins:{valueLabelPlugin:{barLabels:!!opt.valueLabels,pointLabels:!!opt.pointValueLabels,rawBarLabels:!!opt.rawBarLabels,rateLabels:!!opt.rateLabels},legend:{display:opt.legend!==false,labels:{color:text,boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:c=>opt.money?`${c.dataset.label}: ${fmtMoney(c.raw)}`:opt.percent?`${c.dataset.label}: ${Number(c.raw).toFixed(2)}%`:`${c.dataset.label}: ${c.raw}`}}},scales:{x:{ticks:{color:text,font:{size:11}},grid:{display:false}},y:{beginAtZero:true,ticks:{color:text,font:{size:10},callback:v=>opt.money?(Math.abs(v)>=1e8?(v/1e8).toFixed(1)+'억':Math.round(v/1e4)+'만'):opt.percent?v+'%':v},grid:{color:line}}}}})
+  charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:opt.barLabels||opt.pointLabels||opt.rawBarLabels||opt.rateLabels||opt.multiPointLabels?42:6}},plugins:{valueLabelPlugin:{barLabels:!!opt.valueLabels,pointLabels:!!opt.pointValueLabels,rawBarLabels:!!opt.rawBarLabels,rateLabels:!!opt.rateLabels,multiPointLabels:!!opt.multiPointLabels,multiPointPercent:!!opt.multiPointPercent,averageLine:opt.averageLine,averagePercent:!!opt.averagePercent},legend:{display:opt.legend!==false,labels:{color:text,boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:c=>opt.money?`${c.dataset.label}: ${fmtMoney(c.raw)}`:opt.percent?`${c.dataset.label}: ${Number(c.raw).toFixed(2)}%`:`${c.dataset.label}: ${c.raw}`}}},scales:{x:{ticks:{color:text,font:{size:11}},grid:{display:false}},y:{beginAtZero:true,ticks:{color:text,font:{size:10},callback:v=>opt.money?(Math.abs(v)>=1e8?(v/1e8).toFixed(1)+'억':Math.round(v/1e4)+'만'):opt.percent?v+'%':v},grid:{color:line}}}}})
 }
 
 let activeProductIndex=0,activeProductView='sales',activeProductGranularity='daily';
@@ -530,17 +543,19 @@ function renderProductDetail(){
   if(activeProductGranularity==='daily'){
     if(view==='sales'||view==='exposure'){
       let key=view==='sales'?'sales':'exposure',title=view==='sales'?'판매수량':'노출량',vals=rows.map(r=>r[key]);
-      draw('product30Chart','bar',labels,[{label:title,data:vals,backgroundColor:'#6c7bff',borderRadius:5}],{rawBarLabels:true,legend:false});
+      let mean=vals.length?sum(vals)/vals.length:0;
+      draw('product30Chart','bar',labels,[{label:title,data:vals,backgroundColor:'#6c7bff',borderRadius:5}],{rawBarLabels:true,legend:false,averageLine:mean});
     }else{
       let vals=rows.map(r=>r.rate);
-      draw('product30Chart','line',labels,[{label:'전환율',data:vals,borderColor:'#6c7bff',backgroundColor:'#6c7bff',pointRadius:4,borderWidth:2,tension:0}],{percent:true,rateLabels:true,legend:false});
+      let mean=vals.length?sum(vals)/vals.length:0;
+      draw('product30Chart','line',labels,[{label:'전환율',data:vals,borderColor:'#6c7bff',backgroundColor:'#6c7bff',pointRadius:4,borderWidth:2,tension:0}],{percent:true,rateLabels:true,legend:false,averageLine:mean,averagePercent:true});
     }
     return;
   }
   let ref=x.latestDate,weekDays=[];for(let wi=2;wi>=0;wi--){let we=addDays(ref,-7*wi),ws=addDays(we,-6),arr=[];for(let d=ws;d<=we;d=addDays(d,1))arr.push(d);weekDays.push(arr)}
   let map=new Map(rows.map(r=>[iso(r.date),r])),dayLabels=weekDays[0].map(d=>['일','월','화','수','목','금','토'][d.getDay()]),colors=['#fb7185','#fbbf24','#6c7bff'];
   let sets=weekDays.map((wd,i)=>({label:`${md(wd[0])}~${md(wd[6])}`,data:wd.map(dt=>{let r=map.get(iso(dt));if(!r)return null;return view==='sales'?r.sales:view==='exposure'?r.exposure:r.rate}),borderColor:colors[i],backgroundColor:colors[i],pointRadius:5,borderWidth:i===2?4:2,tension:0,spanGaps:true}));
-  draw('product30Chart','line',dayLabels,sets,view==='rate'?{percent:true,rateLabels:false}:{rawBarLabels:false});
+  draw('product30Chart','line',dayLabels,sets,view==='rate'?{percent:true,multiPointLabels:true,multiPointPercent:true}:{multiPointLabels:true});
 }
 document.querySelectorAll('[data-product-view]').forEach(b=>b.onclick=()=>{activeProductView=b.dataset.productView;document.querySelectorAll('[data-product-view]').forEach(x=>x.classList.toggle('active',x===b));renderProductDetail()});
 document.querySelectorAll('[data-product-granularity]').forEach(b=>b.onclick=()=>{activeProductGranularity=b.dataset.productGranularity;document.querySelectorAll('[data-product-granularity]').forEach(x=>x.classList.toggle('active',x===b));renderProductDetail()});
