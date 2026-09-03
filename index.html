@@ -517,14 +517,23 @@ const valueLabelPlugin={id:'valueLabelPlugin',afterDatasetsDraw(chart,args,opts)
     let label=avgLabel('전체 평균',opts.averageLine,opts.averagePercent,opts.averageMoney);
     let ly=y-6;if(chart.data.datasets[0]&&chart.getDatasetMeta(0).data.some(pt=>Math.abs(pt.y-y)<18))ly=y+18;ctx.fillText(label,right-4,ly);ctx.restore();
   }
-  if(opts.recentAverageLine!=null&&isFinite(opts.recentAverageLine)){
-    let y=chart.scales.y.getPixelForValue(opts.recentAverageLine),left=chart.chartArea.left,right=chart.chartArea.right;
-    ctx.save();ctx.strokeStyle='#60a5fa';ctx.lineWidth=2;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke();
-    ctx.fillStyle='#60a5fa';ctx.font='900 11px Pretendard';ctx.textAlign='left';ctx.textBaseline='bottom';
+  if(opts.recentAverageLine!=null&&isFinite(opts.recentAverageLine)&&chart.chartArea){
+    // 최근 7일 평균은 별도 평균선을 그리지 않고, 최근 7일 데이터 구간 가까이에 값만 표시한다.
+    let meta=chart.getDatasetMeta(0),points=meta&&meta.data?meta.data:[],left=chart.chartArea.left,right=chart.chartArea.right,top=chart.chartArea.top;
+    let recentCount=Math.min(7,points.length),startIdx=Math.max(0,points.length-recentCount),recentPts=points.slice(startIdx);
+    let anchorX=recentPts.length?recentPts.reduce((a,p)=>a+p.x,0)/recentPts.length:right-50;
+    let minY=recentPts.length?Math.min(...recentPts.map(p=>p.y)):top+20;
+    ctx.save();ctx.fillStyle='#60a5fa';ctx.font='900 11px Pretendard';ctx.textAlign='center';ctx.textBaseline='bottom';
     let label=avgLabel('최근 7일 평균',opts.recentAverageLine,opts.recentAveragePercent,opts.recentAverageMoney);
-    let ly=y-6;if(opts.averageLine!=null&&Math.abs(chart.scales.y.getPixelForValue(opts.averageLine)-y)<22)ly=y+20;
-    if(chart.data.datasets[0]&&chart.getDatasetMeta(0).data.some(pt=>Math.abs(pt.y-y)<18))ly+=18;
-    ctx.fillText(label,left+4,ly);ctx.restore();
+    let ly=Math.max(top+16,minY-24);
+    if(opts.averageLine!=null&&isFinite(opts.averageLine)){
+      let ay=chart.scales.y.getPixelForValue(opts.averageLine);
+      if(Math.abs(ay-ly)<22)ly=Math.min(chart.chartArea.bottom-8,ly+28);
+    }
+    // 개별 값 라벨과 겹치면 최근 7일 구간 중앙에서 위/아래로 한 번 더 보정한다.
+    if(recentPts.some(pt=>Math.abs(pt.y-ly)<20))ly=Math.max(top+16,ly-24);
+    anchorX=Math.min(right-80,Math.max(left+80,anchorX));
+    ctx.fillText(label,anchorX,ly);ctx.restore();
   }
   ctx.restore()
 }};Chart.register(valueLabelPlugin);
@@ -595,7 +604,8 @@ function openMtdDetail(){
   function renderMonth(){
     let y=RR.end.getFullYear(),rows=s.days.filter(r=>r.date.getFullYear()===y&&r.date.getMonth()===viewMonth&&(viewMonth===curMonth?r.date<=RR.end:true)),channels=[['자사몰','self','#6c7bff'],['네이버','naver','#34d399'],['쿠팡','coupang','#ef4444'],['M몰','mmall','#374151']],vals=channels.map(c=>sum(rows,r=>r[c[1]]||0)),total=sum(rows,r=>r.total);
     $('detailModalTitle').textContent=`${viewMonth+1}월 누적 매출 플랫폼 비중`;$('detailModalSub').textContent=`${rows.length}일 반영${viewMonth===curMonth?' · ~'+md(RR.end):' · 월 전체'}`;
-    $('detailModalBody').innerHTML=`<div class="detail-actions"><button class="btn ${viewMonth===curMonth?'active':''}" data-mtd-month="${curMonth}">${curMonth+1}월</button><button class="btn ${viewMonth===curMonth-1?'active':''}" data-mtd-month="${curMonth-1}">${curMonth}월</button></div><div class="detail-stats">${statCard('월 누적 매출',fmtMoney(total),`${rows.length}일 반영`)}</div>`;
+    let monthButtons=Array.from({length:curMonth+1},(_,i)=>curMonth-i).map(m=>`<button class="btn ${viewMonth===m?'active':''}" data-mtd-month="${m}">${m+1}월</button>`).join('');
+    $('detailModalBody').innerHTML=`<div class="detail-actions">${monthButtons}</div><div class="detail-stats">${statCard('월 누적 매출',fmtMoney(total),`${rows.length}일 반영`)}</div>`;
     draw('detailChart','doughnut',channels.map(c=>c[0]),[{label:'매출 비중',data:vals,backgroundColor:channels.map(c=>c[2]),borderWidth:0}],{legend:true,pieLabels:true});
     document.querySelectorAll('[data-mtd-month]').forEach(b=>b.onclick=()=>{viewMonth=+b.dataset.mtdMonth;renderMonth()});
   }
