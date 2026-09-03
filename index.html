@@ -263,7 +263,7 @@ function normalizeProduct(s){let n=String(s||'').toUpperCase().replace(/[\s_\-�
 async function loadSales(){
   setSource('srcSales','loading','로딩');
   // 최근 8주 + 현재월 누적 + 월별 상세에 필요한 월 탭을 모두 확보한다.
-  let months=[];for(let i=0;i<4;i++){let d=new Date(RR.end.getFullYear(),RR.end.getMonth()-i,1);months.push({tab:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,year:d.getFullYear()})}
+  let months=[];for(let i=0;i<9;i++){let d=new Date(RR.end.getFullYear(),RR.end.getMonth()-i,1);months.push({tab:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,year:d.getFullYear()})}
   function parse(vals,year){
     let hi=vals.findIndex(r=>r.map(x=>String(x).trim().toUpperCase()).includes('TOTAL')&&r.some(x=>String(x).trim()==='일자'));
     if(hi<0)return[];
@@ -412,7 +412,7 @@ function render(){
     let curAvg=s.current.length?s.currentSum/s.current.length:0,priorAvg=s.prior.length?s.priorSum/s.prior.length:0,w=pct(curAvg,priorAvg);
     $('kWeekSales').textContent=fmtMoney(curAvg);$('kWeekSalesMeta').innerHTML=`전주 대비 <b class="${w>=0?'up':'down'}">${fmtPct(w)}</b>`;
     $('kMtd').textContent=fmtMoney(s.mtd);$('kMtdMeta').textContent=`${s.monthDays.length}일 반영`;
-    let weekMean=avg(s.weeks,x=>x.value);draw('salesChart','bar',s.weeks.map(x=>x.label),[{label:'주간 매출',data:s.weeks.map(x=>x.value),backgroundColor:s.weeks.map((x,i)=>i===s.weeks.length-1?'#6c7bff':'#667085'),borderRadius:8}],{money:true,valueLabels:true,averageLine:weekMean});
+    let weekMean=avg(s.weeks,x=>x.value);draw('salesChart','bar',s.weeks.map(x=>x.label),[{label:'주간 매출',data:s.weeks.map(x=>x.value),backgroundColor:s.weeks.map((x,i)=>i===s.weeks.length-1?'#6c7bff':'#667085'),borderRadius:8}],{money:true,valueLabels:true,averageLine:weekMean,averageMoney:true});
   }
   if(p){
     $('productCards').innerHTML=p.rows.map((x,i)=>{
@@ -505,12 +505,26 @@ const valueLabelPlugin={id:'valueLabelPlugin',afterDatasetsDraw(chart,args,opts)
   }
   if(opts.pieLabels&&chart.config.type==='doughnut'){let total=chart.data.datasets[0].data.reduce((a,b)=>a+(+b||0),0);chart.getDatasetMeta(0).data.forEach((arc,i)=>{let v=chart.data.datasets[0].data[i],ratio=total?v/total:0;if(ratio<.08)return;let pt=arc.tooltipPosition();ctx.fillStyle='#fff';ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`900 ${Math.max(10,Math.min(18,10+ratio*18))}px Pretendard`;ctx.fillText(`${chart.data.labels[i]} ${(ratio*100).toFixed(1)}%`,pt.x,pt.y)})}
   if(opts.benchmarkLine!=null&&chart.scales.y){let y=chart.scales.y.getPixelForValue(opts.benchmarkLine),left=chart.chartArea.left,right=chart.chartArea.right;ctx.save();ctx.strokeStyle='#fbbf24';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke();ctx.fillStyle='#fbbf24';ctx.font='900 11px Pretendard';ctx.textAlign='right';ctx.fillText(`${opts.benchmarkLine}%`,right-4,y-6);ctx.restore()}
+  function avgLabel(prefix,value,isPercent,isMoney){
+    if(isPercent)return `${prefix} ${Number(value).toFixed(2)}%`;
+    if(isMoney)return `${prefix} ${Math.round(Number(value)/10000).toLocaleString('ko-KR')}만`;
+    return `${prefix} ${Number(value).toLocaleString('ko-KR',{maximumFractionDigits:1})}`;
+  }
   if(opts.averageLine!=null&&isFinite(opts.averageLine)){
     let y=chart.scales.y.getPixelForValue(opts.averageLine),left=chart.chartArea.left,right=chart.chartArea.right;
     ctx.save();ctx.strokeStyle='#fbbf24';ctx.lineWidth=2;ctx.setLineDash([7,5]);ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke();ctx.setLineDash([]);
     ctx.fillStyle='#fbbf24';ctx.font='900 11px Pretendard';ctx.textAlign='right';ctx.textBaseline='bottom';
-    let label=opts.averagePercent?`평균 ${Number(opts.averageLine).toFixed(2)}%`:`평균 ${Number(opts.averageLine).toLocaleString()}`;
+    let label=avgLabel('전체 평균',opts.averageLine,opts.averagePercent,opts.averageMoney);
     let ly=y-6;if(chart.data.datasets[0]&&chart.getDatasetMeta(0).data.some(pt=>Math.abs(pt.y-y)<18))ly=y+18;ctx.fillText(label,right-4,ly);ctx.restore();
+  }
+  if(opts.recentAverageLine!=null&&isFinite(opts.recentAverageLine)){
+    let y=chart.scales.y.getPixelForValue(opts.recentAverageLine),left=chart.chartArea.left,right=chart.chartArea.right;
+    ctx.save();ctx.strokeStyle='#60a5fa';ctx.lineWidth=2;ctx.setLineDash([]);ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke();
+    ctx.fillStyle='#60a5fa';ctx.font='900 11px Pretendard';ctx.textAlign='left';ctx.textBaseline='bottom';
+    let label=avgLabel('최근 7일 평균',opts.recentAverageLine,opts.recentAveragePercent,opts.recentAverageMoney);
+    let ly=y-6;if(opts.averageLine!=null&&Math.abs(chart.scales.y.getPixelForValue(opts.averageLine)-y)<22)ly=y+20;
+    if(chart.data.datasets[0]&&chart.getDatasetMeta(0).data.some(pt=>Math.abs(pt.y-y)<18))ly+=18;
+    ctx.fillText(label,left+4,ly);ctx.restore();
   }
   ctx.restore()
 }};Chart.register(valueLabelPlugin);
@@ -518,7 +532,7 @@ const valueLabelPlugin={id:'valueLabelPlugin',afterDatasetsDraw(chart,args,opts)
 function draw(id,type,labels,datasets,opt={}){
   if(charts[id])charts[id].destroy();
   let cs=getComputedStyle(document.documentElement),text=cs.getPropertyValue('--sub').trim(),line=cs.getPropertyValue('--line').trim();
-  charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:opt.barLabels||opt.pointLabels||opt.rawBarLabels||opt.rateLabels||opt.multiPointLabels?42:6}},plugins:{valueLabelPlugin:{barLabels:!!opt.valueLabels,pointLabels:!!opt.pointValueLabels,rawBarLabels:!!opt.rawBarLabels,rateLabels:!!opt.rateLabels,multiPointLabels:!!opt.multiPointLabels,multiPointPercent:!!opt.multiPointPercent,averageLine:opt.averageLine,averagePercent:!!opt.averagePercent,pieLabels:!!opt.pieLabels,benchmarkLine:opt.benchmarkLine},legend:{display:opt.legend!==false,labels:{color:text,boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:c=>opt.money?`${c.dataset.label}: ${fmtMoney(c.raw)}`:opt.percent?`${c.dataset.label}: ${Number(c.raw).toFixed(2)}%`:`${c.dataset.label}: ${c.raw}`}}},scales:type==='doughnut'?{}:{x:{ticks:{color:text,font:{size:11}},grid:{display:false}},y:{beginAtZero:true,ticks:{color:text,font:{size:10},callback:v=>opt.money?(Math.abs(v)>=1e8?(v/1e8).toFixed(1)+'억':Math.round(v/1e4)+'만'):opt.percent?v+'%':v},grid:{color:line}}}}})
+  charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:opt.barLabels||opt.pointLabels||opt.rawBarLabels||opt.rateLabels||opt.multiPointLabels?42:6}},plugins:{valueLabelPlugin:{barLabels:!!opt.valueLabels,pointLabels:!!opt.pointValueLabels,rawBarLabels:!!opt.rawBarLabels,rateLabels:!!opt.rateLabels,multiPointLabels:!!opt.multiPointLabels,multiPointPercent:!!opt.multiPointPercent,averageLine:opt.averageLine,averagePercent:!!opt.averagePercent,averageMoney:!!opt.averageMoney,recentAverageLine:opt.recentAverageLine,recentAveragePercent:!!opt.recentAveragePercent,recentAverageMoney:!!opt.recentAverageMoney,pieLabels:!!opt.pieLabels,benchmarkLine:opt.benchmarkLine},legend:{display:opt.legend!==false,labels:{color:text,boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:c=>opt.money?`${c.dataset.label}: ${fmtMoney(c.raw)}`:opt.percent?`${c.dataset.label}: ${Number(c.raw).toFixed(2)}%`:`${c.dataset.label}: ${c.raw}`}}},scales:type==='doughnut'?{}:{x:{ticks:{color:text,font:{size:11}},grid:{display:false}},y:{beginAtZero:true,ticks:{color:text,font:{size:10},callback:v=>opt.money?(Math.abs(v)>=1e8?(v/1e8).toFixed(1)+'억':Math.round(v/1e4)+'만'):opt.percent?v+'%':v},grid:{color:line}}}}})
 }
 
 let activeProductIndex=0,activeProductView='sales',activeProductGranularity='daily';
@@ -542,11 +556,11 @@ function renderProductDetail(){
     if(view==='sales'||view==='exposure'){
       let key=view==='sales'?'sales':'exposure',title=view==='sales'?'판매수량':'노출량',vals=rows.map(r=>r[key]);
       let mean=vals.length?sum(vals)/vals.length:0;
-      let cutoff=addDays(x.latestDate,-6);draw('product30Chart','bar',labels,[{label:title,data:vals,backgroundColor:rows.map(r=>r.date>=cutoff?'#6c7bff':'#667085'),borderRadius:5}],{rawBarLabels:true,legend:false,averageLine:mean});
+      let cutoff=addDays(x.latestDate,-6),recentVals=rows.filter(r=>r.date>=cutoff).map(r=>r[key]),recentMean=recentVals.length?avg(recentVals):0;draw('product30Chart','bar',labels,[{label:title,data:vals,backgroundColor:rows.map(r=>r.date>=cutoff?'#6c7bff':'#667085'),borderRadius:5}],{rawBarLabels:true,legend:false,averageLine:mean,recentAverageLine:recentMean});
     }else{
       let vals=rows.map(r=>r.rate);
       let mean=vals.length?sum(vals)/vals.length:0;
-      let cutoff=addDays(x.latestDate,-6);draw('product30Chart','line',labels,[{label:'전환율',data:vals,borderColor:'#667085',backgroundColor:rows.map(r=>r.date>=cutoff?'#6c7bff':'#667085'),pointBackgroundColor:rows.map(r=>r.date>=cutoff?'#6c7bff':'#667085'),pointRadius:4,borderWidth:2,tension:0,segment:{borderColor:ctx=>rows[Math.min(ctx.p1DataIndex,rows.length-1)].date>=cutoff?'#6c7bff':'#667085'}}],{percent:true,rateLabels:true,legend:false,averageLine:mean,averagePercent:true});
+      let cutoff=addDays(x.latestDate,-6),recentVals=rows.filter(r=>r.date>=cutoff).map(r=>r.rate),recentMean=recentVals.length?avg(recentVals):0;draw('product30Chart','line',labels,[{label:'전환율',data:vals,borderColor:'#667085',backgroundColor:rows.map(r=>r.date>=cutoff?'#6c7bff':'#667085'),pointBackgroundColor:rows.map(r=>r.date>=cutoff?'#6c7bff':'#667085'),pointRadius:4,borderWidth:2,tension:0,segment:{borderColor:ctx=>rows[Math.min(ctx.p1DataIndex,rows.length-1)].date>=cutoff?'#6c7bff':'#667085'}}],{percent:true,rateLabels:true,legend:false,averageLine:mean,averagePercent:true,recentAverageLine:recentMean,recentAveragePercent:true});
     }
     return;
   }
@@ -562,7 +576,7 @@ if($('productModal')) $('productModal').onclick=e=>{if(e.target.id==='productMod
 
 let activeSalesView='total';
 function openSalesDetail(view='total'){activeSalesView=view;$('salesModal').classList.remove('hidden');syncModalCenter();document.querySelectorAll('[data-sales-view]').forEach(b=>b.classList.toggle('active',b.dataset.salesView===view));renderSales3Week()}
-function renderSales3Week(){if(!DATA.sales)return;let all=[...DATA.sales.days].sort((a,b)=>a.date-b.date),ref=all[all.length-1];if(!ref)return;let rows=all.filter(x=>x.date>=addDays(ref.date,-20)&&x.date<=ref.date),vals=rows.map(r=>activeSalesView==='total'?r.total:r.selfNaver),mean=vals.length?sum(vals)/vals.length:0;draw('sales3WeekChart','bar',rows.map(r=>md(r.date)),[{label:activeSalesView==='total'?'전체 플랫폼':'자사몰+네이버',data:vals,backgroundColor:rows.map(r=>r.date>=addDays(ref.date,-6)?'#6c7bff':'#667085'),borderRadius:5}],{money:true,valueLabels:true,averageLine:mean})}
+function renderSales3Week(){if(!DATA.sales)return;let all=[...DATA.sales.days].sort((a,b)=>a.date-b.date),ref=all[all.length-1];if(!ref)return;let cutoff=addDays(ref.date,-6),rows=all.filter(x=>x.date>=addDays(ref.date,-20)&&x.date<=ref.date),vals=rows.map(r=>activeSalesView==='total'?r.total:r.selfNaver),mean=vals.length?sum(vals)/vals.length:0,recentVals=rows.filter(r=>r.date>=cutoff).map(r=>activeSalesView==='total'?r.total:r.selfNaver),recentMean=recentVals.length?avg(recentVals):0;draw('sales3WeekChart','bar',rows.map(r=>md(r.date)),[{label:activeSalesView==='total'?'전체 플랫폼':'자사몰+네이버',data:vals,backgroundColor:rows.map(r=>r.date>=cutoff?'#6c7bff':'#667085'),borderRadius:5}],{money:true,valueLabels:true,averageLine:mean,averageMoney:true,recentAverageLine:recentMean,recentAverageMoney:true})}
 if($('salesMainCard')) $('salesMainCard').onclick=null;
 if($('kWeekSalesCard')) $('kWeekSalesCard').onclick=()=>openSalesDetail('total');
 document.querySelectorAll('[data-sales-view]').forEach(b=>b.onclick=()=>{activeSalesView=b.dataset.salesView;document.querySelectorAll('[data-sales-view]').forEach(x=>x.classList.toggle('active',x===b));renderSales3Week()});
@@ -576,14 +590,24 @@ function openDetailModal(title,sub,body,chartFn=null){
   if(chartFn)setTimeout(chartFn,20);
 }
 function statCard(t,v,s=''){return `<div class="detail-stat"><div class="t">${t}</div><div class="v">${v}</div>${s?`<div class="s">${s}</div>`:''}</div>`}
-function openMtdDetail(){let s=DATA.sales;if(!s)return;let rows=s.monthDays||[],channels=[['자사몰','self','#6c7bff'],['네이버','naver','#34d399'],['쿠팡','coupang','#ef4444'],['M몰','mmall','#374151']],vals=channels.map(c=>sum(rows,r=>r[c[1]]||0));openDetailModal(`${RR.end.getMonth()+1}월 누적 매출 플랫폼 비중`,`${rows.length}일 반영 · ~${md(RR.end)}`,`<div class="detail-stats">${statCard('월 누적 매출',fmtMoney(s.mtd),`${rows.length}일 반영`)}</div>`,()=>{draw('detailChart','doughnut',channels.map(c=>c[0]),[{label:'매출 비중',data:vals,backgroundColor:channels.map(c=>c[2]),borderWidth:0}],{legend:true,pieLabels:true})})}
-function openTotalAvgDetail(){let pr=DATA.profit;if(!pr)return;let y=RR.end.getFullYear(),months=[];for(let m=0;m<=RR.end.getMonth();m++){let rows=pr.rows.filter(r=>r.date.getFullYear()===y&&r.date.getMonth()===m&&r.revenue!=null),v=rows.length?sum(rows,r=>r.revenue)/rows.length:0;if(!v&&m===RR.end.getMonth()&&DATA.sales?.monthDays?.length)v=DATA.sales.mtd/DATA.sales.monthDays.length;months.push({label:`${m+1}월`,value:v})}let vals=months.map(x=>x.value),mean=vals.filter(v=>v>0).length?avg(vals.filter(v=>v>0)):0;openDetailModal('2026년 월별 전체매출 일평균','월별 실제 입력 데이터 기준',`<div class="detail-stats">${statCard('9월 현재 일평균',fmtMoney(vals[8]||0),'실제 입력일 기준')}${statCard('월별 평균',fmtMoney(mean),'1월~현재')}</div>`,()=>draw('detailChart','bar',months.map(x=>x.label),[{label:'월별 일평균 매출',data:vals,backgroundColor:'#6c7bff',borderRadius:6}],{money:true,valueLabels:true,averageLine:mean,legend:false}))}
+function openMtdDetail(){
+  let s=DATA.sales;if(!s)return;let curMonth=RR.end.getMonth(),viewMonth=curMonth;
+  function renderMonth(){
+    let y=RR.end.getFullYear(),rows=s.days.filter(r=>r.date.getFullYear()===y&&r.date.getMonth()===viewMonth&&(viewMonth===curMonth?r.date<=RR.end:true)),channels=[['자사몰','self','#6c7bff'],['네이버','naver','#34d399'],['쿠팡','coupang','#ef4444'],['M몰','mmall','#374151']],vals=channels.map(c=>sum(rows,r=>r[c[1]]||0)),total=sum(rows,r=>r.total);
+    $('detailModalTitle').textContent=`${viewMonth+1}월 누적 매출 플랫폼 비중`;$('detailModalSub').textContent=`${rows.length}일 반영${viewMonth===curMonth?' · ~'+md(RR.end):' · 월 전체'}`;
+    $('detailModalBody').innerHTML=`<div class="detail-actions"><button class="btn ${viewMonth===curMonth?'active':''}" data-mtd-month="${curMonth}">${curMonth+1}월</button><button class="btn ${viewMonth===curMonth-1?'active':''}" data-mtd-month="${curMonth-1}">${curMonth}월</button></div><div class="detail-stats">${statCard('월 누적 매출',fmtMoney(total),`${rows.length}일 반영`)}</div>`;
+    draw('detailChart','doughnut',channels.map(c=>c[0]),[{label:'매출 비중',data:vals,backgroundColor:channels.map(c=>c[2]),borderWidth:0}],{legend:true,pieLabels:true});
+    document.querySelectorAll('[data-mtd-month]').forEach(b=>b.onclick=()=>{viewMonth=+b.dataset.mtdMonth;renderMonth()});
+  }
+  openDetailModal(`${curMonth+1}월 누적 매출 플랫폼 비중`,'월 누적 플랫폼별 매출 비중','',renderMonth);
+}
+function openTotalAvgDetail(){let s=DATA.sales;if(!s)return;let y=RR.end.getFullYear(),months=[];for(let m=0;m<=RR.end.getMonth();m++){let rows=s.days.filter(r=>r.date.getFullYear()===y&&r.date.getMonth()===m&&(m===RR.end.getMonth()?r.date<=RR.end:true)),v=rows.length?avg(rows,r=>r.total):0;months.push({label:`${m+1}월`,value:v})}let vals=months.map(x=>x.value),nz=vals.filter(v=>v>0),mean=nz.length?avg(nz):0;openDetailModal('2026년 월별 전체매출 일평균','1월~현재 · 실제 매출 입력일 기준',`<div class="detail-stats">${statCard(`${RR.end.getMonth()+1}월 현재 일평균`,fmtMoney(vals[RR.end.getMonth()]||0),'실제 입력일 기준')}${statCard('월별 평균',fmtMoney(mean),'1월~현재')}</div>`,()=>draw('detailChart','bar',months.map(x=>x.label),[{label:'월별 일평균 매출',data:vals,backgroundColor:'#6c7bff',borderRadius:6}],{money:true,valueLabels:true,averageLine:mean,averageMoney:true,legend:false}))}
 function openAdRatioDetail(){let a=DATA.ads,s=DATA.sales;if(!a||!s)return;openDetailModal('이번주 누적 매출액 vs 광고비','주간 보고 기준',`<div class="detail-actions"><button class="btn" id="roas30Btn">최근 30일간 ROAS%</button></div>`,()=>{draw('detailChart','bar',['이번주 누적 매출액','이번주 누적 광고비'],[{label:'금액',data:[s.currentSum,a.spend],backgroundColor:['#6c7bff','#667085'],borderRadius:8}],{money:true,valueLabels:true,legend:false});setTimeout(()=>{let b=$('roas30Btn');if(b)b.onclick=()=>{let rows=(a.allRecent||a.monthAll||[]).slice(-30),vals=rows.map(r=>r.ad?r.revenue/r.ad*100:0);draw('detailChart','line',rows.map(r=>md(r.date)),[{label:'ROAS',data:vals,borderColor:'#6c7bff',backgroundColor:'#6c7bff',pointRadius:3,tension:0}],{percent:true,rateLabels:true,legend:false,benchmarkLine:400})}},20)})}
 function recentAdRows(){let a=DATA.ads;if(!a)return[];return (a.allRecent||a.monthAll||[]).slice(-30)}
-function openAdSpendMini(){let rows=recentAdRows(),vals=rows.map(r=>r.ad),mean=vals.length?avg(vals):0;openDetailModal('최근 30일 일평균 광고비','일별 광고비 추이',``,()=>draw('detailChart','bar',rows.map(r=>md(r.date)),[{label:'광고비',data:vals,backgroundColor:'#6c7bff',borderRadius:5}],{money:true,valueLabels:true,averageLine:mean,legend:false}))}
-function openAdRevenueMini(){let rows=recentAdRows(),vals=rows.map(r=>r.revenue),mean=vals.length?avg(vals):0;openDetailModal('최근 30일 일평균 유입매출','일별 유입매출 추이',``,()=>draw('detailChart','bar',rows.map(r=>md(r.date)),[{label:'유입매출',data:vals,backgroundColor:'#6c7bff',borderRadius:5}],{money:true,valueLabels:true,averageLine:mean,legend:false}))}
-function openAdRatioMini(){let rows=recentAdRows(),vals=rows.map(r=>r.revenue?r.ad/r.revenue*100:0);openDetailModal('최근 30일 광고비/매출액','일별 누적 비율 추이',``,()=>draw('detailChart','line',rows.map(r=>md(r.date)),[{label:'광고비/매출액',data:vals,borderColor:'#6c7bff',backgroundColor:'#6c7bff',pointRadius:3,tension:0}],{percent:true,rateLabels:true,legend:false}))}
-function openMonthAdRatioTrend(){let pr=DATA.profit;if(!pr)return;let vals=[],labels=[];for(let m=0;m<=RR.end.getMonth();m++){let rows=pr.rows.filter(r=>r.date.getFullYear()===RR.end.getFullYear()&&r.date.getMonth()===m),ad=sum(rows,r=>r.ad||0),rev=sum(rows,r=>r.revenue||0);labels.push(`${m+1}월`);vals.push(rev?ad/rev*100:0)}let nz=vals.filter(v=>v>0),mean=nz.length?avg(nz):0;openDetailModal('월별 광고비/매출액','2026년 월별 누적 비율',``,()=>draw('detailChart','line',labels,[{label:'광고비/매출액',data:vals,borderColor:'#6c7bff',backgroundColor:'#6c7bff',pointRadius:5,tension:0}],{percent:true,rateLabels:true,averageLine:mean,averagePercent:true,legend:false}))}
+function openAdSpendMini(){let rows=recentAdRows(),vals=rows.map(r=>r.ad),mean=vals.length?avg(vals):0,cut=Math.max(0,rows.length-7),recent=vals.slice(cut),recentMean=recent.length?avg(recent):0;openDetailModal('최근 30일 일평균 광고비','최근 7일 파란색 강조',``,()=>draw('detailChart','bar',rows.map(r=>md(r.date)),[{label:'광고비',data:vals,backgroundColor:rows.map((r,i)=>i>=cut?'#6c7bff':'#667085'),borderRadius:5}],{money:true,valueLabels:true,averageLine:mean,averageMoney:true,recentAverageLine:recentMean,recentAverageMoney:true,legend:false}))}
+function openAdRevenueMini(){let rows=recentAdRows(),vals=rows.map(r=>r.revenue),mean=vals.length?avg(vals):0,cut=Math.max(0,rows.length-7),recent=vals.slice(cut),recentMean=recent.length?avg(recent):0;openDetailModal('최근 30일 일평균 유입매출','최근 7일 파란색 강조',``,()=>draw('detailChart','bar',rows.map(r=>md(r.date)),[{label:'유입매출',data:vals,backgroundColor:rows.map((r,i)=>i>=cut?'#6c7bff':'#667085'),borderRadius:5}],{money:true,valueLabels:true,averageLine:mean,averageMoney:true,recentAverageLine:recentMean,recentAverageMoney:true,legend:false}))}
+function openAdRatioMini(){let rows=recentAdRows(),vals=rows.map(r=>r.revenue?r.ad/r.revenue*100:0),mean=vals.length?avg(vals):0,cut=Math.max(0,rows.length-7),recent=vals.slice(cut),recentMean=recent.length?avg(recent):0;openDetailModal('최근 30일 광고비/매출액','최근 7일 파란색 강조',``,()=>draw('detailChart','line',rows.map(r=>md(r.date)),[{label:'광고비/매출액',data:vals,borderColor:'#667085',backgroundColor:'#667085',pointBackgroundColor:rows.map((r,i)=>i>=cut?'#6c7bff':'#667085'),pointRadius:4,tension:0,segment:{borderColor:ctx=>ctx.p1DataIndex>=cut?'#6c7bff':'#667085'}}],{percent:true,rateLabels:true,averageLine:mean,averagePercent:true,recentAverageLine:recentMean,recentAveragePercent:true,legend:false}))}
+function openMonthAdRatioTrend(){let pr=DATA.profit;if(!pr)return;let vals=[],labels=[],fallback={0:24.65,1:24.42,2:25.55,3:26.67,4:29.50,5:24.32};for(let m=0;m<=RR.end.getMonth();m++){let rows=pr.rows.filter(r=>r.date.getFullYear()===RR.end.getFullYear()&&r.date.getMonth()===m),ad=sum(rows,r=>r.ad||0),rev=sum(rows,r=>r.revenue||0),computed=rev?ad/rev*100:0;labels.push(`${m+1}월`);vals.push(computed||fallback[m]||0)}let nz=vals.filter(v=>v>0),mean=nz.length?avg(nz):0;openDetailModal('월별 광고비/매출액','2026년 월별 누적 비율 · 1~6월 기준값 포함',``,()=>draw('detailChart','line',labels,[{label:'광고비/매출액',data:vals,borderColor:'#6c7bff',backgroundColor:'#6c7bff',pointRadius:5,tension:0}],{percent:true,rateLabels:true,averageLine:mean,averagePercent:true,legend:false}))}
 const EVAL_META=[
   ['자사+네이버 일평균','ownActual','ownTarget','목표','현재',false,'goal'],['전체매출 일평균','totalActual','totalTargetDaily','목표','현재',false,'goal'],['광고비 일평균','adActual','adTargetDaily','목표','현재',true,'goal'],
   ['발주비 누적','orderActual','orderExpected','예상','실제',true,'expected'],['고정비 누적','fixedActual','fixedExpected','예상','실제',true,'expected'],['변동비 누적','variableActual','variableExpected','예상','실제',true,'expected']
