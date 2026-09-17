@@ -131,6 +131,30 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 .stock-detail-row.stockout span,.stock-detail-row.stockout b{color:var(--red)!important}.stock-detail-row.restock span,.stock-detail-row.restock b{color:var(--green)!important}
 .detail-actions{display:flex;justify-content:flex-end;gap:8px;margin:8px 0 14px}.expense-day{cursor:pointer}.expense-day:hover{border-color:var(--blue)}
 </style>
+
+<style>
+/* Sidebar-safe drilldowns + Friday presentation mode */
+.modal{left:var(--modal-safe-left,0)!important;right:0!important;width:auto!important;transform:none!important}
+.modal-card{transform:none!important;max-width:calc(100% - 48px)!important}
+.presentation-toolbar{display:none;position:fixed;left:50%;bottom:18px;z-index:9997;transform:translateX(-50%);align-items:center;gap:8px;padding:9px 11px;background:rgba(21,26,36,.94);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(12px)}
+.presentation-toolbar .slide-count{min-width:112px;text-align:center;font-size:12px;font-weight:800;color:var(--sub)}
+body.presentation-mode{overflow:hidden}
+body.presentation-mode .wrap{max-width:none;height:100vh;margin:0;padding:22px 28px 88px}
+body.presentation-mode .top,body.presentation-mode .status-strip{display:none!important}
+body.presentation-mode .grid{display:block;height:100%}
+body.presentation-mode .kpis,body.presentation-mode .grid>section{display:none!important}
+body.presentation-mode .presentation-active{display:block!important;height:calc(100vh - 110px);overflow:auto;padding:30px 34px}
+body.presentation-mode .kpis.presentation-active{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-content:center;gap:24px;padding:5vh 4vw}
+body.presentation-mode .kpis.presentation-active .kpi{min-height:250px;display:flex;flex-direction:column;justify-content:center;padding:34px 38px}
+body.presentation-mode .kpis .label{font-size:20px}
+body.presentation-mode .kpis .value{font-size:52px}
+body.presentation-mode .kpis .meta{font-size:19px!important}
+body.presentation-mode .presentation-active>.head h2{font-size:28px}
+body.presentation-mode .presentation-active>.head small{font-size:15px}
+body.presentation-mode .presentation-active .chart.xl,body.presentation-mode .presentation-active.sales-main-card .chart{height:calc(100vh - 220px)!important}
+body.presentation-mode .presentation-toolbar{display:flex}
+@media(max-width:900px){body.presentation-mode .kpis.presentation-active{grid-template-columns:1fr 1fr;padding:2vh 1vw}body.presentation-mode .kpis.presentation-active .kpi{min-height:210px;padding:24px}body.presentation-mode .kpis .value{font-size:40px}}
+</style>
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -139,7 +163,7 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 <div class="wrap">
   <header class="top">
     <div class="title"><h1>Weekly Report</h1><p>매출 · 제품 성과 · 광고 · 영업이익 · 발주 · B2B 통합 보고</p><div class="period" id="periodBadge">—</div></div>
-    <div class="actions"><button class="btn" id="themeBtn">라이트 모드</button><button class="btn" id="refreshBtn">↻ 새로고침</button></div>
+    <div class="actions"><button class="btn primary" id="presentationBtn">⛶ 발표 모드</button><button class="btn" id="themeBtn">라이트 모드</button><button class="btn" id="refreshBtn">↻ 새로고침</button></div>
   </header>
   <div class="status-strip">
     <div class="source loading" id="srcSales"><i class="dot"></i>매출 데이터 <span>대기</span></div>
@@ -245,6 +269,14 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
     <div id="detailModalBody"></div>
     <div id="detailChartWrap" class="chart xl hidden"><canvas id="detailChart"></canvas></div>
   </div>
+</div>
+
+<div id="presentationToolbar" class="presentation-toolbar" aria-label="발표 모드 조작">
+  <button type="button" class="btn" id="presentationPrev">← 이전</button>
+  <div class="slide-count" id="presentationCount">1 / 8</div>
+  <button type="button" class="btn primary" id="presentationNext">다음 →</button>
+  <button type="button" class="btn" id="presentationFullscreen">전체화면</button>
+  <button type="button" class="btn" id="presentationExit">종료</button>
 </div>
 
 <script>
@@ -387,14 +419,13 @@ function evalItem(label,actual,target,lower=false,kind='goal',idx=null){
 }
 
 function syncModalCenter(){
-  // nav.js가 사이드바를 펼칠 때 본문을 오른쪽으로 이동시키는 경우를 포함해
-  // 현재 실제 dashboard wrap의 화면상 중앙을 기준으로 팝업을 보정한다.
+  // 펼쳐진 좌측 네비게이션이 차지하는 폭만큼 모달의 사용 영역 자체를 줄인다.
+  // 카드만 오른쪽으로 미는 방식과 달리 우측 화면 밖으로 잘리지 않는다.
   let wrap=document.querySelector('.wrap');
   if(!wrap)return;
   let r=wrap.getBoundingClientRect(), viewportCenter=window.innerWidth/2, contentCenter=r.left+r.width/2,
-      offset=Math.round(contentCenter-viewportCenter);
-  document.documentElement.style.setProperty('--modal-offset-x',offset+'px');
-  document.querySelectorAll('.modal .modal-card').forEach(el=>el.style.transform=`translateX(${offset}px)`);
+      offset=Math.max(0,Math.round((contentCenter-viewportCenter)*2));
+  document.documentElement.style.setProperty('--modal-safe-left',offset+'px');
 }
 window.addEventListener('resize',syncModalCenter);
 const _navObserver=new MutationObserver(()=>setTimeout(syncModalCenter,30));
@@ -735,6 +766,28 @@ function initAuth(){
   }
   setup();
 }
+const presentationSlides=[
+  {el:document.querySelector('.kpis'),title:'핵심 지표'},
+  ...Array.from(document.querySelectorAll('.grid>section')).map(el=>({el,title:el.querySelector('.head h2')?.textContent||'주간 보고'}))
+].filter(x=>x.el);
+let presentationIndex=0;
+function resizeDashboardCharts(){setTimeout(()=>Object.values(charts).forEach(c=>{try{c.resize()}catch(e){}}),80)}
+function showPresentationSlide(index){
+  presentationIndex=(index+presentationSlides.length)%presentationSlides.length;
+  presentationSlides.forEach((s,i)=>s.el.classList.toggle('presentation-active',i===presentationIndex));
+  let current=presentationSlides[presentationIndex];
+  $('presentationCount').textContent=`${presentationIndex+1} / ${presentationSlides.length} · ${current.title}`;
+  resizeDashboardCharts();
+}
+function enterPresentation(){document.body.classList.add('presentation-mode');showPresentationSlide(presentationIndex);syncModalCenter()}
+function exitPresentation(){document.body.classList.remove('presentation-mode');presentationSlides.forEach(s=>s.el.classList.remove('presentation-active'));if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});resizeDashboardCharts();syncModalCenter()}
+if($('presentationBtn'))$('presentationBtn').onclick=enterPresentation;
+if($('presentationPrev'))$('presentationPrev').onclick=()=>showPresentationSlide(presentationIndex-1);
+if($('presentationNext'))$('presentationNext').onclick=()=>showPresentationSlide(presentationIndex+1);
+if($('presentationExit'))$('presentationExit').onclick=exitPresentation;
+if($('presentationFullscreen'))$('presentationFullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};
+document.addEventListener('keydown',e=>{if(!document.body.classList.contains('presentation-mode'))return;if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();showPresentationSlide(presentationIndex+1)}else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();showPresentationSlide(presentationIndex-1)}else if(e.key==='Escape'&&!document.fullscreenElement)exitPresentation()});
+
 if($('refreshBtn')) $('refreshBtn').onclick=()=>TOKEN&&loadAll(); if($('themeBtn')) $('themeBtn').onclick=()=>{let light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');$('themeBtn').textContent=light?'라이트 모드':'다크 모드';render()};initAuth();
 </script>
 </body></html>
