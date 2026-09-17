@@ -505,8 +505,8 @@ function renderEvaluation(){
     evalItem('전체매출 일평균 정산',current.totalSettlementActual,current.totalTargetDaily,false,'goal',1,previous.totalSettlementActual),
     evalItem('통합 일평균 광고충전',current.adChargeActual,current.adTargetDaily,true,'goal',2,previous.adChargeActual),
     evalItem('실제 발주비 누적',current.orderActual,current.orderExpected,true,'expected',3,previous.orderActual),
-    evalItem('고정비 누적',current.fixedActual,current.fixedExpected,true,'expected',4,previous.fixedActual),
-    evalItem('변동비 누적',current.variableActual,current.variableExpected,true,'expected',5,previous.variableActual)
+    evalItem('실제 고정비 누적',current.fixedActual,current.fixedExpected,true,'expected',4,previous.fixedActual),
+    evalItem('실제 변동비 누적',current.variableActual,current.variableExpected,true,'expected',5,previous.variableActual)
   ].join('');
   document.querySelectorAll('[data-eval-index]').forEach(el=>el.onclick=()=>openEvalDetail(+el.dataset.evalIndex));
 }
@@ -720,7 +720,7 @@ function openAdRatioMini(){let rows=recentAdRows(),vals=rows.map(r=>r.revenue?r.
 function openMonthAdRatioTrend(){let pr=DATA.profit;if(!pr)return;let vals=[],labels=[],fallback={0:24.65,1:24.42,2:25.55,3:26.67,4:29.50,5:24.32,6:29.21,7:27.18};for(let m=0;m<=RR.end.getMonth();m++){let rows=pr.rows.filter(r=>r.date.getFullYear()===RR.end.getFullYear()&&r.date.getMonth()===m),ad=sum(rows,r=>r.ad||0),rev=sum(rows,r=>r.revenue||0),computed=rev?ad/rev*100:0;labels.push(`${m+1}월`);vals.push(computed||fallback[m]||0)}let nz=vals.filter(v=>v>0),mean=nz.length?avg(nz):0;openDetailModal('월별 광고비/매출액','2026년 월별 누적 비율 · 1~8월 확정값 포함',``,()=>draw('detailChart','line',labels,[{label:'광고비/매출액',data:vals,borderColor:'#6c7bff',backgroundColor:'#6c7bff',pointRadius:5,tension:0}],{percent:true,rateLabels:true,averageLine:mean,averagePercent:true,legend:false}))}
 const EVAL_META=[
   ['자사+네이버 일평균 정산','ownSettlementActual','ownTarget','목표','정산',false,'goal'],['전체매출 일평균 정산','totalSettlementActual','totalTargetDaily','목표','정산',false,'goal'],['통합 일평균 광고충전','adChargeActual','adTargetDaily','목표','광고충전',true,'goal'],
-  ['실제 발주비 누적','orderActual','orderExpected','예상발주비','실제발주비',true,'expected'],['고정비 누적','fixedActual','fixedExpected','예상','실제',true,'expected'],['변동비 누적','variableActual','variableExpected','예상','실제',true,'expected']
+  ['실제 발주비 누적','orderActual','orderExpected','예상발주비','실제발주비',true,'expected'],['실제 고정비 누적','fixedActual','fixedExpected','예상고정비','실제고정비',true,'expected'],['실제 변동비 누적','variableActual','variableExpected','예상변동비','실제변동비',true,'expected']
 ];
 function evalDetailVisual(label,actual,target,leftLabel,rightLabel,lower,periodText){
   let rate=target?actual/target*100:0,max=Math.max(Math.abs(actual||0),Math.abs(target||0),1),
@@ -740,6 +740,8 @@ function openEvalDetail(idx){
   if(idx===1){let target=m.totalTargetDaily||0,body=`<div class="eval-comparison-grid">${evalDetailVisual('전체매출 일평균 매출',m.totalActual||0,target,'목표','매출',false,periodText)}${evalDetailVisual('전체매출 일평균 정산',m.totalSettlementActual||0,target,'목표','정산',false,periodText)}</div>`;openDetailModal(`전체매출 일평균 · ${periodTitle}`,`${periodText} 평균 · 목표 ${fmtMoney(target)}`,body);return}
   if(idx===2){let target=m.adTargetDaily||0,body=`<div class="eval-comparison-grid">${evalDetailVisual('통합 일평균 광고비',m.adActual||0,target,'목표','광고비',true,periodText)}${evalDetailVisual('통합 일평균 광고충전',m.adChargeActual||0,target,'목표','광고충전',true,periodText)}</div>`;openDetailModal(`통합 일평균 광고 · ${periodTitle}`,`${periodText} 평균 · 목표 ${fmtMoney(target)}`,body);return}
   if(idx===3){let expected=m.orderExpected||0,actual=m.orderActual||0,difference=actual-expected,body=`<div class="detail-stats">${statCard('예상발주비',fmtMoney(expected),periodText)}${statCard('실제발주비',fmtMoney(actual),periodText)}${statCard('예상 대비 차이',`${difference>=0?'+':''}${fmtMoney(difference)}`,difference<=0?'예상 이하':'예상 초과')}</div>${evalDetailVisual('예상발주비 대비 실제발주비',actual,expected,'예상발주비','실제발주비',true,periodText)}`;openDetailModal(`발주비 · ${periodTitle}`,`${periodText} 누적 비교`,body);return}
+  if(idx===4){let expected=m.fixedExpected||0,actual=m.fixedActual||0,difference=actual-expected,body=`<div class="detail-stats">${statCard('예상고정비',fmtMoney(expected),periodText)}${statCard('실제고정비',fmtMoney(actual),periodText)}${statCard('예상 대비 차이',`${difference>=0?'+':''}${fmtMoney(difference)}`,difference<=0?'예상 이하':'예상 초과')}</div>${evalDetailVisual('예상고정비 대비 실제고정비',actual,expected,'예상고정비','실제고정비',true,periodText)}`;openDetailModal(`고정비 · ${periodTitle}`,`${periodText} 누적 비교`,body);return}
+  if(idx===5){let expected=m.variableExpected||0,actual=m.variableActual||0,difference=actual-expected,body=`<div class="detail-stats">${statCard('예상변동비',fmtMoney(expected),periodText)}${statCard('실제변동비',fmtMoney(actual),periodText)}${statCard('예상 대비 차이',`${difference>=0?'+':''}${fmtMoney(difference)}`,difference<=0?'예상 이하':'예상 초과')}</div>${evalDetailVisual('예상변동비 대비 실제변동비',actual,expected,'예상변동비','실제변동비',true,periodText)}`;openDetailModal(`변동비 · ${periodTitle}`,`${periodText} 누적 비교`,body);return}
   let [label,ak,tk,tl,al,lower]=EVAL_META[idx],actual=m[ak]||0,target=m[tk]||0;
   openDetailModal(`${label} · ${periodTitle}`,`${periodText} 전체 집계`,evalDetailVisual(label,actual,target,tl,al,lower,periodText));
 }
