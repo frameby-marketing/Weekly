@@ -467,13 +467,11 @@ function evalItem(label,actual,target,lower=false,kind='goal',idx=null,previous=
   let rate=target?actual/target*100:0,max=Math.max(Math.abs(actual||0),Math.abs(target||0),1),
       leftH=Math.max(8,Math.abs(target||0)/max*145),rightH=Math.max(8,Math.abs(actual||0)/max*145),
       cls=ratioClass(actual,target,lower),leftLabel=kind==='goal'?'목표':'예상',rightLabel=kind==='goal'?'현재':'실제',
-      currentColor=cls==='bad'?'var(--red)':cls==='warn'?'var(--yellow)':'var(--green)',change=previous!=null?pct(actual,previous):null,
-      changeClass=change==null?'':(lower?(change<=0?'good':'bad'):(change>=0?'good':'bad')),
-      changeText=change==null?'지난주 보고 비교 데이터 없음':`지난주 보고 대비 ${fmtPct(change)}`;
+      currentColor=cls==='bad'?'var(--red)':cls==='warn'?'var(--yellow)':'var(--green)';
   return `<div class="eval-item clickable" ${idx!=null?`data-eval-index="${idx}"`:''}><div class="et">${label}</div><div class="eval-bars">
     <div class="eval-bar-wrap"><div class="eval-bar-value">${fmtMoney(target)}</div><div class="eval-bar base" style="height:${leftH}px;background:#667085"></div><div class="eval-bar-label">${leftLabel}</div></div>
     <div class="eval-bar-wrap"><div class="eval-bar-value">${fmtMoney(actual)}</div><div class="eval-bar current" style="height:${rightH}px;background:${currentColor}"></div><div class="eval-bar-label">${rightLabel}</div></div>
-  </div><div class="eval-rate ${cls}">${rate?rate.toFixed(1):'—'}% ${rate?`<span style="font-size:.78em;font-weight:800">(${rate-100>=0?'+':''}${(rate-100).toFixed(1)}%)</span>`:''}</div><div class="eval-change ${changeClass}">${changeText}</div></div>`
+  </div><div class="eval-rate ${cls}">${rate?rate.toFixed(1):'—'}% ${rate?`<span style="font-size:.78em;font-weight:800">(${rate-100>=0?'+':''}${(rate-100).toFixed(1)}%)</span>`:''}</div></div>`
 }
 
 function syncModalCenter(){
