@@ -143,7 +143,8 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 .eval-change{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font-size:11px;font-weight:800;text-align:center;color:var(--sub)}
 .presentation-toolbar{display:none;position:fixed;left:50%;bottom:18px;z-index:9997;transform:translateX(-50%);align-items:center;gap:8px;padding:9px 11px;background:rgba(21,26,36,.94);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(12px)}
 .presentation-toolbar .slide-count{min-width:112px;text-align:center;font-size:12px;font-weight:800;color:var(--sub)}
-body.presentation-mode{overflow:hidden}
+body.presentation-mode{overflow:hidden;margin-left:0!important}
+body.presentation-mode #fb-sidebar{display:none!important}
 body.presentation-mode .wrap{max-width:none;height:100vh;margin:0;padding:22px 28px 88px}
 body.presentation-mode .top,body.presentation-mode .status-strip{display:none!important}
 body.presentation-mode .grid{display:block;height:100%}
@@ -159,10 +160,17 @@ body.presentation-mode .presentation-active>.head small{font-size:15px}
 body.presentation-mode .presentation-active .chart.xl,body.presentation-mode .presentation-active.sales-main-card .chart{height:calc(100vh - 220px)!important}
 body.presentation-mode .presentation-toolbar{display:flex}
 body.presentation-mode .modal{inset:0!important;padding:0!important;left:0!important;background:var(--bg)!important;align-items:stretch!important;justify-content:stretch!important}
-body.presentation-mode .modal-card{width:100%!important;max-width:none!important;height:100vh!important;max-height:none!important;border:0!important;border-radius:0!important;padding:28px 34px 86px!important;overflow:auto!important}
+body.presentation-mode .modal-card{width:100%!important;max-width:none!important;height:100vh!important;max-height:none!important;border:0!important;border-radius:0!important;padding:20px 30px 24px!important;overflow:auto!important}
 body.presentation-mode .modal-head h2{font-size:28px}
 body.presentation-mode .modal-head small{font-size:15px}
-body.presentation-mode .modal .chart.xl{height:calc(100vh - 225px)!important}
+body.presentation-mode .modal .detail-stats{margin:6px 0 8px;gap:8px}
+body.presentation-mode .modal .detail-stat{padding:9px 12px}
+body.presentation-mode .modal .detail-stat .v{font-size:20px}
+body.presentation-mode .modal .product-toolbar{margin-bottom:4px}
+body.presentation-mode #productModal .chart.xl{height:calc(100vh - 315px)!important;min-height:360px}
+body.presentation-mode #salesModal .chart.xl{height:calc(100vh - 185px)!important;min-height:420px}
+body.presentation-mode #detailModal .chart.xl{height:calc(100vh - 270px)!important;min-height:390px}
+body.presentation-mode #stockModal .modal-card{padding-bottom:24px!important}
 @media(max-width:900px){body.presentation-mode .kpis.presentation-active{grid-template-columns:1fr 1fr;padding:2vh 1vw}body.presentation-mode .kpis.presentation-active .kpi{min-height:210px;padding:24px}body.presentation-mode .kpis .value{font-size:40px}}
 </style>
 </head>
@@ -553,17 +561,16 @@ const valueLabelPlugin={id:'valueLabelPlugin',afterDatasetsDraw(chart,args,opts)
     if(isMoney)return `${prefix} ${Math.round(Number(value)/10000).toLocaleString('ko-KR')}만`;
     return `${prefix} ${Number(value).toLocaleString('ko-KR',{maximumFractionDigits:1})}`;
   }
-  function safeAverageLabel(label,color,desiredY,preferRight=true){
-    let left=chart.chartArea.left,right=chart.chartArea.right,top=chart.chartArea.top,bottom=chart.chartArea.bottom,meta=chart.getDatasetMeta(0),pts=meta?.data||[];
-    ctx.font='900 15px Pretendard';let width=ctx.measureText(label).width+18,x=preferRight?right-8:left+8,x1=preferRight?x-width:x,x2=preferRight?x:x+width;
-    let candidates=[desiredY-10,desiredY+32,top+22,bottom-8],score=y=>pts.filter(p=>p.x>=x1-18&&p.x<=x2+18).reduce((m,p)=>Math.min(m,Math.abs((p.y-12)-y)),9999),chosen=candidates.filter(y=>y>=top+18&&y<=bottom-4).sort((a,b)=>score(b)-score(a))[0]||top+22;
-    let boxX=preferRight?x-width:x,boxY=chosen-19;ctx.save();ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--panel').trim()||'#151a24';ctx.globalAlpha=.94;ctx.fillRect(boxX,boxY,width,23);ctx.globalAlpha=1;ctx.strokeStyle=color;ctx.lineWidth=1;ctx.strokeRect(boxX,boxY,width,23);ctx.fillStyle=color;ctx.textAlign=preferRight?'right':'left';ctx.textBaseline='bottom';ctx.fillText(label,x-(preferRight?8:-8),chosen);ctx.restore();
+  function safeAverageLabel(label,color,slot=0){
+    let right=chart.chartArea.right,top=chart.chartArea.top,x=right-8,chosen=top-52+(slot*31);
+    ctx.font='900 18px Pretendard';let width=ctx.measureText(label).width+22,boxX=x-width,boxY=chosen-22;
+    ctx.save();ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--panel').trim()||'#151a24';ctx.globalAlpha=.96;ctx.fillRect(boxX,boxY,width,27);ctx.globalAlpha=1;ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.strokeRect(boxX,boxY,width,27);ctx.fillStyle=color;ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillText(label,x-10,chosen);ctx.restore();
   }
   if(opts.averageLine!=null&&isFinite(opts.averageLine)){
     let y=chart.scales.y.getPixelForValue(opts.averageLine),left=chart.chartArea.left,right=chart.chartArea.right;
     ctx.save();ctx.strokeStyle='#fbbf24';ctx.lineWidth=2;ctx.setLineDash([7,5]);ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke();ctx.setLineDash([]);
     let label=avgLabel('전체 평균',opts.averageLine,opts.averagePercent,opts.averageMoney);
-    ctx.restore();safeAverageLabel(label,'#fbbf24',y,true);
+    ctx.restore();safeAverageLabel(label,'#fbbf24',0);
   }
   if(opts.recentAverageLine!=null&&isFinite(opts.recentAverageLine)&&chart.chartArea){
     // 최근 7일 평균은 별도 평균선을 그리지 않고, 최근 7일 데이터 구간 가까이에 값만 표시한다.
@@ -581,7 +588,7 @@ const valueLabelPlugin={id:'valueLabelPlugin',afterDatasetsDraw(chart,args,opts)
     // 개별 값 라벨과 겹치면 최근 7일 구간 중앙에서 위/아래로 한 번 더 보정한다.
     if(recentPts.some(pt=>Math.abs(pt.y-ly)<20))ly=Math.max(top+16,ly-24);
     anchorX=Math.min(right-80,Math.max(left+80,anchorX));
-    ctx.restore();safeAverageLabel(label,'#60a5fa',ly,false);
+    ctx.restore();safeAverageLabel(label,'#60a5fa',1);
   }
   ctx.restore()
 }};Chart.register(valueLabelPlugin);
@@ -589,7 +596,8 @@ const valueLabelPlugin={id:'valueLabelPlugin',afterDatasetsDraw(chart,args,opts)
 function draw(id,type,labels,datasets,opt={}){
   if(charts[id])charts[id].destroy();
   let cs=getComputedStyle(document.documentElement),text=cs.getPropertyValue('--sub').trim(),line=cs.getPropertyValue('--line').trim();
-  charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:opt.barLabels||opt.pointLabels||opt.rawBarLabels||opt.rateLabels||opt.multiPointLabels?58:12}},plugins:{valueLabelPlugin:{barLabels:!!opt.valueLabels,pointLabels:!!opt.pointValueLabels,rawBarLabels:!!opt.rawBarLabels,rateLabels:!!opt.rateLabels,multiPointLabels:!!opt.multiPointLabels,multiPointPercent:!!opt.multiPointPercent,averageLine:opt.averageLine,averagePercent:!!opt.averagePercent,averageMoney:!!opt.averageMoney,recentAverageLine:opt.recentAverageLine,recentAveragePercent:!!opt.recentAveragePercent,recentAverageMoney:!!opt.recentAverageMoney,pieLabels:!!opt.pieLabels,benchmarkLine:opt.benchmarkLine},legend:{display:opt.legend!==false,labels:{color:text,boxWidth:13,font:{size:14,weight:'700'}}},tooltip:{callbacks:{label:c=>opt.money?`${c.dataset.label}: ${fmtMoney(c.raw)}`:opt.percent?`${c.dataset.label}: ${Number(c.raw).toFixed(2)}%`:`${c.dataset.label}: ${c.raw}`}}},scales:type==='doughnut'?{}:{x:{ticks:{color:text,font:{size:13,weight:'700'}},grid:{display:false}},y:{beginAtZero:true,ticks:{color:text,font:{size:12,weight:'700'},callback:v=>opt.money?(Math.abs(v)>=1e8?(v/1e8).toFixed(1)+'억':Math.round(v/1e4)+'만'):opt.percent?v+'%':v},grid:{color:line}}}}})
+  let hasAverage=opt.averageLine!=null||opt.recentAverageLine!=null,labelPadding=opt.barLabels||opt.pointLabels||opt.rawBarLabels||opt.rateLabels||opt.multiPointLabels;
+  charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:hasAverage?82:(labelPadding?58:12)}},plugins:{valueLabelPlugin:{barLabels:!!opt.valueLabels,pointLabels:!!opt.pointValueLabels,rawBarLabels:!!opt.rawBarLabels,rateLabels:!!opt.rateLabels,multiPointLabels:!!opt.multiPointLabels,multiPointPercent:!!opt.multiPointPercent,averageLine:opt.averageLine,averagePercent:!!opt.averagePercent,averageMoney:!!opt.averageMoney,recentAverageLine:opt.recentAverageLine,recentAveragePercent:!!opt.recentAveragePercent,recentAverageMoney:!!opt.recentAverageMoney,pieLabels:!!opt.pieLabels,benchmarkLine:opt.benchmarkLine},legend:{display:opt.legend!==false,labels:{color:text,boxWidth:13,font:{size:14,weight:'700'}}},tooltip:{callbacks:{label:c=>opt.money?`${c.dataset.label}: ${fmtMoney(c.raw)}`:opt.percent?`${c.dataset.label}: ${Number(c.raw).toFixed(2)}%`:`${c.dataset.label}: ${c.raw}`}}},scales:type==='doughnut'?{}:{x:{ticks:{color:text,font:{size:13,weight:'700'}},grid:{display:false}},y:{beginAtZero:true,ticks:{color:text,font:{size:12,weight:'700'},callback:v=>opt.money?(Math.abs(v)>=1e8?(v/1e8).toFixed(1)+'억':Math.round(v/1e4)+'만'):opt.percent?v+'%':v},grid:{color:line}}}}})
 }
 
 let activeProductIndex=0,activeProductView='sales',activeProductGranularity='daily';
@@ -784,7 +792,17 @@ function initAuth(){
   setup();
 }
 // 모달을 본문/사이드바 레이아웃과 분리해 일반·발표 모드 모두 화면 기준으로 표시한다.
-document.querySelectorAll('.modal').forEach(modal=>document.body.appendChild(modal));
+const modalElements=Array.from(document.querySelectorAll('.modal'));
+function syncModalOpenState(){document.body.classList.toggle('modal-open',modalElements.some(modal=>!modal.classList.contains('hidden')))}
+modalElements.forEach(modal=>{
+  document.body.appendChild(modal);
+  new MutationObserver(syncModalOpenState).observe(modal,{attributes:true,attributeFilter:['class']});
+  modal.onclick=e=>{
+    if(e.target.closest('button,a,input,select,textarea,[data-product-view],[data-product-granularity],[data-sales-view],[data-mtd-month]'))return;
+    modal.classList.add('hidden');
+  };
+});
+syncModalOpenState();
 const presentationSlides=[
   {el:document.querySelector('.kpis'),title:'핵심 지표'},
   ...Array.from(document.querySelectorAll('.grid>section')).map(el=>({el,title:el.querySelector('.head h2')?.textContent||'주간 보고'}))
@@ -798,7 +816,7 @@ function showPresentationSlide(index){
   $('presentationCount').textContent=`${presentationIndex+1} / ${presentationSlides.length} · ${current.title}`;
   resizeDashboardCharts();
 }
-function enterPresentation(){document.body.classList.add('presentation-mode');showPresentationSlide(presentationIndex);syncModalCenter()}
+function enterPresentation(){document.body.classList.add('presentation-mode');showPresentationSlide(presentationIndex);syncModalCenter();if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{})}
 function exitPresentation(){document.body.classList.remove('presentation-mode');presentationSlides.forEach(s=>s.el.classList.remove('presentation-active'));if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});resizeDashboardCharts();syncModalCenter()}
 if($('presentationBtn'))$('presentationBtn').onclick=enterPresentation;
 if($('presentationPrev'))$('presentationPrev').onclick=()=>showPresentationSlide(presentationIndex-1);
