@@ -472,9 +472,10 @@ async function loadOps(){
   DATA.ops={po,b2b,stockItems};setSource('srcOps','ok','정상');
 }
 function ratioClass(actual,target,lower=false){if(!target)return'';let r=actual/target;return lower?(r<=1?'good':r<=1.1?'warn':'bad'):(r>=1?'good':r>=.9?'warn':'bad')}
+function emphasizedBarHeight(value,max,height,min){let normalized=Math.min(1,Math.abs(value||0)/Math.max(max,1));return Math.max(min,Math.pow(normalized,1.8)*height)}
 function evalItem(label,actual,target,lower=false,kind='goal',idx=null,previous=null){
   let rate=target?actual/target*100:0,max=Math.max(Math.abs(actual||0),Math.abs(target||0),1),
-      leftH=Math.max(8,Math.abs(target||0)/max*145),rightH=Math.max(8,Math.abs(actual||0)/max*145),
+      leftH=emphasizedBarHeight(target,max,145,8),rightH=emphasizedBarHeight(actual,max,145,8),
       cls=ratioClass(actual,target,lower),leftLabel=kind==='goal'?'목표':'예상',rightLabel=kind==='goal'?'현재':'실제',
       currentColor=cls==='bad'?'var(--red)':cls==='warn'?'var(--yellow)':'var(--green)';
   return `<div class="eval-item clickable" ${idx!=null?`data-eval-index="${idx}"`:''}><div class="et">${label}</div><div class="eval-bars">
@@ -747,7 +748,7 @@ const EVAL_META=[
 ];
 function evalDetailVisual(label,actual,target,leftLabel,rightLabel,lower,periodText,actionHtml='',exactValues=false){
   let rate=target?actual/target*100:0,max=Math.max(Math.abs(actual||0),Math.abs(target||0),1),
-      leftH=Math.max(10,Math.abs(target||0)/max*250),rightH=Math.max(10,Math.abs(actual||0)/max*250),
+      leftH=emphasizedBarHeight(target,max,250,10),rightH=emphasizedBarHeight(actual,max,250,10),
       cls=ratioClass(actual,target,lower),currentColor=cls==='bad'?'var(--red)':cls==='warn'?'var(--yellow)':'var(--green)',delta=rate-100,valueText=exactValues?fmtWon:fmtMoney;
   return `<div class="eval-detail-visual"><div class="eval-detail-title"><h3>${label}</h3><div style="display:flex;align-items:center;gap:8px">${actionHtml}<small>${periodText}</small></div></div>
     <div class="eval-detail-bars">
