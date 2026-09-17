@@ -141,6 +141,20 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 .kpi.clickable,.kpi.week-clickable,.product-card,.eval-item.clickable,.forecast-mini.clickable,.stock-chip,.expense-day,#stockAlertIssue{padding-bottom:34px!important}
 .kpi.clickable::after,.kpi.week-clickable::after,.product-card::after,.eval-item.clickable::after,.forecast-mini.clickable::after,.ad-chart-card::after,.stock-chip::after,.expense-day::after,#stockAlertIssue::after{content:"상세보기";position:absolute;right:9px;bottom:7px;padding:3px 7px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--sub);font-size:9px;font-weight:800;line-height:1;pointer-events:none}
 .eval-change{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font-size:11px;font-weight:800;text-align:center;color:var(--sub)}
+.presentation-cover{display:none}
+.presentation-cover-inner{width:min(1500px,100%);margin:auto;text-align:center}
+.presentation-cover h2{font-size:38px;margin:0 0 10px;letter-spacing:-.04em}
+.presentation-cover .cover-sub{color:var(--sub);font-size:17px;line-height:1.6;margin-bottom:34px}
+.profit-formula{display:grid;grid-template-columns:minmax(150px,1.2fr) auto minmax(150px,1fr) auto minmax(150px,1fr) auto minmax(150px,1fr) auto minmax(150px,1fr) auto minmax(170px,1.2fr);gap:11px;align-items:stretch}
+.formula-op{display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:900;color:var(--sub)}
+.formula-box{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:18px;padding:24px 16px;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px}
+.formula-box.clickable{cursor:pointer;transition:.16s}
+.formula-box.clickable:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:0 14px 30px rgba(0,0,0,.2)}
+.formula-box .formula-name{font-size:17px;font-weight:900}
+.formula-box .formula-value{font-size:25px;font-weight:900}
+.formula-box .formula-go{font-size:11px;color:var(--blue);font-weight:800}
+.formula-box.result{border-color:rgba(52,211,153,.5);background:rgba(52,211,153,.1)}
+.formula-box.result .formula-value{color:var(--green)}
 .presentation-toolbar{display:none;position:fixed;left:50%;bottom:18px;z-index:9997;transform:translateX(-50%);align-items:center;gap:8px;padding:9px 11px;background:rgba(21,26,36,.94);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);backdrop-filter:blur(12px)}
 .presentation-toolbar .slide-count{min-width:112px;text-align:center;font-size:12px;font-weight:800;color:var(--sub)}
 body.presentation-mode{overflow:hidden;margin-left:0!important}
@@ -149,6 +163,7 @@ body.presentation-mode .wrap{max-width:none;height:100vh;margin:0;padding:22px 2
 body.presentation-mode .top,body.presentation-mode .status-strip{display:none!important}
 body.presentation-mode .grid{display:block;height:100%}
 body.presentation-mode .kpis,body.presentation-mode .grid>section{display:none!important}
+body.presentation-mode .presentation-cover.presentation-active{display:flex!important;height:calc(100vh - 110px);overflow:auto;padding:30px 34px}
 body.presentation-mode .grid>section.presentation-active{display:block!important;height:calc(100vh - 110px);overflow:auto;padding:30px 34px}
 body.presentation-mode .kpis.presentation-active{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-content:center;gap:24px;padding:5vh 4vw}
 body.presentation-mode .kpis.presentation-active .kpi{min-height:250px;display:flex;flex-direction:column;justify-content:center;padding:34px 38px}
@@ -172,6 +187,7 @@ body.presentation-mode #salesModal .chart.xl{height:calc(100vh - 185px)!importan
 body.presentation-mode #detailModal .chart.xl{height:calc(100vh - 270px)!important;min-height:390px}
 body.presentation-mode #stockModal .modal-card{padding-bottom:24px!important}
 @media(max-width:900px){body.presentation-mode .kpis.presentation-active{grid-template-columns:1fr 1fr;padding:2vh 1vw}body.presentation-mode .kpis.presentation-active .kpi{min-height:210px;padding:24px}body.presentation-mode .kpis .value{font-size:40px}}
+@media(max-width:1350px){.profit-formula{grid-template-columns:repeat(6,1fr)}.formula-op{display:none}.formula-box{min-height:125px;padding:18px 12px}.presentation-cover h2{font-size:32px}}
 </style>
 </head>
 <body>
@@ -195,6 +211,25 @@ body.presentation-mode #stockModal .modal-card{padding-bottom:24px!important}
     <div class="card kpi clickable" id="kMtdCard"><div class="label">월 누적 매출</div><div class="value" id="kMtd">—</div><div class="meta" id="kMtdMeta">—</div></div>
     <div class="card kpi clickable" id="kTotalAvgCard"><div class="label">현재 전체매출 일평균</div><div class="value" id="kTotalAvg">—</div><div class="meta" id="kTotalAvgMeta">월 계획 대비</div></div>
     <div class="card kpi clickable" id="kAdRatioCard"><div class="label">지난 금요일~이번 목요일 매출액 대비 광고비</div><div class="value" id="kAdSpend">—</div><div class="meta" id="kAdMeta">—</div></div>
+  </section>
+  <section class="presentation-cover" id="presentationCover">
+    <div class="presentation-cover-inner">
+      <h2>영업이익 산출 구조</h2>
+      <div class="cover-sub">발생한 매출에서 발주비·광고비·고정비·기타변동비를 차감한 금액입니다.<br>각 항목을 선택하면 해당 발표가 시작됩니다.</div>
+      <div class="profit-formula">
+        <button type="button" class="formula-box clickable" data-presentation-chapter="revenue"><span class="formula-name">매출</span><strong class="formula-value" id="coverRevenue">—</strong><span class="formula-go">매출 발표 시작 →</span></button>
+        <div class="formula-op">−</div>
+        <button type="button" class="formula-box clickable" data-presentation-chapter="orders"><span class="formula-name">제품·발주비</span><strong class="formula-value" id="coverOrder">—</strong><span class="formula-go">제품/발주 발표 시작 →</span></button>
+        <div class="formula-op">−</div>
+        <button type="button" class="formula-box clickable" data-presentation-chapter="ads"><span class="formula-name">광고비</span><strong class="formula-value" id="coverAd">—</strong><span class="formula-go">광고 발표 시작 →</span></button>
+        <div class="formula-op">−</div>
+        <button type="button" class="formula-box clickable" data-presentation-chapter="evaluation"><span class="formula-name">고정비</span><strong class="formula-value" id="coverFixed">—</strong><span class="formula-go">월 평가·기타 시작 →</span></button>
+        <div class="formula-op">−</div>
+        <button type="button" class="formula-box clickable" data-presentation-chapter="evaluation"><span class="formula-name">기타변동비</span><strong class="formula-value" id="coverVariable">—</strong><span class="formula-go">월 평가·기타 시작 →</span></button>
+        <div class="formula-op">=</div>
+        <div class="formula-box result"><span class="formula-name">영업이익</span><strong class="formula-value" id="coverProfit">—</strong><span class="formula-go">월 누적 최신 데이터 기준</span></div>
+      </div>
+    </div>
   </section>
   <main class="grid">
     <section class="card span12 sales-main-card" id="salesMainCard">
@@ -457,6 +492,10 @@ function previousMonthRange(ref){
   let end=new Date(y,m,0),start=new Date(end.getFullYear(),end.getMonth(),1);
   return {start,end};
 }
+function updatePresentationCover(){
+  let s=DATA.sales,pr=DATA.profit;if(!s&&!pr)return;let rows=pr?.monthRowsLatest||[],revenue=s?.latestMtd||sum(rows,r=>r.revenue||0),order=sum(rows,r=>r.order||0),ad=sum(rows,r=>r.ad||0),fixed=sum(rows,r=>r.fixed||0),variable=sum(rows,r=>r.variable||0),profit=revenue-order-ad-fixed-variable;
+  [['coverRevenue',revenue],['coverOrder',order],['coverAd',ad],['coverFixed',fixed],['coverVariable',variable],['coverProfit',profit]].forEach(([id,value])=>{let el=$(id);if(el)el.textContent=fmtMoney(value)});
+}
 function render(){
   let s=DATA.sales,p=DATA.products,a=DATA.ads,pr=DATA.profit,o=DATA.ops;
   if(s){
@@ -528,6 +567,7 @@ function render(){
     </div>`;
     document.querySelectorAll('[data-stock-status]').forEach(el=>el.onclick=()=>openStockDetail(el.dataset.stockStatus));
   }
+  updatePresentationCover();
 
 }
 
@@ -562,9 +602,9 @@ const valueLabelPlugin={id:'valueLabelPlugin',afterDatasetsDraw(chart,args,opts)
     return `${prefix} ${Number(value).toLocaleString('ko-KR',{maximumFractionDigits:1})}`;
   }
   function safeAverageLabel(label,color,slot=0){
-    let right=chart.chartArea.right,top=chart.chartArea.top,x=right-8,chosen=top-52+(slot*31);
-    ctx.font='900 18px Pretendard';let width=ctx.measureText(label).width+22,boxX=x-width,boxY=chosen-22;
-    ctx.save();ctx.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--panel').trim()||'#151a24';ctx.globalAlpha=.96;ctx.fillRect(boxX,boxY,width,27);ctx.globalAlpha=1;ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.strokeRect(boxX,boxY,width,27);ctx.fillStyle=color;ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillText(label,x-10,chosen);ctx.restore();
+    let right=chart.chartArea.right,top=chart.chartArea.top,x=right-8,chosen=top-52+(slot*34),isRecent=slot===1;
+    ctx.font='900 18px Pretendard';let width=ctx.measureText(label).width+28,height=30,boxX=x-width,boxY=chosen-23,radius=height/2;
+    ctx.save();ctx.beginPath();if(ctx.roundRect)ctx.roundRect(boxX,boxY,width,height,radius);else{ctx.moveTo(boxX+radius,boxY);ctx.arcTo(boxX+width,boxY,boxX+width,boxY+height,radius);ctx.arcTo(boxX+width,boxY+height,boxX,boxY+height,radius);ctx.arcTo(boxX,boxY+height,boxX,boxY,radius);ctx.arcTo(boxX,boxY,boxX+width,boxY,radius)}ctx.closePath();ctx.fillStyle=color;ctx.fill();ctx.fillStyle=isRecent?'#fff':'#111';ctx.textAlign='right';ctx.textBaseline='bottom';ctx.fillText(label,x-13,chosen);ctx.restore();
   }
   if(opts.averageLine!=null&&isFinite(opts.averageLine)){
     let y=chart.scales.y.getPixelForValue(opts.averageLine),left=chart.chartArea.left,right=chart.chartArea.right;
@@ -803,27 +843,40 @@ modalElements.forEach(modal=>{
   };
 });
 syncModalOpenState();
-const presentationSlides=[
-  {el:document.querySelector('.kpis'),title:'핵심 지표'},
-  ...Array.from(document.querySelectorAll('.grid>section')).map(el=>({el,title:el.querySelector('.head h2')?.textContent||'주간 보고'}))
-].filter(x=>x.el);
-let presentationIndex=0;
+const reportGrid=document.querySelector('.grid'),reportSections=Array.from(document.querySelectorAll('.grid>section'));
+const sectionByTitle=keyword=>reportSections.find(el=>(el.querySelector('.head h2')?.textContent||'').includes(keyword));
+const orderedSections=['최근 8주','제품별 성과','주력 제품 재고','발주 관련','광고비 지출','월 평가','B2B'].map(sectionByTitle).filter(Boolean);
+orderedSections.forEach(section=>reportGrid.appendChild(section));
+const presentationCover=$('presentationCover'),presentationSlideMap={
+  revenue:[{el:document.querySelector('.kpis'),title:'매출 핵심 지표'},{el:sectionByTitle('최근 8주'),title:'최근 8주 매출 추이'}],
+  orders:[{el:sectionByTitle('제품별 성과'),title:'제품별 성과 현황'},{el:sectionByTitle('주력 제품 재고'),title:'주력 제품 재고 현황'},{el:sectionByTitle('발주 관련'),title:'발주 관련 특이사항'}],
+  ads:[{el:sectionByTitle('광고비 지출'),title:'광고비 지출 추이'}],
+  evaluation:[{el:sectionByTitle('월 평가'),title:'월 평가 지표'},{el:sectionByTitle('B2B'),title:'B2B 및 기타'}]
+};
+const presentationTargets=[presentationCover,document.querySelector('.kpis'),...reportSections].filter(Boolean);
+let presentationIndex=0,presentationChapter='cover',presentationFlow=[];
 function resizeDashboardCharts(){setTimeout(()=>Object.values(charts).forEach(c=>{try{c.resize()}catch(e){}}),80)}
+function hidePresentationTargets(){presentationTargets.forEach(el=>el.classList.remove('presentation-active'))}
+function showPresentationCover(){presentationChapter='cover';presentationFlow=[];presentationIndex=0;hidePresentationTargets();presentationCover.classList.add('presentation-active');$('presentationCount').textContent='영업이익 산출 구조 · 발표 항목 선택';$('presentationNext').textContent='매출 시작 →';resizeDashboardCharts()}
+function startPresentationChapter(chapter){presentationChapter=chapter;presentationFlow=(presentationSlideMap[chapter]||[]).filter(x=>x.el);presentationIndex=0;showPresentationSlide(0)}
 function showPresentationSlide(index){
-  presentationIndex=(index+presentationSlides.length)%presentationSlides.length;
-  presentationSlides.forEach((s,i)=>s.el.classList.toggle('presentation-active',i===presentationIndex));
-  let current=presentationSlides[presentationIndex];
-  $('presentationCount').textContent=`${presentationIndex+1} / ${presentationSlides.length} · ${current.title}`;
+  if(presentationChapter==='cover'){showPresentationCover();return}
+  if(index<0){showPresentationCover();return}
+  if(index>=presentationFlow.length){if(presentationChapter==='evaluation')exitPresentation();else showPresentationCover();return}
+  presentationIndex=index;hidePresentationTargets();let current=presentationFlow[presentationIndex];current.el.classList.add('presentation-active');
+  let chapterLabel={revenue:'매출',orders:'제품/발주',ads:'광고',evaluation:'월 평가·기타'}[presentationChapter]||'';
+  $('presentationCount').textContent=`${chapterLabel} ${presentationIndex+1} / ${presentationFlow.length} · ${current.title}`;$('presentationNext').textContent=presentationIndex===presentationFlow.length-1?(presentationChapter==='evaluation'?'발표 종료':'첫 화면으로'):'다음 →';
   resizeDashboardCharts();
 }
-function enterPresentation(){document.body.classList.add('presentation-mode');showPresentationSlide(presentationIndex);syncModalCenter();if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{})}
-function exitPresentation(){document.body.classList.remove('presentation-mode');presentationSlides.forEach(s=>s.el.classList.remove('presentation-active'));if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});resizeDashboardCharts();syncModalCenter()}
+function enterPresentation(){document.body.classList.add('presentation-mode');showPresentationCover();syncModalCenter();if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{})}
+function exitPresentation(){document.body.classList.remove('presentation-mode');hidePresentationTargets();presentationChapter='cover';if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});resizeDashboardCharts();syncModalCenter()}
+document.querySelectorAll('[data-presentation-chapter]').forEach(button=>button.onclick=()=>startPresentationChapter(button.dataset.presentationChapter));
 if($('presentationBtn'))$('presentationBtn').onclick=enterPresentation;
-if($('presentationPrev'))$('presentationPrev').onclick=()=>showPresentationSlide(presentationIndex-1);
-if($('presentationNext'))$('presentationNext').onclick=()=>showPresentationSlide(presentationIndex+1);
+if($('presentationPrev'))$('presentationPrev').onclick=()=>presentationChapter==='cover'?null:showPresentationSlide(presentationIndex-1);
+if($('presentationNext'))$('presentationNext').onclick=()=>presentationChapter==='cover'?startPresentationChapter('revenue'):showPresentationSlide(presentationIndex+1);
 if($('presentationExit'))$('presentationExit').onclick=exitPresentation;
 if($('presentationFullscreen'))$('presentationFullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};
-document.addEventListener('keydown',e=>{if(!document.body.classList.contains('presentation-mode'))return;if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();showPresentationSlide(presentationIndex+1)}else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();showPresentationSlide(presentationIndex-1)}else if(e.key==='Escape'&&!document.fullscreenElement)exitPresentation()});
+document.addEventListener('keydown',e=>{if(!document.body.classList.contains('presentation-mode'))return;if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();presentationChapter==='cover'?startPresentationChapter('revenue'):showPresentationSlide(presentationIndex+1)}else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();if(presentationChapter!=='cover')showPresentationSlide(presentationIndex-1)}else if(e.key==='Escape'&&!document.fullscreenElement)exitPresentation()});
 
 if($('refreshBtn')) $('refreshBtn').onclick=()=>TOKEN&&loadAll(); if($('themeBtn')) $('themeBtn').onclick=()=>{let light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');$('themeBtn').textContent=light?'라이트 모드':'다크 모드';render()};initAuth();
 </script>
