@@ -142,7 +142,7 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 .kpi.clickable::after,.kpi.week-clickable::after,.product-card::after,.eval-item.clickable::after,.forecast-mini.clickable::after,.ad-chart-card::after,.stock-chip::after,.expense-day::after,#stockAlertIssue::after{content:"상세보기";position:absolute;right:9px;bottom:7px;padding:3px 7px;border:1px solid var(--line);border-radius:7px;background:var(--panel);color:var(--sub);font-size:9px;font-weight:800;line-height:1;pointer-events:none}
 .eval-change{margin-top:9px;padding-top:8px;border-top:1px solid var(--line);font-size:11px;font-weight:800;text-align:center;color:var(--sub)}
 .presentation-cover{display:none}
-.presentation-cover-inner{width:min(1500px,100%);margin:auto;text-align:center}
+.presentation-cover-inner{width:min(1500px,100%);margin:0;text-align:center}
 .presentation-cover h2{margin:0 0 34px;letter-spacing:-.04em}
 .presentation-cover .cover-title-main{display:block;font-size:44px;font-weight:900;line-height:1.15}
 .presentation-cover .cover-title-date{display:block;margin-top:10px;font-size:23px;font-weight:700;color:var(--sub);letter-spacing:-.02em}
@@ -152,7 +152,7 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 .formula-box{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:18px;padding:24px 16px;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px}
 .formula-box.clickable{cursor:pointer;transition:.16s}
 .formula-box.clickable:hover{border-color:var(--blue);transform:translateY(-4px);box-shadow:0 14px 30px rgba(0,0,0,.2)}
-.formula-box .formula-name{font-size:17px;font-weight:900}
+.formula-box .formula-name{font-size:24px;font-weight:900;line-height:1.25;letter-spacing:-.03em}
 .formula-box .formula-value{font-size:25px;font-weight:900}
 .formula-box .formula-go{font-size:11px;color:var(--blue);font-weight:800}
 .formula-box.result{border-color:rgba(52,211,153,.5);background:rgba(52,211,153,.1)}
@@ -165,7 +165,7 @@ body.presentation-mode .wrap{max-width:none;height:100vh;margin:0;padding:22px 2
 body.presentation-mode .top,body.presentation-mode .status-strip{display:none!important}
 body.presentation-mode .grid{display:block;height:100%}
 body.presentation-mode .kpis,body.presentation-mode .grid>section{display:none!important}
-body.presentation-mode .presentation-cover.presentation-active{display:flex!important;height:calc(100vh - 110px);overflow:auto;padding:30px 34px}
+body.presentation-mode .presentation-cover.presentation-active{display:flex!important;height:calc(100vh - 110px);overflow:auto;padding:30px 34px;align-items:center;justify-content:center}
 body.presentation-mode .grid>section.presentation-active{display:block!important;height:calc(100vh - 110px);overflow:auto;padding:30px 34px}
 body.presentation-mode .kpis.presentation-active{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-content:center;gap:24px;padding:5vh 4vw}
 body.presentation-mode .kpis.presentation-active .kpi{min-height:250px;display:flex;flex-direction:column;justify-content:center;padding:34px 38px}
@@ -189,7 +189,7 @@ body.presentation-mode #salesModal .chart.xl{height:calc(100vh - 185px)!importan
 body.presentation-mode #detailModal .chart.xl{height:calc(100vh - 270px)!important;min-height:390px}
 body.presentation-mode #stockModal .modal-card{padding-bottom:24px!important}
 @media(max-width:900px){body.presentation-mode .kpis.presentation-active{grid-template-columns:1fr 1fr;padding:2vh 1vw}body.presentation-mode .kpis.presentation-active .kpi{min-height:210px;padding:24px}body.presentation-mode .kpis .value{font-size:40px}}
-@media(max-width:1350px){.profit-formula{grid-template-columns:repeat(6,1fr)}.formula-op{display:none}.formula-box{min-height:125px;padding:18px 12px}.presentation-cover h2{font-size:32px}}
+@media(max-width:1350px){.profit-formula{grid-template-columns:repeat(6,1fr)}.formula-op{display:none}.formula-box{min-height:125px;padding:18px 12px}.formula-box .formula-name{font-size:21px}.presentation-cover h2{font-size:32px}}
 </style>
 </head>
 <body>
