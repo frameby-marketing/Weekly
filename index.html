@@ -136,6 +136,22 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 </style>
 
 <style>
+/* Evaluation period + previous-day data readiness */
+.eval-title-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:4px}
+.eval-date-badge{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border:1.5px solid var(--blue);border-radius:9px;background:rgba(108,123,255,.09);color:var(--blue);font-size:11px;font-weight:900;white-space:nowrap}
+.eval-date-badge .eval-status{padding-left:7px;border-left:1px solid rgba(108,123,255,.35)}
+.eval-date-badge.missing{border-color:var(--blue);color:var(--blue)}
+.eval-date-badge.missing .eval-status{color:var(--red);border-left-color:rgba(251,113,133,.35)}
+.eval-data-wrap{position:relative;min-height:285px}
+.eval-data-wrap.data-missing .eval-data-content{opacity:.18;filter:blur(5px);pointer-events:none;user-select:none}
+.eval-data-overlay{display:none;position:absolute;inset:0;z-index:3;align-items:center;justify-content:center;text-align:center;padding:24px}
+.eval-data-wrap.data-missing .eval-data-overlay{display:flex}
+.eval-data-message{max-width:520px;padding:20px 24px;border:1px solid rgba(108,123,255,.55);border-radius:15px;background:color-mix(in srgb,var(--panel) 92%,transparent);box-shadow:var(--shadow)}
+.eval-data-message b{display:block;color:var(--red);font-size:20px;margin-bottom:8px}.eval-data-message span{display:block;color:var(--text);font-size:13px;font-weight:800;line-height:1.55}
+@media(max-width:700px){.eval-title-row{align-items:flex-start}.eval-date-badge{white-space:normal}}
+</style>
+
+<style>
 /* Sidebar-safe drilldowns + Friday presentation mode */
 .modal{left:var(--modal-safe-left,0)!important;right:0!important;width:auto!important;transform:none!important}
 .modal-card{transform:none!important;max-width:calc(100% - 48px)!important}
@@ -259,9 +275,14 @@ body.presentation-mode #stockModal .modal-card{padding-bottom:24px!important}
     </section>
 
     <section class="card span12">
-      <div class="head"><div><h2 id="evalTitle">월 평가 지표</h2><small id="evalPeriodSub">매출·광고비는 목표 vs 현재 · 비용은 예상 vs 실제</small></div><div class="eval-period-toggle"><button type="button" class="btn active" id="evalMonthBtn">9월 누적</button><button type="button" class="btn" id="evalWeekBtn">지난 금요일~이번 목요일</button></div></div>
-      <div id="monthEval" class="eval-grid"><div class="empty">데이터 로딩 중...</div></div>
-      <div id="profitSummary" class="profit-summary"><div class="empty">영업이익 계산 중...</div></div>
+      <div class="head"><div><div class="eval-title-row"><h2 id="evalTitle">월 평가 지표</h2><span class="eval-date-badge" id="evalDateBadge">기준일 확인 중</span></div><small id="evalPeriodSub">매출·광고비는 목표 vs 현재 · 비용은 예상 vs 실제</small></div><div class="eval-period-toggle"><button type="button" class="btn active" id="evalMonthBtn">9월 누적</button><button type="button" class="btn" id="evalWeekBtn">지난 금요일~이번 목요일</button></div></div>
+      <div class="eval-data-wrap" id="evalDataWrap">
+        <div class="eval-data-content">
+          <div id="monthEval" class="eval-grid"><div class="empty">데이터 로딩 중...</div></div>
+          <div id="profitSummary" class="profit-summary"><div class="empty">영업이익 계산 중...</div></div>
+        </div>
+        <div class="eval-data-overlay" id="evalDataOverlay"><div class="eval-data-message"><b>데이터 미입력</b><span id="evalDataMessage">전일 데이터 입력 시 평가지표가 노출됩니다.</span></div></div>
+      </div>
     </section>
 
     <section class="card span12" id="adSection">
@@ -439,17 +460,20 @@ async function loadProfit(){
   setSource('srcProfit','loading','로딩');
   let [daily,plan]=await Promise.all([apiValues(CFG.profitId,`'${CFG.profitDailySheet}'!${CFG.profitDailyRange}`,false),apiValues(CFG.profitId,`'${CFG.profitPlanSheet}'!A1:K13`,false)]),
       rows=parseProfitDaily(daily),mk=`${String(RR.end.getFullYear()).slice(2)}-${String(RR.end.getMonth()+1).padStart(2,'0')}`,planRow=plan.slice(1).find(r=>String(r[0]||'').trim()===mk)||[],
-      dim=new Date(RR.end.getFullYear(),RR.end.getMonth()+1,0).getDate(),today=d0(new Date()),
-      fullMonthRows=rows.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()),monthCandidates=fullMonthRows.filter(x=>x.date<=today),
+      dim=new Date(RR.end.getFullYear(),RR.end.getMonth()+1,0).getDate(),today=d0(new Date()),evaluationCutoff=addDays(today,-1),
+      fullMonthRows=rows.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()),monthCandidates=fullMonthRows.filter(x=>x.date<=evaluationCutoff),
       actualRows=monthCandidates.filter(x=>['revenue','settlement','ownNaver','ownNaverSettlement','ad','adCharge','order','fixed','variable'].some(k=>x[k]!=null)),
-      latestDate=actualRows.length?actualRows[actualRows.length-1].date:RR.end,
-      monthRows=monthCandidates.filter(x=>x.date<=RR.end),monthRowsLatest=monthCandidates.filter(x=>x.date<=latestDate),weekRows=rows.filter(x=>inRange(x.date,RR)&&x.date.getMonth()===RR.end.getMonth()&&x.date.getFullYear()===RR.end.getFullYear()),previousWeekRows=rows.filter(x=>inRange(x.date,previousRange(RR)));
+      latestDate=actualRows.length?new Date(Math.max(...actualRows.map(x=>x.date))):evaluationCutoff,
+      monthRows=monthCandidates.filter(x=>x.date<=RR.end),monthRowsLatest=monthCandidates.filter(x=>x.date<=latestDate),weekRows=rows.filter(x=>inRange(x.date,RR)&&x.date<=evaluationCutoff&&x.date.getMonth()===RR.end.getMonth()&&x.date.getFullYear()===RR.end.getFullYear()),previousWeekRows=rows.filter(x=>inRange(x.date,previousRange(RR)));
   function av(key,a){let z=a.filter(x=>x[key]!=null);return z.length?sum(z,x=>x[key])/z.length:0}
   function avPositive(key,a){let z=a.filter(x=>Number(x[key])>0);return z.length?sum(z,x=>x[key])/z.length:0}
   function sm(key,a){return sum(a,x=>x[key]||0)}
   function pack(a){return {ownTarget:num(planRow[1])||0,totalTargetDaily:(num(planRow[2])||0)/dim,adTargetDaily:(RR.end.getFullYear()===2026&&RR.end.getMonth()===8)?1100000:(num(planRow[5])||0)/dim,ownActual:av('ownNaver',a),ownSettlementActual:av('ownNaverSettlement',a),totalActual:av('revenue',a),totalSettlementActual:av('settlement',a),adActual:av('ad',a),adChargeActual:av('adCharge',a),orderExpected:sm('expOrder',a),orderActual:sm('order',a),fixedExpected:sm('expFixed',a),fixedActual:sm('fixed',a),variableExpected:sm('expVariable',a),variableActual:sm('variable',a)}}
+  const evaluationFields=[['ownNaverSettlement','자사+네이버 정산'],['settlement','전체매출 정산'],['adCharge','광고충전'],['expOrder','예상발주비'],['order','실제발주비'],['expFixed','예상고정비'],['fixed','실제고정비'],['expVariable','예상변동비'],['variable','실제변동비']],
+      cutoffRows=fullMonthRows.filter(x=>iso(x.date)===iso(evaluationCutoff)),cutoffRow=cutoffRows.length?cutoffRows[cutoffRows.length-1]:null,
+      evaluationMissingFields=cutoffRow?evaluationFields.filter(([key])=>cutoffRow[key]==null).map(([,label])=>label):evaluationFields.map(([,label])=>label),evaluationComplete=evaluationMissingFields.length===0;
   let previousReportRows=monthCandidates.filter(x=>x.date<=previousRange(RR).end),monthly=pack(monthRows),monthlyLatest=pack(monthRowsLatest),monthlyPlan=pack(fullMonthRows),previousMonthly=pack(previousReportRows),weekly=pack(weekRows),previousWeekly=pack(previousWeekRows);
-  DATA.profit={monthly,monthlyLatest,monthlyPlan,previousMonthly,weekly,previousWeekly,planRow,rows,latestDate,monthRowsLatest,fullMonthRows,dim};setSource('srcProfit','ok','정상');
+  DATA.profit={monthly,monthlyLatest,monthlyPlan,previousMonthly,weekly,previousWeekly,planRow,rows,latestDate,monthRowsLatest,fullMonthRows,dim,evaluationCutoff,evaluationComplete,evaluationMissingFields};setSource('srcProfit','ok','정상');
 }
 function influencerEsc(value){return String(value==null?'':value).replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]))}
 function influencerSafeUrl(value){try{let url=new URL(String(value||''));return /^https?:$/.test(url.protocol)?url.href:''}catch(e){return''}}
@@ -574,7 +598,10 @@ function renderProfitSummary(){
 function renderEvaluation(){
   let pr=DATA.profit;if(!pr)return;let month=RR.end.getMonth()+1,current=activeEvalPeriod==='month'?pr.monthlyLatest:pr.weekly,previous=activeEvalPeriod==='month'?(pr.previousMonthly||{}):(pr.previousWeekly||{});
   $('evalTitle').textContent=`${month}월 평가 지표`;$('evalMonthBtn').textContent=`${month}월 누적`;$('evalMonthBtn').classList.toggle('active',activeEvalPeriod==='month');$('evalWeekBtn').classList.toggle('active',activeEvalPeriod==='week');
-  $('evalPeriodSub').textContent=activeEvalPeriod==='month'?`${month}/1~${md(pr.latestDate)} 입력 데이터 평균·누적`:`${rangeLabel(RR.start,RR.end)} 보고 기준 주차`;
+  let isMonth=activeEvalPeriod==='month',cutoff=pr.evaluationCutoff||addDays(d0(new Date()),-1),missing=isMonth&&!pr.evaluationComplete,dateText=isMonth?`${month}/1 ~ ${md(cutoff)}`:rangeLabel(RR.start,RR.end);
+  $('evalDateBadge').classList.toggle('missing',missing);$('evalDateBadge').innerHTML=`<span>기준 ${dateText}</span><span class="eval-status">${missing?'데이터 미입력':'데이터 입력 완료'}</span>`;
+  $('evalDataWrap').classList.toggle('data-missing',missing);$('evalDataMessage').textContent=`${md(cutoff)} 데이터 입력 시 평가지표가 노출됩니다.`;
+  $('evalPeriodSub').textContent=isMonth?`${month}/1~${md(cutoff)} 전일까지 입력 완료된 데이터 기준`:`${rangeLabel(RR.start,RR.end)} 보고 기준 주차`;
   $('monthEval').innerHTML=[
     evalItem('자사+네이버 일평균 정산',current.ownSettlementActual,current.ownTarget,false,'goal',0,previous.ownSettlementActual),
     evalItem('전체매출 일평균 정산',current.totalSettlementActual,current.totalTargetDaily,false,'goal',1,previous.totalSettlementActual),
