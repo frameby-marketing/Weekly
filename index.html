@@ -181,6 +181,14 @@ body.presentation-mode .kpis .meta{font-size:19px!important}
 body.presentation-mode .presentation-active>.head h2{font-size:28px}
 body.presentation-mode .presentation-active>.head small{font-size:15px}
 body.presentation-mode .presentation-active .chart.xl,body.presentation-mode .presentation-active.sales-main-card .chart{height:calc(100vh - 220px)!important}
+body.presentation-mode #adSection.presentation-active{display:flex!important;flex-direction:column;overflow:hidden!important}
+body.presentation-mode #adSection>.head{flex:none}
+body.presentation-mode #adSection .ad-chart-card{flex:1;min-height:0;margin:0 0 10px;padding:6px}
+body.presentation-mode #adSection .ad-chart-card .chart.xl{height:100%!important;min-height:280px}
+body.presentation-mode #adSection .ad-metrics{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;flex:none;margin-top:0}
+body.presentation-mode #adSection .forecast-mini{min-height:116px;padding:18px 16px 34px;display:flex;flex-direction:column;justify-content:center}
+body.presentation-mode #adSection .forecast-mini .t{font-size:14px;line-height:1.35}
+body.presentation-mode #adSection .forecast-mini .v{font-size:24px;margin-top:8px}
 body.presentation-mode .presentation-toolbar{display:flex}
 body.presentation-mode .modal{inset:0!important;padding:0!important;left:0!important;background:var(--bg)!important;align-items:stretch!important;justify-content:stretch!important}
 body.presentation-mode .modal-card{width:100%!important;max-width:none!important;height:100vh!important;max-height:none!important;border:0!important;border-radius:0!important;padding:20px 30px 24px!important;overflow:auto!important}
@@ -256,7 +264,7 @@ body.presentation-mode #stockModal .modal-card{padding-bottom:24px!important}
       <div id="profitSummary" class="profit-summary"><div class="empty">영업이익 계산 중...</div></div>
     </section>
 
-    <section class="card span12">
+    <section class="card span12" id="adSection">
       <div class="head"><div><h2>광고비 지출 추이</h2><small>요일별 지난 금요일~이번 목요일 vs 직전 주 광고비 · 직선 비교</small></div></div>
       <div class="ad-chart-card" id="adChartCard" title="클릭하면 이번달 일별 광고비를 봅니다"><div class="chart xl"><canvas id="adChart"></canvas></div></div>
       <div class="ad-metrics">
