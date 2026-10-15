@@ -14,7 +14,7 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 .kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:18px}.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px;min-width:0}.kpi{min-height:154px;padding:22px 24px}.kpi .label{font-size:15px;color:var(--sub);margin-bottom:10px}.kpi .value{font-size:34px;font-weight:900;letter-spacing:-.045em}.kpi .meta{margin-top:10px;font-size:13px;color:var(--sub);line-height:1.5}.up{color:var(--red)!important}.down{color:#60a5fa!important}.good{color:var(--green)!important}.warn{color:var(--yellow)!important}.bad{color:var(--red)!important}.grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}.span8{grid-column:span 8}.span7{grid-column:span 7}.span6{grid-column:span 6}.span5{grid-column:span 5}.span4{grid-column:span 4}.span12{grid-column:span 12}.head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}.head h2{font-size:19px;margin:0}.head small{color:var(--sub);font-size:12.5px}.chart{height:330px}.chart.tall{height:360px}.table{width:100%;border-collapse:collapse;font-size:12px}.table th,.table td{border-bottom:1px solid var(--line);padding:9px 8px;text-align:right;white-space:nowrap}.table th:first-child,.table td:first-child{text-align:left}.table th{color:var(--sub);font-weight:700}.badge{display:inline-block;border-radius:999px;padding:4px 8px;font-size:10px;font-weight:800;background:var(--panel2);color:var(--sub)}.badge.good{background:rgba(52,211,153,.12)}.badge.warn{background:rgba(251,191,36,.12)}.badge.bad{background:rgba(251,113,133,.12)}.summary{display:grid;grid-template-columns:1.3fr .7fr;gap:14px}.summary-box{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:15px}.summary-box h3{font-size:12px;margin:0 0 10px;color:var(--sub)}.summary-lines{display:flex;flex-direction:column;gap:9px;font-size:12.5px;line-height:1.5}.summary-line b{margin-right:8px}.issue-list{display:flex;flex-direction:column;gap:9px}.issue{display:grid;grid-template-columns:90px 1fr auto;gap:10px;align-items:center;background:var(--panel2);border:1px solid var(--line);border-radius:11px;padding:10px 12px;font-size:11.5px}.issue .name{font-weight:800}.issue .desc{color:var(--sub);overflow:hidden;text-overflow:ellipsis}.muted{color:var(--sub)}.empty{color:var(--sub);font-size:12px;padding:18px 0}.auth-gate{position:fixed;inset:0;z-index:9999;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:20px}.auth-card{width:min(440px,100%);background:var(--panel);border:1px solid var(--line);border-radius:22px;padding:36px;text-align:center;box-shadow:var(--shadow)}.auth-card h2{margin:0 0 10px;font-size:22px}.auth-card p{margin:0 0 22px;color:var(--sub);font-size:13px;line-height:1.6}.hidden{display:none!important}.loading-text{opacity:.6}.progress{height:8px;background:var(--panel2);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-top:12px}.progress>i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--cyan));width:0%}.forecast-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.forecast-mini{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px}.forecast-mini .t{font-size:10px;color:var(--sub)}.forecast-mini .v{font-size:17px;font-weight:900;margin-top:5px}
 @media(max-width:1150px){.kpis{grid-template-columns:repeat(2,1fr)}.span8,.span7,.span6,.span5,.span4{grid-column:span 12}.status-strip{grid-template-columns:repeat(2,1fr)}}@media(max-width:700px){.wrap{padding:18px 14px 40px}.top{flex-direction:column}.kpis{grid-template-columns:1fr 1fr}.summary{grid-template-columns:1fr}.issue{grid-template-columns:1fr}.status-strip{grid-template-columns:1fr}}
 
-[hidden]{display:none!important} #meetingEvalHost{display:block;width:100%} #weeklyCashSection{padding:0;overflow:visible}
+[hidden]{display:none!important}
 </style>
 
 <style>
@@ -289,7 +289,6 @@ body.presentation-mode #cashReportSection .cash-report-card{padding:24px}body.pr
       <div id="productCards" class="product-grid"><div class="empty">데이터 로딩 중...</div></div>
     </section>
 
-    <section class="card span12" id="weeklyCashSection"><div id="meetingEvalHost"></div></section>
     <section hidden class="card span12">
       <div class="head"><div><div class="eval-title-row"><h2 id="evalTitle">월 평가 지표</h2><span class="eval-date-badge" id="evalDateBadge">기준일 확인 중</span></div><small id="evalPeriodSub">매출·광고비는 목표 vs 현재 · 비용은 예상 vs 실제</small></div><div class="eval-period-toggle"><button type="button" class="btn active" id="evalMonthBtn">9월 누적</button><button type="button" class="btn" id="evalWeekBtn">지난 금요일~이번 목요일</button></div></div>
       <div class="eval-data-wrap" id="evalDataWrap">
@@ -314,7 +313,6 @@ body.presentation-mode #cashReportSection .cash-report-card{padding:24px}body.pr
 
 
     <section class="card span12"><div class="head"><div><h2>B2B 진행 특이사항</h2><small>고객사 컨펌 '확정' 건 기준</small></div><span class="badge" id="b2bCount">—</span></div><div class="issue-list" id="b2bIssues"><div class="empty">데이터 로딩 중...</div></div></section>
-    <section hidden class="card span12" id="cashReportSection"><div class="head"><div><h2>자금 수지 상황</h2><small id="cashReportBasis">지난달 전체 실제 누적 · 데이터 로딩 중</small></div><span class="badge" id="cashReportStatus">로딩</span></div><div class="cash-report-grid" id="cashReportCards"><div class="empty">현금 수지 데이터를 불러오는 중입니다.</div></div></section>
 
   </main>
 
@@ -646,7 +644,7 @@ function render(){
 
 let monthlySalesView='total';
 const weeklyRender=render;
-render=function(){weeklyRender();renderReportCash();if(!MONTH_REPORT)return;renderMonthly();};
+render=function(){weeklyRender();if(!MONTH_REPORT)return;renderMonthly();};
 function reportMonths(){return Array.from({length:RR.end.getMonth()+1},(_,m)=>({label:`${m+1}월`,start:new Date(RR.end.getFullYear(),m,1),end:new Date(RR.end.getFullYear(),m+1,0)}));}
 function monthlyValues(rows,key){return reportMonths().map(m=>{let r=rows.filter(x=>inRange(x.date,m));return r.length?sum(r,x=>x[key]):null;});}
 function monthlySalesChart(){if(!DATA.sales)return;let vals=monthlyValues(DATA.sales.days,'total').map((v,i)=>v==null?null:monthlySalesView==='average'?v/reportMonths()[i].end.getDate():v);draw('salesChart','bar',reportMonths().map(m=>m.label),[{label:monthlySalesView==='average'?'월별 일평균':'월 누적 매출',data:vals,backgroundColor:'#6c7bff',borderRadius:8}],{money:true,valueLabels:true});}
@@ -896,7 +894,7 @@ if($('stockModalClose')) $('stockModalClose').onclick=()=>$('stockModal')?.class
 if($('stockModal')) $('stockModal').onclick=e=>{if(e.target.id==='stockModal')$('stockModal').classList.add('hidden')};
 
 
-async function loadAll(){['srcSales','srcProduct','srcAds','srcProfit','srcOps'].forEach(id=>setSource(id,'loading','로딩'));let jobs=[['sales',loadSales,'srcSales'],['products',loadProducts,'srcProduct'],['ads',loadAds,'srcAds'],['profit',loadProfit,'srcProfit'],['ops',loadOps,'srcOps'],['cash',loadReportCash,null]];await Promise.all(jobs.map(async([k,fn,id])=>{try{await fn()}catch(e){console.error(k,e);if(id)setSource(id,'err','오류');if(k==='cash'){$('meetingEvalHost').innerHTML='<div class="empty">현금 수지 데이터를 불러오지 못했습니다. 새로고침으로 다시 시도해 주세요.</div>';$('cashReportStatus').textContent='불러오기 실패';$('cashReportCards').innerHTML='<div class="empty">현금 수지 데이터를 불러오지 못했습니다. 새로고침으로 다시 시도해 주세요.</div>'}}}));render()}
+async function loadAll(){['srcSales','srcProduct','srcAds','srcProfit','srcOps'].forEach(id=>setSource(id,'loading','로딩'));let jobs=[['sales',loadSales,'srcSales'],['products',loadProducts,'srcProduct'],['ads',loadAds,'srcAds'],['profit',loadProfit,'srcProfit'],['ops',loadOps,'srcOps']];await Promise.all(jobs.map(async([k,fn,id])=>{try{await fn()}catch(e){console.error(k,e);if(id)setSource(id,'err','오류')}}));render()}
 let tokenClient=null;
 function setLoginLoading(on){
   const btn=$('loginBtn'); if(!btn)return;
@@ -956,13 +954,13 @@ modalElements.forEach(modal=>{
 syncModalOpenState();
 const reportGrid=document.querySelector('.grid'),reportSections=Array.from(document.querySelectorAll('.grid>section'));
 const sectionByTitle=keyword=>reportSections.find(el=>(el.querySelector('.head h2')?.textContent||'').includes(keyword));
-const orderedSections=['제품별 성과','주력 제품 재고','발주 관련','월 평가','B2B','자금 수지 상황'].map(sectionByTitle).filter(el=>el&&!el.hidden);orderedSections.splice(1,0,$('weeklyCashSection'));
+const orderedSections=['제품별 성과','주력 제품 재고','발주 관련','월 평가','B2B','자금 수지 상황'].map(sectionByTitle).filter(el=>el&&!el.hidden);
 orderedSections.forEach(section=>reportGrid.appendChild(section));
 const presentationCover=$('presentationCover'),presentationSlideMap={
   revenue:[{el:document.querySelector('.kpis'),title:'매출 핵심 지표'},{el:null,title:''}],
   orders:[{el:sectionByTitle('제품별 성과'),title:'제품별 성과 현황'},{el:sectionByTitle('주력 제품 재고'),title:'주력 제품 재고 현황'},{el:sectionByTitle('발주 관련'),title:'발주 관련 특이사항'}],
   ads:[{el:document.querySelector('.kpis'),title:'광고지출 일평균 및 매출액 대비 광고비'}],
-  evaluation:[{el:$('weeklyCashSection'),title:'누적 현금 수지'},{el:sectionByTitle('B2B'),title:'B2B 및 기타'},{el:null,title:''}]
+  evaluation:[{el:sectionByTitle('B2B'),title:'B2B 및 기타'},{el:null,title:''}]
 };
 const presentationTargets=[presentationCover,document.querySelector('.kpis'),...reportSections].filter(Boolean);
 let presentationIndex=0,presentationChapter='cover',presentationFlow=[];
@@ -1020,145 +1018,6 @@ document.addEventListener('click',event=>{
   else monthlyRatioDetail();
 },true);
 
-let REPORT_CASH=null;
-function reportCashRange(){if(MONTH_REPORT)return {start:new Date(RR.end.getFullYear(),RR.end.getMonth(),1),end:new Date(RR.end.getFullYear(),RR.end.getMonth()+1,0)};const now=new Date();return {start:new Date(now.getFullYear(),now.getMonth()-1,1),end:new Date(now.getFullYear(),now.getMonth(),0)};}
-function parseReportCashDaily(values){
- const h=(values[0]||[]).map(norm),idx=(aliases,fallback)=>{let a=aliases.map(norm),i=h.findIndex(v=>a.includes(v));if(i<0)i=h.findIndex(v=>a.some(n=>v.includes(n)));return i<0?fallback:i;};
- const cols={date:idx(['날짜','일자'],0),own:idx(['자사+네이버 일평균정산','자사+네이버정산'],4),monthly:idx(['실제 월정산','실제월정산'],6),other:idx(['실제 기타매출(B2B등)','실제기타매출'],9),ad:idx(['통합일평균광고충전','광고충전'],11),expectedOrder:idx(['예상발주비'],12),order:idx(['실제발주비'],13),orderNote:idx(['발주비 특이사항','발주비비고'],14),expectedFixed:idx(['예상고정비'],15),fixed:idx(['실제고정비'],16),expectedVariable:idx(['예상변동비'],18),variable:idx(['실제변동비'],19),repay:idx(['실제상환비','실제 상환비'],22)};
- return values.slice(1).map(row=>{const out={date:dateFlexible(row[cols.date])};for(const [k,i]of Object.entries(cols))if(k!=='date')out[k]=k==='orderNote'?String(row[i]||''):num(row[i]);return out;}).filter(r=>r.date);
-}
-function summarizeReportCash(rows,plan){
- const sumKey=k=>sum(rows,r=>r[k]||0),own=sumKey('own'),monthly=sumKey('monthly'),other=sumKey('other'),ad=sumKey('ad'),order=sumKey('order'),fixed=sumKey('fixed'),variable=sumKey('variable'),income=own+monthly+other,expense=ad+order+fixed+variable;
- return {rows,plan,own,monthly,other,ad,order,fixed,variable,income,expense,net:income-expense,expectedOrder:sumKey('expectedOrder'),expectedFixed:sumKey('expectedFixed'),expectedVariable:sumKey('expectedVariable'),repay:sumKey('repay')};
-}
-function parseReportCashAnnual(values,end){
- return values.slice(1).filter(r=>/^26-(0[1-9]|1[0-2])$/.test(String(r[0]||'').trim())&&String(r[13]||'').trim()==='확정'&&Number(String(r[0]).split('-')[1])<=end.getMonth()+1).map(r=>{const n=i=>(num(r[i])||0)/10000;const o={month:String(r[0]).trim(),revenue:n(3),otherIncome:n(4),capital:n(5),fixed:n(6),order:n(7),ad:n(8),variable:n(9),repay:n(10),otherCost:n(11)};o.profit=o.revenue+o.otherIncome+o.capital-o.fixed-o.order-o.ad-o.variable-o.repay-o.otherCost;return o;}).sort((a,b)=>a.month.localeCompare(b.month));
-}
-async function loadReportCash(){
- const range=reportCashRange(),[daily,plans,annual]=await Promise.all([apiValues(CFG.profitId,"'일별 데이터'!A1:X500",false),apiValues(CFG.profitId,"'매출데이터'!A1:M13",false),apiValues(CFG.profitId,"'매출데이터'!O1:AE14",false)]);
- const rows=parseReportCashDaily(daily).filter(r=>inRange(r.date,range)),key=String(range.end.getFullYear()).slice(2)+'-'+String(range.end.getMonth()+1).padStart(2,'0'),plan=plans.slice(1).find(r=>String(r[0]).trim()===key)||[],months=parseReportCashAnnual(annual,range.end);
- const required=['own','ad','order','fixed','variable'],missing=[];for(let d=new Date(range.start);d<=range.end;d=addDays(d,1)){const row=rows.find(r=>iso(r.date)===iso(d));if(!row||required.some(k=>row[k]==null))missing.push(md(d));}
- REPORT_CASH={range,month:summarizeReportCash(rows,plan),annual:months,missing};renderReportCash();
-}
-function renderReportCash(){
- if(!REPORT_CASH)return;const c=REPORT_CASH,m=c.month,month=c.range.end.getMonth()+1,period=md(c.range.start)+'~'+md(c.range.end),annual=sum(c.annual,r=>r.profit)*10000;
- $('cashReportStatus').textContent=c.missing.length?'일별 데이터 일부 미입력':'입력 확인';
- $('cashReportBasis').textContent=period+' 실제 정산·충전·비용 기준 · 월간 차입/상환 제외 / 연간 포함';
- const line=(t,v)=>`<div><span>${t}</span><b>${fmtMoney(v)}</b></div>`,card=(kind,title,value,note,detail='')=>`<button type="button" class="cash-report-card" data-report-cash="${kind}"><div class="cash-title">${title}<small>상세보기 ›</small></div><div class="cash-value ${value==null?'':value<0?'bad':'good'}">${value==null?'—':fmtMoney(value)}</div><div class="cash-note">${note}</div>${detail?`<div class="cash-report-breakdown">${detail}</div>`:''}</button>`;
- const monthlyReady=m.rows.some(r=>['own','monthly','other','ad','order','fixed','variable'].some(k=>r[k]!=null)),warn=c.missing.length?' · 일부 날짜 미입력':'';
- $('cashReportCards').innerHTML=card('income',month+'월 영업 수입',monthlyReady?m.income:null,period+' · 실제 입금 기준'+warn,line('자사+네이버·월정산',m.own+m.monthly)+line('기타 정산(B2B 등)',m.other))+card('expense',month+'월 총 지출',monthlyReady?m.expense:null,period+' · 실제 충전·집행 기준'+warn,line('광고충전액',m.ad)+line('발주비',m.order)+line('고정비·변동비',m.fixed+m.variable))+card('month',month+'월 누적 영업 수지',monthlyReady?m.net:null,period+' · 차입/상환 제외'+warn)+card('annual',c.range.end.getFullYear()+'년 누적 현금 수지',c.annual.length?annual:null,'확정 '+c.annual.length+'개월 · 차입/상환 포함 · BP 포함');
- $('cashReportCards').querySelectorAll('[data-report-cash]').forEach(b=>b.onclick=()=>openReportCashDetail(b.dataset.reportCash));
-}
-function reportCashFlowPanel(kind){const m=REPORT_CASH.month,income=kind==='income',parts=income?[['자사+네이버 정산 · 실제 누적',m.own],['실제 월정산',m.monthly],['B2B 실제 기타매출',m.other]]:[['광고충전액',m.ad],['발주비',m.order],['고정비',m.fixed],['변동비',m.variable]];return `<div class="cash-flow-panel"><h3>누적 ${income?'수입':'지출'}</h3>${parts.map(([t,v])=>`<div class="cash-flow-line"><span>${t}</span><b>${fmtWon(v)}</b></div>`).join('')}<div class="cash-flow-line total"><span>누적 ${income?'수입':'지출'} 합계</span><b>${fmtWon(income?m.income:m.expense)}</b></div></div>`;}
-function openReportCashDetail(kind){
- if(!REPORT_CASH)return;if(kind==='annual'){openReportAnnualCashDetail();return;}
- const c=REPORT_CASH,m=c.month,period=md(c.range.start)+'~'+md(c.range.end),month=c.range.end.getMonth()+1,missing=c.missing.length?`<div class="cf-note">실제 항목 일부 미입력: ${reportEsc(c.missing.join(', '))}. 입력된 실제 금액만 합산하며 예상 금액은 포함하지 않습니다.</div>`:'';
- let body,title;
- if(kind==='month'){title=month+'월 실제 누적 영업 수지';body=`<div class="detail-stats">${statCard('누적 영업 수지',fmtWon(m.net),'수입 − 지출')}${statCard('누적 수입',fmtWon(m.income),'정산·기타매출')}${statCard('누적 지출',fmtWon(m.expense),'광고충전·발주·고정·변동')}</div><div class="cash-flow-columns">${reportCashFlowPanel('income')}${reportCashFlowPanel('expense')}</div>`;}
- else if(kind==='income'){title=month+'월 영업 수입 상세';const target=num(m.plan[2])||0,ownTarget=(num(m.plan[1])||0)*c.range.end.getDate();body=`<div class="detail-stats">${statCard('누적 수입',fmtWon(m.income),period)}${statCard('연초 전체매출 목표',fmtWon(target),'월 전체 기준')}</div>${reportCashFlowPanel('income')}<div class="cash-metric-details">${evalDetailVisual('전체 정산액',m.own+m.monthly,target,'연초 목표','실제 정산',false,period,'',true)}${evalDetailVisual('자사+네이버 정산액',m.own,ownTarget,'연초 목표','실제 정산',false,period,'',true)}</div>`;}
- else{title=month+'월 총 지출 상세';const comparisons=[['광고충전액',m.ad,num(m.plan[6])||0,'연초 목표'],['발주비',m.order,m.expectedOrder,'월초 예상'],['고정비',m.fixed,m.expectedFixed,'월초 예상'],['변동비',m.variable,m.expectedVariable,'월초 예상']];body=`<div class="detail-stats">${statCard('누적 지출',fmtWon(m.expense),period)}${statCard('월초 예상 발주비',fmtWon(m.expectedOrder),'일별 예상발주비 합계')}${statCard('예상 대비 발주비 차이',fmtWon(m.order-m.expectedOrder),'실제 − 월초 예상')}</div>${reportCashFlowPanel('expense')}<div class="cash-metric-details">${comparisons.map(([t,a,e,l])=>evalDetailVisual(t,a,e,l,'실제 누적',true,period,'',true)).join('')}</div><div class="cf-section-title">발주비 특이사항</div><div class="cash-scroll"><table class="cash-table"><thead><tr><th>일자</th><th>월초 예상</th><th>실제</th><th>차이</th><th>특이사항</th></tr></thead><tbody>${m.rows.filter(r=>r.orderNote).map(r=>`<tr><td>${md(r.date)}</td><td>${fmtWon(r.expectedOrder||0)}</td><td>${fmtWon(r.order||0)}</td><td>${fmtWon((r.order||0)-(r.expectedOrder||0))}</td><td style="text-align:left;white-space:pre-wrap">${reportEsc(r.orderNote)}</td></tr>`).join('')||'<tr><td colspan="5">등록된 특이사항 없음</td></tr>'}</tbody></table></div>`;}
- openDetailModal(title,period+' · 실제 정산·충전·집행 누적 · 차입/상환 제외',body+missing);
-}
-var MD_IN_ITEMS=[['전체매출','revenue'],['기타수입','otherIncome'],['자본수입(차입금)','capital']];
-var MD_OUT_ITEMS=[['고정비','fixed'],['발주비','order'],['광고비','ad'],['변동비','variable'],['기타비','otherCost'],['상환비','repay']];
-function mdRawVal(r,key){return key==='order'?(r.orderRaw!==undefined?r.orderRaw:r.order):(Number(r[key])||0)}
-function mdRawCashFlow(r){
-  return MD_IN_ITEMS.reduce(function(t,x){return t+mdRawVal(r,x[1])},0)-MD_OUT_ITEMS.reduce(function(t,x){return t+mdRawVal(r,x[1])},0);
-}
-function mdWon(v,sign){if(!mdIsNum(v))return'—';var n=Math.round(v*10000);return (n<0?'−':(sign&&n>0?'+':''))+Math.abs(n).toLocaleString('ko-KR')+'원'}
-function mdCls(v){return v<0?'cf-neg':(v>0?'cf-pos':'')}
-function mdShare(v,total){return total?(v/total*100).toFixed(1)+'%':'—'}
-// 수입·지출 항목표: valueFn(key) → 금액(만원)
-function mdFlowTable(valueFn,resultLabel,opening){
-  var inTotal=MD_IN_ITEMS.reduce(function(t,x){return t+valueFn(x[1])},0),outTotal=MD_OUT_ITEMS.reduce(function(t,x){return t+valueFn(x[1])},0),net=inTotal-outTotal;
-  var h='<div class="cf-scroll"><table class="cf-table"><thead><tr><th>구분</th><th>항목</th><th>금액</th><th>비중</th></tr></thead><tbody>';
-  if(opening)h+='<tr class="cf-open"><td class="cf-group">기초</td><td class="cf-name">'+opening.label+'</td><td>'+mdWon(opening.value)+'</td><td class="cf-share"></td></tr>';
-  MD_IN_ITEMS.forEach(function(x,i){var v=valueFn(x[1]);h+='<tr><td class="cf-group">'+(i===0?'수입':'')+'</td><td class="cf-name">'+x[0]+'</td><td>'+mdWon(v,true)+'</td><td class="cf-share">'+mdShare(v,inTotal)+'</td></tr>'});
-  h+='<tr class="cf-sub"><td></td><td class="cf-name">수입 합계</td><td class="cf-pos">'+mdWon(inTotal,true)+'</td><td class="cf-share">100%</td></tr>';
-  MD_OUT_ITEMS.forEach(function(x,i){var v=valueFn(x[1]);h+='<tr><td class="cf-group">'+(i===0?'지출':'')+'</td><td class="cf-name">'+x[0]+'</td><td>'+mdWon(-v)+'</td><td class="cf-share">'+mdShare(v,outTotal)+'</td></tr>'});
-  h+='<tr class="cf-sub"><td></td><td class="cf-name">지출 합계</td><td class="cf-neg">'+mdWon(-outTotal)+'</td><td class="cf-share">100%</td></tr>';
-  if(opening){
-    h+='<tr class="cf-sub"><td></td><td class="cf-name">'+opening.flowLabel+' (수입 − 지출)</td><td class="'+mdCls(net)+'">'+mdWon(net,true)+'</td><td class="cf-share"></td></tr>';
-    var end=opening.value+net;
-    h+='<tr class="cf-result"><td></td><td class="cf-name">'+resultLabel+' (기초잔액 + 현금수지)</td><td class="'+mdCls(end)+'">'+mdWon(end)+'</td><td></td></tr>';
-  }else{
-    h+='<tr class="cf-result"><td></td><td class="cf-name">'+resultLabel+' (수입 − 지출)</td><td class="'+mdCls(net)+'">'+mdWon(net,true)+'</td><td></td></tr>';
-  }
-  return h+'</tbody></table></div>';
-}
-function mdMonthLabel(r){return Number(r.month.split('-')[1])+'월'}
-function mdIsNum(v){return v!==null&&v!==undefined&&!isNaN(v)}
-function mdComma(v,sign){if(!mdIsNum(v))return'—';var a=Math.round(Math.abs(v));return (v<0&&a?'−':(sign&&v>0?'+':''))+a.toLocaleString('ko-KR')}
-function openReportAnnualCashDetail(){
-  var kind="profit",BP_EXCLUDE_ACTIVE=false,MD_DETAIL_STATE=REPORT_CASH?{rows:REPORT_CASH.annual,lastRow:REPORT_CASH.annual.at(-1)}:null;
-  var st=MD_DETAIL_STATE;if(!st||!st.rows.length)return;
-  var rows=st.rows,first=rows[0],last=st.lastRow,lastM=mdMonthLabel(last),range=mdMonthLabel(first)+'~'+lastM;
-  var body='';
-  if(kind==='profit'){
-    // 카드와 같은 값(BP 제외 토글 반영)으로 합산
-    var tot=function(key){return rows.reduce(function(t,r){return t+(Number(r[key])||0)},0)};
-    body+='<div class="cf-section-title">'+range+' 누적 수입·지출 내역</div>'+mdFlowTable(tot,'누적 현금수지');
-    // 월별 항목표 (만원)
-    var head='<tr><th>항목</th>'+rows.map(function(r){return '<th>'+mdMonthLabel(r)+'</th>'}).join('')+'<th>합계</th></tr>';
-    var line=function(label,fn,cls){var vals=rows.map(fn),t=vals.reduce(function(a,b){return a+b},0);return '<tr'+(cls?' class="'+cls+'"':'')+'><td class="cf-name">'+label+'</td>'+vals.map(function(v){return '<td class="'+(cls?mdCls(v):'')+'">'+mdComma(v,!!cls)+'</td>'}).join('')+'<td class="'+mdCls(cls?t:0)+'">'+mdComma(t,!!cls)+'</td></tr>'};
-    var b='';
-    MD_IN_ITEMS.forEach(function(x){b+=line(x[0],function(r){return Number(r[x[1]])||0})});
-    b+=line('수입 합계',function(r){return MD_IN_ITEMS.reduce(function(t,x){return t+(Number(r[x[1]])||0)},0)},'cf-sub');
-    MD_OUT_ITEMS.forEach(function(x){b+=line(x[0],function(r){return Number(r[x[1]])||0})});
-    b+=line('지출 합계',function(r){return -MD_OUT_ITEMS.reduce(function(t,x){return t+(Number(r[x[1]])||0)},0)},'cf-sub');
-    b+=line('현금수지',function(r){return r.profit},'cf-result');
-    body+='<div class="cf-section-title">월별 항목 상세 <span style="font-weight:500;color:var(--text-muted);font-size:12px">· 단위: 만원</span></div><div class="cf-scroll"><table class="cf-table cf-compact"><thead>'+head+'</thead><tbody>'+b+'</tbody></table></div>';
-    body+='<div class="cf-note">매출데이터 O1:AE14의 산정기준 ‘확정’ 월만 합산합니다. 차입금(자본수입)과 상환비를 포함한 기준입니다.'+(BP_EXCLUDE_ACTIVE?' 현재 BP 지연지급 발주비 제외가 켜져 있어 2~4월 발주비가 줄어든 값입니다.':'')+'</div>';
-    openDetailModal('누적 현금수지 상세 · '+range,'2026년 확정 월 · 차입/상환 포함 · BP 포함',body);return;
-  }
-}
-
-initAuth();
-var MEETING_EVAL_CSS='',MEETING_EVAL_EXTRA_CSS='',MEETING_EVAL_HTML='';
-var cashSourceLoadedAt='';
-function renderDailyCumulative(){}
-async function loadLatestCashView(){
- const url=new URL('https://frameby-marketing.github.io/MARKETING-DASHBOARD/');
- url.searchParams.set('_weeklyRefresh',Date.now());
- const response=await fetch(url.href,{cache:'no-store'});
- if(!response.ok)throw new Error('원본 현금수지 연결 오류: '+response.status);
- const html=await response.text();
- const doc=new DOMParser().parseFromString(html,'text/html');
- const script=Array.from(doc.scripts).filter(s=>!s.src).map(s=>s.textContent).join('\n');
- function readString(name){
-   const match=script.match(new RegExp('var\\s+'+name+'=("(?:[^"\\\\]|\\\\.)*");'));
-   if(!match)throw new Error('원본 현금수지 스타일 구조가 변경되었습니다: '+name);
-   return JSON.parse(match[1]);
- }
- const css=readString('MEETING_EVAL_CSS'),extra=readString('MEETING_EVAL_EXTRA_CSS'),view=readString('MEETING_EVAL_HTML');
- const start=script.indexOf('function renderDailyCumulative(){');
- const end=script.indexOf('\nfunction psNum(',start);
- if(start<0||end<start)throw new Error('원본 월별 현황 구조가 변경되었습니다.');
- // Compile only the published monthly view, leaving weekly report and login logic in place.
- const renderer=new Function(script.slice(start,end)+'\nreturn renderDailyCumulative;')();
- MEETING_EVAL_CSS=css;MEETING_EVAL_EXTRA_CSS=extra;MEETING_EVAL_HTML=view;
- renderDailyCumulative=renderer;
- const host=document.getElementById('meetingEvalHost');
- // A new host discards stale shadow DOM and handlers from the previous version.
- host.replaceWith(Object.assign(document.createElement('div'),{id:'meetingEvalHost'}));
- cashSourceLoadedAt=new Date().toISOString();
-}
-var meetingEvalPlanValues=[],meetingEvalDailyValues=[],meetingEvalMetaSplitMode=false,meetingEvalSelectedDate='',meetingEvalFinanceMode='include',meetingEvalOpeningIncluded=true,meetingEvalCapitalDate='';
-var weeklyOpening={date:new Date(),amount:0,source:''};
-function pad2(v){return String(v).padStart(2,'0')}
-function normalizeDate(v){let d=dateFlexible(v);return d?iso(d):''}
-function getSimulationOpening(){return weeklyOpening}
-function syncDashboardModalArea(){}
-function syncMeetingEvalTheme(){let h=$('meetingEvalHost');if(h)h.setAttribute('data-theme',document.documentElement.getAttribute('data-theme')==='light'?'light':'dark')}
-loadReportCash=async function(){
- await loadLatestCashView();
- const [daily,plans,annual]=await Promise.all([apiValues(CFG.profitId,"'일별 데이터'!A1:X500",false),apiValues(CFG.profitId,"'매출데이터'!A1:M13",false),apiValues(CFG.profitId,"'매출데이터'!O1:AE14",false)]);
- meetingEvalPlanValues=plans;meetingEvalDailyValues=daily;
- let confirmed=annual.slice(1).filter(r=>/^26-\d{2}$/.test(String(r[0]))&&String(r[13]).trim()==='확정').sort((a,b)=>String(a[0]).localeCompare(String(b[0]))),last=confirmed.at(-1);
- if(last){let net=[3,4,5].reduce((a,i)=>a+(num(last[i])||0),0)-[6,7,8,9,10,11].reduce((a,i)=>a+(num(last[i])||0),0);weeklyOpening={date:new Date(2026,Number(String(last[0]).split('-')[1]),1),amount:(num(last[2])||0)+net,source:Number(String(last[0]).split('-')[1])+'월 말 현재 잔액'}}
- renderDailyCumulative();
-};
-renderReportCash=function(){};
 function renderProductMonthlyAverage(x,view){
  const end=x.latestDate, months=Array.from({length:end.getMonth()+1},(_,i)=>i), metric=view==='sales'?'판매수량':view==='exposure'?'노출량':'전환율';
  const vals=months.map(m=>{let r=x.all.filter(r=>r.date.getFullYear()===2026&&r.date.getMonth()===m&&r.date<=end);if(!r.length)return null;let days=m===end.getMonth()?end.getDate():new Date(2026,m+1,0).getDate(),ex=sum(r,z=>z.exposure),cv=sum(r,z=>z.conversion);return view==='rate'?(ex?cv/ex*100:0):(view==='sales'?cv:ex)/days});
@@ -1177,7 +1036,7 @@ openAdRatioDetail=function(){let s=DATA.sales,a=DATA.ads;if(!s||!a)return;let en
 };
 $('kAdRatioCard').onclick=openAdRatioDetail;
 // Refresh the imported component when the common theme changes.
-new MutationObserver(syncMeetingEvalTheme).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme','class']});
+
 
 </script>
 </body></html>
