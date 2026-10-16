@@ -923,6 +923,14 @@ function initAuth(){
       tokenClient=google.accounts.oauth2.initTokenClient({
         client_id:CFG.clientId,
         scope:CFG.scope,
+        error_callback:(error)=>{
+          setLoginLoading(false);
+          if(err)err.textContent=error.type==='popup_closed'
+            ?'로그인 창이 닫혔습니다. 다시 로그인해 주세요.'
+            :error.type==='popup_failed_to_open'
+              ?'로그인 창을 열지 못했습니다. 브라우저에서 팝업을 허용한 후 다시 눌러주세요.'
+              :'로그인 중 오류가 발생했습니다. 다시 시도해 주세요.';
+        },
         callback:async(resp)=>{
           setLoginLoading(false);
           if(resp.error){if(err)err.textContent='로그인에 실패했습니다: '+resp.error+' 다시 시도해 주세요.';return}
@@ -940,6 +948,8 @@ function initAuth(){
   }
   setup();
 }
+// 인증 초기화를 실행해 로그인 버튼의 클릭 동작을 연결한다.
+initAuth();
 // 모달을 본문/사이드바 레이아웃과 분리해 일반·발표 모드 모두 화면 기준으로 표시한다.
 const modalElements=Array.from(document.querySelectorAll('.modal'));
 function syncModalOpenState(){document.body.classList.toggle('modal-open',modalElements.some(modal=>!modal.classList.contains('hidden')))}
