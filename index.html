@@ -191,7 +191,9 @@ body.presentation-mode .kpis,body.presentation-mode .grid>section{display:none!i
 body.presentation-mode .presentation-cover.presentation-active{display:flex!important;height:calc(100vh - 110px);overflow:auto;padding:30px 34px;align-items:center;justify-content:center}
 body.presentation-mode .grid>section.presentation-active{display:block!important;height:calc(100vh - 110px);overflow:auto;padding:30px 34px}
 body.presentation-mode .kpis.presentation-active{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));align-content:center;gap:24px;padding:5vh 4vw}
-body.presentation-mode .kpis.presentation-active .kpi{min-height:250px;display:flex;flex-direction:column;justify-content:center;padding:34px 38px}
+body.presentation-mode .kpis.presentation-active .kpi.presentation-kpi-hidden{display:none!important}
+ body.presentation-mode .kpis.presentation-active:has(.presentation-kpi-hidden){grid-template-columns:minmax(0,900px);justify-content:center}
+ body.presentation-mode .kpis.presentation-active .kpi{min-height:250px;display:flex;flex-direction:column;justify-content:center;padding:34px 38px}
 body.presentation-mode .kpis .label{font-size:20px}
 body.presentation-mode .kpis .value{font-size:52px}
 body.presentation-mode .kpis .meta{font-size:19px!important}
@@ -408,9 +410,9 @@ async function loadSales(){
   // 최근 8주 + 현재월 누적 + 월별 상세에 필요한 월 탭을 모두 확보한다.
   let months=[];for(let i=0;i<12;i++){let d=new Date(RR.end.getFullYear(),RR.end.getMonth()-i,1);months.push({tab:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,year:d.getFullYear()})}
   function parse(vals,year){
-    let hi=vals.findIndex(r=>r.map(x=>String(x).trim().toUpperCase()).includes('TOTAL')&&r.some(x=>String(x).trim()==='일자'));
+    let hi=vals.findIndex(r=>r.map(x=>String(x).trim().toUpperCase()).includes('TOTAL')&&r.some(x=>String(x).trim().includes('일자')));
     if(hi<0)return[];
-    let h=vals[hi],di=h.findIndex(x=>String(x).trim()==='일자'),ti=h.findIndex(x=>String(x).trim().toUpperCase()==='TOTAL');
+    let h=vals[hi],di=h.findIndex(x=>String(x).trim().includes('일자')),ti=h.findIndex(x=>String(x).trim().toUpperCase()==='TOTAL');
     let channelCols=[];
     for(let i=di+1;i<ti;i++){
       let name=String(h[i]||'').trim(),n=name.replace(/\s/g,'').toLowerCase();if(!name||name==='요일')continue;
@@ -420,7 +422,7 @@ async function loadSales(){
     if(channelCols.length>=4){let last4=channelCols.slice(-4);['self','naver','mmall','coupang'].forEach((k,j)=>{if(!channelCols.some(x=>x.canonical===k)&&last4[j])last4[j].canonical=k})}
     let rows=[];for(let r of vals.slice(hi+1)){let d=dateFlexible(r[di],year);if(!d)continue;let total=0,ch={self:0,naver:0,coupang:0,mmall:0};channelCols.forEach(c=>{let v=num(r[c.i])||0;total+=v;if(c.canonical)ch[c.canonical]+=v});if(total>0)rows.push({date:d,total,...ch,selfNaver:ch.self+ch.naver})}return rows
   }
-  let chunks=await Promise.all(months.map(async m=>{try{return parse(await apiValues(CFG.salesId,`'${m.tab}'!B:AZ`),m.year)}catch(e){console.warn('sales tab',m.tab,e);return[]}}));
+  let chunks=await Promise.all(months.map(async m=>{try{let rows=parse(await apiValues(CFG.salesId,`'${m.tab}'!B:AZ`),m.year);if(!rows.length){rows=parse(await apiValues(CFG.salesId,`'${m.tab}'!A:AZ`),m.year)}if(!rows.length)console.warn('매출 데이터 없음:',m.tab);return rows}catch(e){console.warn('sales tab',m.tab,e);return[]}}));
   let days=chunks.flat().filter(x=>x.date<=RR.end).sort((a,b)=>a.date-b.date),current=days.filter(x=>inRange(x.date,RR)),prior=days.filter(x=>inRange(x.date,previousRange(RR))),currentSum=sum(current,x=>x.total),priorSum=sum(prior,x=>x.total);
   let monthAll=days.filter(x=>x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&x.date<=RR.end),monthDays=monthAll.filter(x=>x.date<=RR.end),latestDate=RR.end,mtd=sum(monthDays,x=>x.total),latestMtd=sum(monthAll,x=>x.total),dim=new Date(RR.end.getFullYear(),RR.end.getMonth()+1,0).getDate(),forecast=mtd/RR.end.getDate()*dim;
   let weeks=[];for(let i=7;i>=0;i--){let r=previousRange(RR,i),arr=days.filter(x=>inRange(x.date,r));weeks.push({label:`${md(r.start)}~${md(r.end)}`,value:sum(arr,x=>x.total),days:arr.length})}
@@ -820,7 +822,7 @@ function openMtdDetail(){if(MONTH_REPORT){openMonthlySalesDetail(false);return;}
   }
   openDetailModal(`${curMonth+1}월 누적 매출 플랫폼 비중`,'월 누적 플랫폼별 매출 비중','',renderMonth);
 }
-function openTotalAvgDetail(){if(MONTH_REPORT){openMonthlySalesDetail(true);return;}let s=DATA.sales;if(!s)return;let y=RR.end.getFullYear(),months=[];for(let m=0;m<=RR.end.getMonth();m++){let rows=s.days.filter(r=>r.date.getFullYear()===y&&r.date.getMonth()===m&&(m===RR.end.getMonth()?r.date<=RR.end:true)),v=rows.length?avg(rows,r=>r.total):0;months.push({label:`${m+1}월`,value:v})}let vals=months.map(x=>x.value),nz=vals.filter(v=>v>0),mean=nz.length?avg(nz):0;openDetailModal('2026년 월별 전체매출 일평균','1월~현재 · 실제 매출 입력일 기준',`<div class="detail-stats">${statCard(`${RR.end.getMonth()+1}월 현재 일평균`,fmtMoney(vals[RR.end.getMonth()]||0),'실제 입력일 기준')}${statCard('월별 평균',fmtMoney(mean),'1월~현재')}</div>`,()=>draw('detailChart','bar',months.map(x=>x.label),[{label:'월별 일평균 매출',data:vals,backgroundColor:months.map((x,i)=>i===RR.end.getMonth()?'#6c7bff':'#667085'),borderRadius:6}],{money:true,valueLabels:true,averageLine:mean,averageMoney:true,legend:false}))}
+function openTotalAvgDetail(){if(MONTH_REPORT){openMonthlySalesDetail(true);return;}let s=DATA.sales;if(!s)return;let y=RR.end.getFullYear(),months=[];for(let m=0;m<=RR.end.getMonth();m++){let rows=s.days.filter(r=>r.date.getFullYear()===y&&r.date.getMonth()===m&&(m===RR.end.getMonth()?r.date<=RR.end:true)),v=rows.length?sum(rows,r=>r.total)/new Date(y,m+1,0).getDate():null;months.push({label:`${m+1}월`,value:v})}let vals=months.map(x=>x.value),nz=vals.filter(v=>v!=null&&v>0),mean=nz.length?avg(nz):0;openDetailModal('2026년 월별 전체매출 일평균','1월~현재 · 실제 매출 입력일 기준',`<div class="detail-stats">${statCard(`${RR.end.getMonth()+1}월 현재 일평균`,fmtMoney(vals[RR.end.getMonth()]||0),'실제 입력일 기준')}${statCard('월별 평균',fmtMoney(mean),'1월~현재')}</div>`,()=>draw('detailChart','bar',months.map(x=>x.label),[{label:'월별 일평균 매출',data:vals,backgroundColor:months.map((x,i)=>i===RR.end.getMonth()?'#6c7bff':'#667085'),borderRadius:6}],{money:true,valueLabels:true,averageLine:mean,averageMoney:true,legend:false}))}
 function openAdRatioDetail(){if(MONTH_REPORT){monthlyRatioDetail();return;}let a=DATA.ads,s=DATA.sales;if(!a||!s)return;let ratio=s.currentSum?a.spend/s.currentSum*100:0;openDetailModal('어제까지 최근 7일 누적 매출액 vs 광고비','주간 보고 기준',`<div class="detail-actions"><button class="btn" id="roas30Btn">최근 30일간 ROAS%</button></div>`,()=>{draw('detailChart','bar',['기간 누적 매출액','기간 누적 광고비'],[{label:'금액',data:[s.currentSum,a.spend],backgroundColor:['#6c7bff','#667085'],borderRadius:8}],{money:true,valueLabels:true,largeValueLabels:true,cornerLabel:`매출액 대비 광고비 ${ratio.toFixed(1)}%`,legend:false});setTimeout(()=>{let b=$('roas30Btn');if(b)b.onclick=()=>{let rows=(a.allRecent||a.monthAll||[]).slice(-30),vals=rows.map(r=>r.ad?r.revenue/r.ad*100:0);draw('detailChart','line',rows.map(r=>md(r.date)),[{label:'ROAS',data:vals,borderColor:'#6c7bff',backgroundColor:'#6c7bff',pointRadius:3,tension:0}],{percent:true,rateLabels:true,legend:false,benchmarkLine:400})}},20)})}
 function recentAdRows(){let a=DATA.ads;if(!a)return[];return (a.allRecent||a.monthAll||[]).slice(-30)}
 function openAdSpendMini(){if(MONTH_REPORT){monthlyMetricDetail('ad','월별 일평균 광고비',true);return;}let rows=recentAdRows(),vals=rows.map(r=>r.ad),mean=vals.length?avg(vals):0,cut=Math.max(0,rows.length-7),recent=vals.slice(cut),recentMean=recent.length?avg(recent):0;openDetailModal('최근 30일 일평균 광고비','최근 7일 파란색 강조',``,()=>draw('detailChart','bar',rows.map(r=>md(r.date)),[{label:'광고비',data:vals,backgroundColor:rows.map((r,i)=>i>=cut?'#6c7bff':'#667085'),borderRadius:5}],{money:true,valueLabels:true,averageLine:mean,averageMoney:true,recentAverageLine:recentMean,recentAverageMoney:true,legend:false}))}
@@ -991,7 +993,7 @@ orderedSections.forEach(section=>reportGrid.appendChild(section));
 const presentationCover=$('presentationCover');
 const presentationTargets=[presentationCover,document.querySelector('.kpis'),...reportSections].filter(Boolean);
 const presentationFlow=[
- {el:document.querySelector('.kpis'),title:'매출 핵심 지표'},
+ ...Array.from(document.querySelectorAll('.kpis .kpi')).map((card,i)=>({el:document.querySelector('.kpis'),card,title:card.querySelector('.label')?.textContent||`매출 지표 ${i+1}`})),
  {el:sectionByTitle('제품별 성과'),title:'제품별 성과 현황'},
  {el:sectionByTitle('주력 제품 재고'),title:'주력 제품 재고 현황'},
  {el:sectionByTitle('발주 관련'),title:'발주 관련 특이사항'},
@@ -1006,13 +1008,14 @@ function showPresentationSlide(index){
  presentationIndex=Math.max(-1,index);hidePresentationTargets();
  const current=presentationIndex===-1?{el:presentationCover,title:'주간보고'}:presentationFlow[presentationIndex];
  current.el.classList.add('presentation-active');
+ document.querySelectorAll('.kpis .kpi').forEach(card=>card.classList.toggle('presentation-kpi-hidden',!!current.card&&card!==current.card));
  $('presentationCount').textContent=`${presentationIndex+2} / ${presentationFlow.length+1} · ${current.title}`;
  $('presentationNext').textContent=presentationIndex===presentationFlow.length-1?'발표 종료':'다음 →';
  $('presentationPrev').disabled=presentationIndex===-1;
  resizeDashboardCharts();
 }
 function enterPresentation(){document.body.classList.add('presentation-mode');showPresentationSlide(-1);syncModalCenter();if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{})}
-function exitPresentation(){document.body.classList.remove('presentation-mode');hidePresentationTargets();presentationIndex=-1;if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});resizeDashboardCharts();syncModalCenter()}
+function exitPresentation(){document.body.classList.remove('presentation-mode');hidePresentationTargets();document.querySelectorAll('.kpis .kpi').forEach(card=>card.classList.remove('presentation-kpi-hidden'));presentationIndex=-1;if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});resizeDashboardCharts();syncModalCenter()}
 if($('presentationBtn'))$('presentationBtn').onclick=enterPresentation;
 if($('presentationPrev'))$('presentationPrev').onclick=()=>showPresentationSlide(presentationIndex-1);
 if($('presentationNext'))$('presentationNext').onclick=()=>showPresentationSlide(presentationIndex+1);
