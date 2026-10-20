@@ -249,6 +249,26 @@ body.presentation-mode #cashReportSection .cash-report-card{padding:24px}body.pr
 .stock-event{transform:translateX(-1px)}
 .stock-timeline-scroll .stock-event:nth-last-child(2)>span{max-width:100%}
 </style>
+<style>
+/* Weekly B2B pipeline — source: Operation dashboard */
+.weekly-b2b-pipeline{display:grid;gap:14px}
+.weekly-b2b-project{border:1px solid var(--line);background:var(--panel2);border-radius:14px;padding:18px;min-width:0}
+.weekly-b2b-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:17px}
+.weekly-b2b-head strong{font-size:16px;font-weight:900}.weekly-b2b-head .muted{margin-top:6px;font-size:12px;line-height:1.5}
+.weekly-b2b-stage{color:var(--blue);border:1px solid var(--blue);border-radius:999px;padding:6px 11px;font-size:11px;font-weight:800;white-space:nowrap}
+.weekly-b2b-steps{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.weekly-b2b-step{border:1px solid var(--line);border-radius:11px;padding:13px 11px;min-width:0;background:var(--panel)}
+.weekly-b2b-step span,.weekly-b2b-step b,.weekly-b2b-step small{display:block;overflow-wrap:anywhere}
+.weekly-b2b-step span{color:var(--sub);font-size:11px}.weekly-b2b-step b{font-size:13px;margin:8px 0;line-height:1.45}
+.weekly-b2b-step small{font-size:10px;color:var(--sub);font-weight:800}
+.weekly-b2b-step.done{border-color:rgba(52,211,153,.36);background:rgba(52,211,153,.05)}
+.weekly-b2b-step.done small{color:var(--green)}
+.weekly-b2b-step.current{border-color:var(--blue);background:rgba(108,123,255,.09)}
+.weekly-b2b-step.current small{color:var(--blue)}
+.weekly-b2b-note{margin-top:13px;color:var(--sub);font-size:12px;line-height:1.65;white-space:pre-wrap}
+@media(max-width:850px){.weekly-b2b-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:550px){.weekly-b2b-steps{grid-template-columns:1fr}.weekly-b2b-head{flex-direction:column}}
+</style>
 </head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -312,7 +332,7 @@ body.presentation-mode #cashReportSection .cash-report-card{padding:24px}body.pr
     </section>
 
 
-    <section class="card span12"><div class="head"><div><h2>B2B 진행 특이사항</h2><small>고객사 컨펌 '확정' 건 기준</small></div><span class="badge" id="b2bCount">—</span></div><div class="issue-list" id="b2bIssues"><div class="empty">데이터 로딩 중...</div></div></section>
+    <section class="card span12"><div class="head"><div><h2>B2B 진행단계 파이프라인</h2><small>확정 · 납품 미완료 · 등록 월 무관 · 운영 대시보드 기준</small></div><span class="badge" id="b2bCount">—</span></div><div class="weekly-b2b-pipeline" id="b2bIssues"><div class="empty">데이터 로딩 중...</div></div></section>
 
   </main>
 
@@ -557,7 +577,7 @@ async function loadOps(){
   setSource('srcOps','loading','로딩');
   const results=await Promise.allSettled([
     publicCSV(CFG.poId,'타임라인'),
-    publicCSV(CFG.b2bId,'B2B 현황','&range=B5:L'),
+    publicCSV(CFG.b2bId,'B2B 현황','&range=B5:Z'),
     loadPOStock()
   ]);
   const [poResult,b2bResult,stockResult]=results;
@@ -576,9 +596,10 @@ async function loadOps(){
       date:dateFlexible(o['일자'],2026),company:String(o['기업명']||'').trim(),
       product:String(o['제품명']||'').trim(),confirm:String(o['고객사 컨펌현황']||'').trim(),
       production:String(o['제작현황']||'').trim(),delivery:String(o['납품현황']||'').trim(),
+      shippingDate:String(o['출고 예정일']||'').trim(),
       qty:num(o['수량'])||0,amount:num(o['견적금액 (VAT포함)'])||0,
       settlement:String(o['정산현황']||'').trim(),note:String(o['비고']||'').trim()
-    }}).filter(x=>x.date&&x.confirm==='확정');
+    }}).filter(x=>x.date);
   }
   DATA.ops={po,b2b,stockItems,errors:results.map((r,i)=>r.status==='rejected'?['발주','B2B','재고'][i]+': '+r.reason.message:null).filter(Boolean)};
   if(DATA.ops.errors.length){console.error('운영 데이터 일부 조회 실패',DATA.ops.errors);setSource('srcOps','err','일부 오류');}
@@ -698,9 +719,24 @@ function render(){
     let byDate={};po.forEach(x=>{let k=iso(x.date);(byDate[k]??=[]).push(x)});let dayIssues=Object.entries(byDate).slice(0,MONTH_REPORT?31:7).map(([k,arr])=>{let d=arr[0].date,amt=sum(arr,x=>x.amount||0);return `<div class="issue ${amt>0?'expense-alert':''} expense-day" data-po-date="${k}"><div class="name">${md(d)} · ${arr.length}건</div><div class="desc">${MONTH_REPORT?'월 예상 발주 및 발주비':'향후 일정 및 지출'} ${arr.map(x=>`<div><b>${reportEsc(x.product)}</b>${x.note?' · '+reportEsc(x.note):''}${x.memo?`<div class="po-agreement">협의사항: ${reportEsc(x.memo)}</div>`:''}</div>`).join('')}</div><div>${amt?`<span style="color:var(--red);font-weight:900">${fmtMoney(amt)}</span>`:'금액 없음'}</div></div>`}).join('');
     $('poCount').textContent=MONTH_REPORT?`${orderMonth.start.getMonth()+1}월 ${po.length}건 · ${fmtMoney(sum(po,x=>x.amount||0))}`:`${Object.keys(byDate).length}일`;$('poIssues').innerHTML=(MONTH_REPORT?'':stockAlerts)+dayIssues||'<div class="empty">표시할 발주/재고 이슈가 없습니다.</div>';
     document.querySelectorAll('[data-po-date]').forEach(el=>el.onclick=()=>{let arr=byDate[el.dataset.poDate]||[];openDetailModal(`${md(arr[0].date)} 발주 상세`,`날짜별 묶음 상세 내역`,`<div class="issue-list">${arr.map(x=>`<div class="issue"><div class="name">${typeLabel[x.type]}</div><div class="desc"><b>${x.product}</b>${x.note?' · '+x.note:''}${x.memo?' · '+x.memo:''}</div><div>${x.qty?x.qty.toLocaleString()+'EA<br>':''}${x.amount?fmtMoney(x.amount):''}</div></div>`).join('')}</div>`) });
-    let bi=o.b2b.filter(x=>x.date>=addDays(today,-45)).filter(x=>!/(완료|납품완료)/.test(x.delivery)||!/(완료|정산완료|입금완료)/.test(x.settlement)).sort((a,b)=>b.date-a.date).slice(0,8);
-    $('b2bCount').textContent=`${bi.length}건 점검`;
-    $('b2bIssues').innerHTML=bi.map(x=>`<div class="issue"><div class="name">${x.company}</div><div class="desc"><b>${x.product}</b> · 제작 ${x.production||'-'} · 납품 ${x.delivery||'-'} · 정산 ${x.settlement||'-'}${x.note?' · '+x.note:''}</div><div>${x.qty.toLocaleString()}EA<br>${fmtMoney(x.amount)}</div></div>`).join('')||'<div class="empty">점검할 미완료 B2B가 없습니다.</div>';
+    // 운영 대시보드 opB2BPipeline과 동일한 대상 필터 및 단계 표시.
+    const bi=o.b2b.filter(x=>x.confirm==='확정'&&String(x.delivery||'').replace(/\s/g,'')!=='납품완료')
+      .sort((a,b)=>b.date-a.date);
+    $('b2bCount').textContent=`진행중 ${bi.length}건`;
+    $('b2bIssues').innerHTML=bi.map(x=>{
+      const settlement=String(x.settlement||'').replace(/\s/g,'');
+      const stage=/^(정산완료|입금완료|완납|완료)$/.test(settlement)?'정산완료':
+        /납품\s*완료|배송\s*완료|수령\s*완료/.test(x.delivery)?'납품완료':
+        /출고\s*예정|출고\s*완료|배송중|발송|제작\s*완료|생산\s*완료/.test(x.delivery+' '+x.production)?'출고예정':
+        /제작\s*중|생산\s*중|진행\s*중/.test(x.production)?'제작중':'확정';
+      const current=stage==='납품완료'?4:stage==='출고예정'?2:1;
+      const shipDate=dateFlexible(x.shippingDate,2026);
+      const shipping=x.shippingDate?(shipDate?iso(shipDate):x.shippingDate):'예정일 미정';
+      const steps=[['고객사 컨펌현황','확정'],['제작현황',x.production||'제작 예정'],
+        ['출고 예정일',shipping],['납품 현황',x.delivery||'납품 예정'],
+        ['정산 현황',x.settlement||'정산 대기']];
+      return `<article class="weekly-b2b-project"><div class="weekly-b2b-head"><div><strong>${reportEsc(x.company)}</strong><div class="muted">${reportEsc(x.product)} · ${x.qty.toLocaleString()}개 · ${fmtMoney(x.amount)}</div></div><span class="weekly-b2b-stage">${['고객사 검토중','제작 진행','출고 준비','납품 진행','잔금 정산 대기'][current]}</span></div><div class="weekly-b2b-steps">${steps.map(([label,value],i)=>`<div class="weekly-b2b-step ${i<current?'done':i===current?'current':'future'}"><span>${label}</span><b>${reportEsc(value)}</b><small>${i<current?'✓ 완료':i===current?'● 현재 단계':'대기'}</small></div>`).join('')}</div>${x.note?`<div class="weekly-b2b-note">${reportEsc(x.note)}</div>`:''}</article>`;
+    }).join('')||'<div class="empty">현재 진행중인 B2B 건이 없습니다.</div>';
     let groups={ok:[],out:[],warn:[],unknown:[],preorder:[],soldOut:[]};(o.stockItems||[]).forEach(i=>groups[poGetStockStatus(i)].push(i));
     $('inventoryCount').textContent=`${o.stockItems.length}개 품목`;
     $('inventoryList').innerHTML=`<div class="stock-badges">${[['ok','ok','정상'],['soldOut','sold','품절'],['out','out','위험'],['warn','pre','주의']].map(([status,cls,label])=>`<button type="button" class="stock-chip ${cls}" data-stock-status="${status}">${label}<strong>${groups[status].length}개</strong></button>`).join('')}</div>`;
