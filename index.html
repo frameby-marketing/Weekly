@@ -520,23 +520,60 @@ function poGetStockStatus(item){
   return 'ok';
 }
 function parsePOStockRows(rows){
-  let header=rows[0]||[];
-  if(String(header[0]||'').trim()!=='제품명')throw new Error('TOP!B173:G186 재고 헤더를 확인해 주세요.');
-  return rows.slice(headerIndex+1).filter(row=>String(row[0]||'').trim()).slice(0,8).map(row=>{
-    let name=String(row[0]||'').trim(),soldOutAt=String(row[1]||'').trim(),soldOutDate=poParseKoreanDate(row[1]),remaining=soldOutAt==='품절'?0:soldOutDate?Math.max(0,Math.ceil((d0(soldOutDate)-d0(new Date()))/86400000)):num(row[2]);
-    let raw={};header.forEach((h,i)=>{if(h)raw[String(h).trim()]=String(row[i]??'').trim()});
-    return {name,soldOutAt,daysLeft:remaining==null?'':String(remaining),restockAt:String(row[3]||'').trim(),restockQty:String(row[4]||'').trim(),preorderStartAt:String(row[5]||'').trim(),raw};
-  });
+  const headerIndex=rows.findIndex(r=>String(r[0]||'').trim()==='제품명');
+  if(headerIndex<0)throw new Error('주력 제품 재고 표에서 제품명 헤더를 찾을 수 없습니다.');
+  const header=rows[headerIndex]||[];
+  return rows.slice(headerIndex+1)
+    .filter(row=>PO_PRODUCT_ORDER.includes(String(row[0]||'').trim()))
+    .slice(0,8).map(row=>{
+      const name=String(row[0]||'').trim(),soldOutAt=String(row[1]||'').trim();
+      const soldOutDate=poParseKoreanDate(row[1]);
+      const remaining=soldOutAt==='품절'?0:soldOutDate?Math.max(0,Math.ceil((d0(soldOutDate)-d0(reportToday()))/86400000)):num(row[2]);
+      const raw={};header.forEach((h,i)=>{if(h)raw[String(h).trim()]=String(row[i]??'').trim()});
+      return {name,soldOutAt,daysLeft:remaining==null?'':String(remaining),
+        restockAt:String(row[3]||'').trim(),restockQty:String(row[4]||'').trim(),
+        preorderStartAt:String(row[5]||'').trim(),raw};
+    });
 }
-async function loadPOStock(){return parsePOStockRows(parseCSV(await publicCSV(CFG.poStockId,'TOP','&range=B173:G186&headers=1')));}
+async function loadPOStock(){
+  try{
+    return parsePOStockRows(parseCSV(await publicCSV(CFG.poStockId,'TOP','&range=B173:G186')));
+  }catch(publicError){
+    // 공개 CSV가 비공개/접근 오류인 경우 로그인 토큰으로 동일 범위를 재시도
+    try{return parsePOStockRows(await apiValues(CFG.poStockId,"'TOP'!B173:G186"))}
+    catch(privateError){throw new Error('재고 조회 실패: '+privateError.message+' / 공개 CSV: '+publicError.message)}
+  }
+}
 async function loadOps(){
   setSource('srcOps','loading','로딩');
-  let [poText,b2bText,stockItems]=await Promise.all([publicCSV(CFG.poId,'타임라인'),publicCSV(CFG.b2bId,'B2B 현황','&range=B5:L'),loadPOStock()]);
-  let pr=parseCSV(poText),ph=(pr[0]||[]).map(x=>String(x).trim()),
-      po=pr.slice(1).map(r=>{let o={};ph.forEach((h,i)=>o[h]=r[i]||'');return{date:dateFlexible(o['날짜']||o['date'],2026),type:String(o['유형']||o['type']||'').trim(),product:String(o['제품명']||o['product']||'').trim(),qty:num(o['수량']||o['qty']),amount:num(o['금액']||o['amount']),note:o['비고']||'',memo:o['협의사항']||''}}).filter(x=>x.date&&['신','추','요','기'].includes(x.type));
-  let br=parseCSV(b2bText),bh=(br[0]||[]).map(x=>String(x).trim()),
-      b2b=br.slice(1).map(r=>{let o={};bh.forEach((h,i)=>o[h]=r[i]||'');return{date:dateFlexible(o['일자'],2026),company:String(o['기업명']||'').trim(),product:String(o['제품명']||'').trim(),confirm:String(o['고객사 컨펌현황']||'').trim(),production:String(o['제작현황']||'').trim(),delivery:String(o['납품현황']||'').trim(),qty:num(o['수량'])||0,amount:num(o['견적금액 (VAT포함)'])||0,settlement:String(o['정산현황']||'').trim(),note:String(o['비고']||'').trim()}}).filter(x=>x.date&&x.confirm==='확정');
-  DATA.ops={po,b2b,stockItems};setSource('srcOps','ok','정상');
+  const results=await Promise.allSettled([
+    publicCSV(CFG.poId,'타임라인'),
+    publicCSV(CFG.b2bId,'B2B 현황','&range=B5:L'),
+    loadPOStock()
+  ]);
+  const [poResult,b2bResult,stockResult]=results;
+  let po=[],b2b=[],stockItems=stockResult.status==='fulfilled'?stockResult.value:[];
+  if(poResult.status==='fulfilled'){
+    const pr=parseCSV(poResult.value),ph=(pr[0]||[]).map(x=>String(x).trim());
+    po=pr.slice(1).map(r=>{let o={};ph.forEach((h,i)=>o[h]=r[i]||'');return{
+      date:dateFlexible(o['날짜']||o['date'],2026),type:String(o['유형']||o['type']||'').trim(),
+      product:String(o['제품명']||o['product']||'').trim(),qty:num(o['수량']||o['qty']),
+      amount:num(o['금액']||o['amount']),note:o['비고']||'',memo:o['협의사항']||''
+    }}).filter(x=>x.date&&['신','추','요','기'].includes(x.type));
+  }
+  if(b2bResult.status==='fulfilled'){
+    const br=parseCSV(b2bResult.value),bh=(br[0]||[]).map(x=>String(x).trim());
+    b2b=br.slice(1).map(r=>{let o={};bh.forEach((h,i)=>o[h]=r[i]||'');return{
+      date:dateFlexible(o['일자'],2026),company:String(o['기업명']||'').trim(),
+      product:String(o['제품명']||'').trim(),confirm:String(o['고객사 컨펌현황']||'').trim(),
+      production:String(o['제작현황']||'').trim(),delivery:String(o['납품현황']||'').trim(),
+      qty:num(o['수량'])||0,amount:num(o['견적금액 (VAT포함)'])||0,
+      settlement:String(o['정산현황']||'').trim(),note:String(o['비고']||'').trim()
+    }}).filter(x=>x.date&&x.confirm==='확정');
+  }
+  DATA.ops={po,b2b,stockItems,errors:results.map((r,i)=>r.status==='rejected'?['발주','B2B','재고'][i]+': '+r.reason.message:null).filter(Boolean)};
+  if(DATA.ops.errors.length){console.error('운영 데이터 일부 조회 실패',DATA.ops.errors);setSource('srcOps','err','일부 오류');}
+  else setSource('srcOps','ok','정상');
 }
 function ratioClass(actual,target,lower=false){if(!target)return'';let r=actual/target;return lower?(r<=1?'good':r<=1.1?'warn':'bad'):(r>=1?'good':r>=.9?'warn':'bad')}
 function emphasizedBarHeight(value,max,height,min){let normalized=Math.min(1,Math.abs(value||0)/Math.max(max,1));return Math.max(min,Math.pow(normalized,1.8)*height)}
@@ -800,7 +837,7 @@ function renderSales3Week(){
  const key=activeSalesView==='total'?'total':'selfNaver';
  const vals=rows.map(r=>r[key]||0),previous=rows.filter(r=>r.date>=previousStart&&r.date<=previousEnd),recent=rows.filter(r=>r.date>=recentStart);
  const previousMean=sum(previous,r=>r[key]||0)/7,recentMean=sum(recent,r=>r[key]||0)/7;
- draw('sales3WeekChart','bar',rows.map(r=>md(r.date)),[{label:activeSalesView==='total'?'전체 플랫폼':'자사몰+네이버',data:vals,backgroundColor:rows.map(r=>r.date>=recentStart?'#6c7bff':'#667085'),borderRadius:5}],{money:true,valueLabels:true,averageLine:previousMean,averageLabel:'전주 일평균',averageMoney:true,recentAverageLine:recentMean,recentAverageMoney:true});
+ draw('sales3WeekChart','bar',rows.map(r=>md(r.date)),[{label:activeSalesView==='total'?'전체 플랫폼':'자사몰+네이버',data:vals,backgroundColor:rows.map(r=>r.date>=recentStart?'#6c7bff':'#667085'),borderRadius:5}],{money:true,valueLabels:true,averageLine:previousMean,averageLabel:'전주 평균',averageMoney:true,recentAverageLine:recentMean,recentAverageMoney:true});
 }
 if($('salesMainCard')) $('salesMainCard').onclick=null;
 if($('kWeekSalesCard')) $('kWeekSalesCard').onclick=()=>openSalesDetail('total');
@@ -827,7 +864,28 @@ function openMtdDetail(){if(MONTH_REPORT){openMonthlySalesDetail(false);return;}
   }
   openDetailModal(`${curMonth+1}월 누적 매출 플랫폼 비중`,'월 누적 플랫폼별 매출 비중','',renderMonth);
 }
-function openTotalAvgDetail(){if(MONTH_REPORT){openMonthlySalesDetail(true);return;}let s=DATA.sales;if(!s)return;let y=RR.end.getFullYear(),months=[];for(let m=0;m<=RR.end.getMonth();m++){let rows=s.days.filter(r=>r.date.getFullYear()===y&&r.date.getMonth()===m&&(m===RR.end.getMonth()?r.date<=RR.end:true)),v=rows.length?sum(rows,r=>r.total)/new Date(y,m+1,0).getDate():null;months.push({label:`${m+1}월`,value:v})}let vals=months.map(x=>x.value),nz=vals.filter(v=>v!=null&&v>0),mean=nz.length?avg(nz):0;openDetailModal('2026년 월별 전체매출 일평균','1월~현재 · 실제 매출 입력일 기준',`<div class="detail-stats">${statCard(`${RR.end.getMonth()+1}월 현재 일평균`,fmtMoney(vals[RR.end.getMonth()]||0),'실제 입력일 기준')}${statCard('월별 평균',fmtMoney(mean),'1월~현재')}</div>`,()=>draw('detailChart','bar',months.map(x=>x.label),[{label:'월별 일평균 매출',data:vals,backgroundColor:months.map((x,i)=>i===RR.end.getMonth()?'#6c7bff':'#667085'),borderRadius:6}],{money:true,valueLabels:true,averageLine:mean,averageMoney:true,legend:false}))}
+function openTotalAvgDetail(){
+ if(MONTH_REPORT){openMonthlySalesDetail(true);return;}
+ const s=DATA.sales;if(!s)return;
+ const year=RR.end.getFullYear(),currentMonth=s.latestDate.getMonth(),months=[];
+ for(let m=0;m<=currentMonth;m++){
+   const rows=s.days.filter(r=>r.date.getFullYear()===year&&r.date.getMonth()===m&&r.date<=s.latestDate);
+   const days=m===currentMonth?s.latestDate.getDate():new Date(year,m+1,0).getDate();
+   const total=m===currentMonth?s.latestMtd:sum(rows,r=>r.total);
+   months.push({label:`${m+1}월`,value:rows.length||m===currentMonth?total/days:null});
+ }
+ const vals=months.map(x=>x.value),valid=vals.filter(v=>v!=null&&isFinite(v)&&v>0);
+ const mean=valid.length?avg(valid):null;
+ const currentAvg=s.latestMtd/s.latestDate.getDate();
+ openDetailModal(`${currentMonth+1}월 포함 월별 전체매출 일평균`,
+  `1월~${currentMonth+1}월 · 당월은 ${md(s.latestDate)}까지 ${s.latestDate.getDate()}일 기준`,
+  `<div class="detail-stats">${statCard(`${currentMonth+1}월 현재 일평균`,fmtMoney(currentAvg),
+   `누적 매출 ÷ ${s.latestDate.getDate()}일 · 상단 KPI와 동일 기준`)}
+   ${statCard('월별 평균',mean==null?'—':fmtMoney(mean),'데이터가 있는 월의 일평균')}</div>`,
+  ()=>draw('detailChart','bar',months.map(x=>x.label),
+   [{label:'월별 일평균 매출',data:vals,backgroundColor:months.map((x,i)=>i===currentMonth?'#6c7bff':'#667085'),borderRadius:6}],
+   {money:true,valueLabels:true,averageLine:mean,averageMoney:true,legend:false}));
+}
 function openAdRatioDetail(){if(MONTH_REPORT){monthlyRatioDetail();return;}let a=DATA.ads,s=DATA.sales;if(!a||!s)return;let ratio=s.currentSum?a.spend/s.currentSum*100:0;openDetailModal('어제까지 최근 7일 누적 매출액 vs 광고비','주간 보고 기준',`<div class="detail-actions"><button class="btn" id="roas30Btn">최근 30일간 ROAS%</button></div>`,()=>{draw('detailChart','bar',['기간 누적 매출액','기간 누적 광고비'],[{label:'금액',data:[s.currentSum,a.spend],backgroundColor:['#6c7bff','#667085'],borderRadius:8}],{money:true,valueLabels:true,largeValueLabels:true,cornerLabel:`매출액 대비 광고비 ${ratio.toFixed(1)}%`,legend:false});setTimeout(()=>{let b=$('roas30Btn');if(b)b.onclick=()=>{let rows=(a.allRecent||a.monthAll||[]).slice(-30),vals=rows.map(r=>r.ad?r.revenue/r.ad*100:0);draw('detailChart','line',rows.map(r=>md(r.date)),[{label:'ROAS',data:vals,borderColor:'#6c7bff',backgroundColor:'#6c7bff',pointRadius:3,tension:0}],{percent:true,rateLabels:true,legend:false,benchmarkLine:400})}},20)})}
 function recentAdRows(){let a=DATA.ads;if(!a)return[];return (a.allRecent||a.monthAll||[]).slice(-30)}
 function openAdSpendMini(){if(MONTH_REPORT){monthlyMetricDetail('ad','월별 일평균 광고비',true);return;}let rows=recentAdRows(),vals=rows.map(r=>r.ad),mean=vals.length?avg(vals):0,cut=Math.max(0,rows.length-7),recent=vals.slice(cut),recentMean=recent.length?avg(recent):0;openDetailModal('최근 30일 일평균 광고비','최근 7일 파란색 강조',``,()=>draw('detailChart','bar',rows.map(r=>md(r.date)),[{label:'광고비',data:vals,backgroundColor:rows.map((r,i)=>i>=cut?'#6c7bff':'#667085'),borderRadius:5}],{money:true,valueLabels:true,averageLine:mean,averageMoney:true,recentAverageLine:recentMean,recentAverageMoney:true,legend:false}))}
