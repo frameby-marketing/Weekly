@@ -166,7 +166,7 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 .profit-summary-card.clickable{cursor:pointer;transition:.15s;position:relative;padding-bottom:38px}.profit-summary-card.clickable:hover{border-color:var(--blue);transform:translateY(-1px)}.profit-summary-card.clickable::after{content:"월말 예측 상세보기";position:absolute;right:12px;bottom:10px;padding:4px 8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--sub);font-size:10px;font-weight:800}
 .presentation-cover{display:none}
 .presentation-cover-inner{width:min(1500px,100%);margin:0;text-align:center}
-.presentation-cover h2{margin:0 0 34px;letter-spacing:-.04em}
+.presentation-cover h2{margin:0;letter-spacing:-.04em}
 .presentation-cover .cover-title-main{display:block;font-size:44px;font-weight:900;line-height:1.15}
 .presentation-cover .cover-title-date{display:block;margin-top:10px;font-size:23px;font-weight:700;color:var(--sub);letter-spacing:-.02em}
 .presentation-cover .cover-sub{color:var(--sub);font-size:17px;line-height:1.6;margin-bottom:34px}
@@ -263,19 +263,7 @@ body.presentation-mode #cashReportSection .cash-report-card{padding:24px}body.pr
   <section class="presentation-cover" id="presentationCover">
     <div class="presentation-cover-inner">
       <h2><span class="cover-title-main">주간보고</span><span class="cover-title-date" id="presentationCoverDate">9월 11일 - 9월 17일</span></h2>
-      <div class="profit-formula">
-        <button type="button" class="formula-box clickable" data-presentation-chapter="revenue"><span class="formula-name">매출</span><span class="formula-go">매출 발표 시작 →</span></button>
-        <div class="formula-op">−</div>
-        <button type="button" class="formula-box clickable" data-presentation-chapter="orders"><span class="formula-name">제품·발주비</span><span class="formula-go">제품/발주 발표 시작 →</span></button>
-        <div class="formula-op">−</div>
-        <button type="button" class="formula-box clickable" data-presentation-chapter="ads"><span class="formula-name">광고비</span><span class="formula-go">광고 발표 시작 →</span></button>
-        <div class="formula-op">−</div>
-        <button type="button" class="formula-box clickable" data-presentation-chapter="evaluation"><span class="formula-name">고정비</span><span class="formula-go">월 평가·기타 시작 →</span></button>
-        <div class="formula-op">−</div>
-        <button type="button" class="formula-box clickable" data-presentation-chapter="evaluation"><span class="formula-name">기타변동비</span><span class="formula-go">월 평가·기타 시작 →</span></button>
-        <div class="formula-op">=</div>
-        <div class="formula-box result"><span class="formula-name">영업이익</span></div>
-      </div>
+
     </div>
   </section>
   <main class="grid">
@@ -418,7 +406,7 @@ function normalizeProduct(s){let n=String(s||'').toUpperCase().replace(/[\s_\-�
 async function loadSales(){
   setSource('srcSales','loading','로딩');
   // 최근 8주 + 현재월 누적 + 월별 상세에 필요한 월 탭을 모두 확보한다.
-  let months=[];for(let i=0;i<9;i++){let d=new Date(RR.end.getFullYear(),RR.end.getMonth()-i,1);months.push({tab:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,year:d.getFullYear()})}
+  let months=[];for(let i=0;i<12;i++){let d=new Date(RR.end.getFullYear(),RR.end.getMonth()-i,1);months.push({tab:`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`,year:d.getFullYear()})}
   function parse(vals,year){
     let hi=vals.findIndex(r=>r.map(x=>String(x).trim().toUpperCase()).includes('TOTAL')&&r.some(x=>String(x).trim()==='일자'));
     if(hi<0)return[];
@@ -722,7 +710,7 @@ const valueLabelPlugin={id:'valueLabelPlugin',afterDatasetsDraw(chart,args,opts)
   if(opts.averageLine!=null&&isFinite(opts.averageLine)){
     let y=chart.scales.y.getPixelForValue(opts.averageLine),left=chart.chartArea.left,right=chart.chartArea.right;
     ctx.save();ctx.strokeStyle='#fbbf24';ctx.lineWidth=2;ctx.setLineDash([7,5]);ctx.beginPath();ctx.moveTo(left,y);ctx.lineTo(right,y);ctx.stroke();ctx.setLineDash([]);
-    let label=avgLabel('월별 평균',opts.averageLine,opts.averagePercent,opts.averageMoney);
+    let label=avgLabel(opts.averageLabel||'월별 평균',opts.averageLine,opts.averagePercent,opts.averageMoney);
     ctx.restore();if(opts.averageInline){ctx.save();ctx.fillStyle='#fbbf24';ctx.font='900 15px Pretendard';ctx.textAlign='center';ctx.fillText(label,(left+right)/2,Math.max(chart.chartArea.top+18,y-10));ctx.restore()}else safeAverageLabel(label,'#fbbf24',0);
   }
   if(opts.recentAverageLine!=null&&isFinite(opts.recentAverageLine)&&chart.chartArea){
@@ -797,7 +785,16 @@ if($('productModal')) $('productModal').onclick=e=>{if(e.target.id==='productMod
 
 let activeSalesView='total';
 function openSalesDetail(view='total'){if(MONTH_REPORT){openMonthlySalesDetail(true,view==='total'?'total':'selfNaver');return;}activeSalesView=view;$('salesModal').classList.remove('hidden');syncModalCenter();document.querySelectorAll('[data-sales-view]').forEach(b=>b.classList.toggle('active',b.dataset.salesView===view));renderSales3Week()}
-function renderSales3Week(){if(!DATA.sales)return;let all=DATA.sales.days.filter(r=>r.date<=RR.end).sort((a,b)=>a.date-b.date),ref={date:RR.end};let cutoff=addDays(ref.date,-6),rows=all.filter(x=>x.date>=addDays(ref.date,-20)&&x.date<=ref.date),vals=rows.map(r=>activeSalesView==='total'?r.total:r.selfNaver),mean=vals.length?sum(vals)/vals.length:0,recentVals=rows.filter(r=>r.date>=cutoff).map(r=>activeSalesView==='total'?r.total:r.selfNaver),recentMean=recentVals.length?avg(recentVals):0;draw('sales3WeekChart','bar',rows.map(r=>md(r.date)),[{label:activeSalesView==='total'?'전체 플랫폼':'자사몰+네이버',data:vals,backgroundColor:rows.map(r=>r.date>=cutoff?'#6c7bff':'#667085'),borderRadius:5}],{money:true,valueLabels:true,averageLine:mean,averageMoney:true,recentAverageLine:recentMean,recentAverageMoney:true})}
+function renderSales3Week(){
+ if(!DATA.sales)return;
+ const end=RR.end,start=addDays(end,-20),previousStart=addDays(end,-13),previousEnd=addDays(end,-7),recentStart=addDays(end,-6);
+ const map=new Map(DATA.sales.days.filter(r=>r.date>=start&&r.date<=end).map(r=>[iso(r.date),r]));
+ const rows=Array.from({length:21},(_,i)=>{const date=addDays(start,i);return map.get(iso(date))||{date,total:0,selfNaver:0}});
+ const key=activeSalesView==='total'?'total':'selfNaver';
+ const vals=rows.map(r=>r[key]||0),previous=rows.filter(r=>r.date>=previousStart&&r.date<=previousEnd),recent=rows.filter(r=>r.date>=recentStart);
+ const previousMean=sum(previous,r=>r[key]||0)/7,recentMean=sum(recent,r=>r[key]||0)/7;
+ draw('sales3WeekChart','bar',rows.map(r=>md(r.date)),[{label:activeSalesView==='total'?'전체 플랫폼':'자사몰+네이버',data:vals,backgroundColor:rows.map(r=>r.date>=recentStart?'#6c7bff':'#667085'),borderRadius:5}],{money:true,valueLabels:true,averageLine:previousMean,averageLabel:'전주 일평균',averageMoney:true,recentAverageLine:recentMean,recentAverageMoney:true});
+}
 if($('salesMainCard')) $('salesMainCard').onclick=null;
 if($('kWeekSalesCard')) $('kWeekSalesCard').onclick=()=>openSalesDetail('total');
 document.querySelectorAll('[data-sales-view]').forEach(b=>b.onclick=()=>{activeSalesView=b.dataset.salesView;document.querySelectorAll('[data-sales-view]').forEach(x=>x.classList.toggle('active',x===b));renderSales3Week()});
@@ -817,7 +814,7 @@ function openMtdDetail(){if(MONTH_REPORT){openMonthlySalesDetail(false);return;}
     let y=RR.end.getFullYear(),rows=s.days.filter(r=>r.date.getFullYear()===y&&r.date.getMonth()===viewMonth&&(viewMonth===curMonth?r.date<=RR.end:true)),channels=[['자사몰','self','#6c7bff'],['네이버','naver','#34d399'],['쿠팡','coupang','#ef4444'],['M몰','mmall','#374151']],vals=channels.map(c=>sum(rows,r=>r[c[1]]||0)),total=sum(rows,r=>r.total),daysInMonth=new Date(y,viewMonth+1,0).getDate(),forecast=viewMonth===curMonth&&rows.length?total/RR.end.getDate()*daysInMonth:total;
     $('detailModalTitle').textContent=`${viewMonth+1}월 누적 매출 플랫폼 비중`;$('detailModalSub').textContent=`${rows.length}일 반영${viewMonth===curMonth?' · ~'+md(RR.end):' · 월 전체'}`;
     let monthButtons=Array.from({length:curMonth+1},(_,i)=>curMonth-i).map(m=>`<button class="btn ${viewMonth===m?'active':''}" data-mtd-month="${m}">${m+1}월</button>`).join('');
-    $('detailModalBody').innerHTML=`<div class="detail-actions">${monthButtons}</div><div class="detail-stats">${statCard('월 누적 매출',fmtMoney(total),`${rows.length}일 반영`)}${statCard('현재 평균 유지 시 월말 누적 예상 매출',fmtMoney(forecast),`일평균 ${fmtMoney(total/(viewMonth===curMonth?RR.end.getDate():daysInMonth))} 기준`)}</div>`;
+    $('detailModalBody').innerHTML=`<div class="detail-actions">${monthButtons}</div><div class="detail-stats">${statCard('월 누적 매출',fmtMoney(total),`${rows.length}일 반영`)}${statCard('현재 평균 유지 시 월말 누적 예상 매출',fmtMoney(forecast),`일평균 ${fmtMoney(total/(viewMonth===curMonth?RR.end.getDate():daysInMonth))} 기준`)}${statCard('자사몰+네이버 합산 매출 비중',total?(100*(vals[0]+vals[1])/total).toFixed(1)+'%':'—','월 누적 전체 플랫폼 매출 대비')}</div>`;
     draw('detailChart','doughnut',channels.map(c=>c[0]),[{label:'매출 비중',data:vals,backgroundColor:channels.map(c=>c[2]),borderWidth:0}],{legend:true,pieLabels:true});
     document.querySelectorAll('[data-mtd-month]').forEach(b=>b.onclick=()=>{viewMonth=+b.dataset.mtdMonth;renderMonth()});
   }
@@ -991,36 +988,37 @@ const reportGrid=document.querySelector('.grid'),reportSections=Array.from(docum
 const sectionByTitle=keyword=>reportSections.find(el=>(el.querySelector('.head h2')?.textContent||'').includes(keyword));
 const orderedSections=['제품별 성과','주력 제품 재고','발주 관련','월 평가','B2B','자금 수지 상황'].map(sectionByTitle).filter(el=>el&&!el.hidden);
 orderedSections.forEach(section=>reportGrid.appendChild(section));
-const presentationCover=$('presentationCover'),presentationSlideMap={
-  revenue:[{el:document.querySelector('.kpis'),title:'매출 핵심 지표'},{el:null,title:''}],
-  orders:[{el:sectionByTitle('제품별 성과'),title:'제품별 성과 현황'},{el:sectionByTitle('주력 제품 재고'),title:'주력 제품 재고 현황'},{el:sectionByTitle('발주 관련'),title:'발주 관련 특이사항'}],
-  ads:[{el:document.querySelector('.kpis'),title:'광고지출 일평균 및 매출액 대비 광고비'}],
-  evaluation:[{el:sectionByTitle('B2B'),title:'B2B 및 기타'},{el:null,title:''}]
-};
+const presentationCover=$('presentationCover');
 const presentationTargets=[presentationCover,document.querySelector('.kpis'),...reportSections].filter(Boolean);
-let presentationIndex=0,presentationChapter='cover',presentationFlow=[];
+const presentationFlow=[
+ {el:document.querySelector('.kpis'),title:'매출 핵심 지표'},
+ {el:sectionByTitle('제품별 성과'),title:'제품별 성과 현황'},
+ {el:sectionByTitle('주력 제품 재고'),title:'주력 제품 재고 현황'},
+ {el:sectionByTitle('발주 관련'),title:'발주 관련 특이사항'},
+ {el:sectionByTitle('B2B'),title:'B2B 진행 특이사항'},
+ {el:sectionByTitle('자금 수지 상황'),title:'자금 수지 상황'}
+].filter(x=>x.el&&!x.el.hidden);
+let presentationIndex=-1;
 function resizeDashboardCharts(){setTimeout(()=>Object.values(charts).forEach(c=>{try{c.resize()}catch(e){}}),80)}
 function hidePresentationTargets(){presentationTargets.forEach(el=>el.classList.remove('presentation-active'))}
-function showPresentationCover(){presentationChapter='cover';presentationFlow=[];presentationIndex=0;hidePresentationTargets();presentationCover.classList.add('presentation-active');$('presentationCount').textContent='영업이익 산출 구조 · 발표 항목 선택';$('presentationNext').textContent='매출 시작 →';resizeDashboardCharts()}
-function startPresentationChapter(chapter){presentationChapter=chapter;presentationFlow=(presentationSlideMap[chapter]||[]).filter(x=>x.el);presentationIndex=0;showPresentationSlide(0)}
 function showPresentationSlide(index){
-  if(presentationChapter==='cover'){showPresentationCover();return}
-  if(index<0){showPresentationCover();return}
-  if(index>=presentationFlow.length){if(presentationChapter==='evaluation')exitPresentation();else showPresentationCover();return}
-  presentationIndex=index;hidePresentationTargets();let current=presentationFlow[presentationIndex];current.el.classList.add('presentation-active');
-  let chapterLabel={revenue:'매출',orders:'제품/발주',ads:'광고',evaluation:'월 평가·기타'}[presentationChapter]||'';
-  $('presentationCount').textContent=`${chapterLabel} ${presentationIndex+1} / ${presentationFlow.length} · ${current.title}`;$('presentationNext').textContent=presentationIndex===presentationFlow.length-1?(presentationChapter==='evaluation'?'발표 종료':'첫 화면으로'):'다음 →';
-  resizeDashboardCharts();
+ if(index>=presentationFlow.length){exitPresentation();return}
+ presentationIndex=Math.max(-1,index);hidePresentationTargets();
+ const current=presentationIndex===-1?{el:presentationCover,title:'주간보고'}:presentationFlow[presentationIndex];
+ current.el.classList.add('presentation-active');
+ $('presentationCount').textContent=`${presentationIndex+2} / ${presentationFlow.length+1} · ${current.title}`;
+ $('presentationNext').textContent=presentationIndex===presentationFlow.length-1?'발표 종료':'다음 →';
+ $('presentationPrev').disabled=presentationIndex===-1;
+ resizeDashboardCharts();
 }
-function enterPresentation(){document.body.classList.add('presentation-mode');showPresentationCover();syncModalCenter();if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{})}
-function exitPresentation(){document.body.classList.remove('presentation-mode');hidePresentationTargets();presentationChapter='cover';if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});resizeDashboardCharts();syncModalCenter()}
-document.querySelectorAll('[data-presentation-chapter]').forEach(button=>button.onclick=()=>startPresentationChapter(button.dataset.presentationChapter));
+function enterPresentation(){document.body.classList.add('presentation-mode');showPresentationSlide(-1);syncModalCenter();if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{})}
+function exitPresentation(){document.body.classList.remove('presentation-mode');hidePresentationTargets();presentationIndex=-1;if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});resizeDashboardCharts();syncModalCenter()}
 if($('presentationBtn'))$('presentationBtn').onclick=enterPresentation;
-if($('presentationPrev'))$('presentationPrev').onclick=()=>presentationChapter==='cover'?null:showPresentationSlide(presentationIndex-1);
-if($('presentationNext'))$('presentationNext').onclick=()=>presentationChapter==='cover'?startPresentationChapter('revenue'):showPresentationSlide(presentationIndex+1);
+if($('presentationPrev'))$('presentationPrev').onclick=()=>showPresentationSlide(presentationIndex-1);
+if($('presentationNext'))$('presentationNext').onclick=()=>showPresentationSlide(presentationIndex+1);
 if($('presentationExit'))$('presentationExit').onclick=exitPresentation;
 if($('presentationFullscreen'))$('presentationFullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};
-document.addEventListener('keydown',e=>{if(!document.body.classList.contains('presentation-mode'))return;if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();presentationChapter==='cover'?startPresentationChapter('revenue'):showPresentationSlide(presentationIndex+1)}else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();if(presentationChapter!=='cover')showPresentationSlide(presentationIndex-1)}else if(e.key==='Escape'&&!document.fullscreenElement)exitPresentation()});
+document.addEventListener('keydown',e=>{if(!document.body.classList.contains('presentation-mode'))return;if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();showPresentationSlide(presentationIndex+1)}else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();showPresentationSlide(presentationIndex-1)}else if(e.key==='Escape'&&!document.fullscreenElement)exitPresentation()});
 
 if($('refreshBtn')) $('refreshBtn').onclick=()=>TOKEN&&loadAll(); if($('themeBtn')) $('themeBtn').onclick=()=>{let light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');$('themeBtn').textContent=light?'라이트 모드':'다크 모드';render()};
 
