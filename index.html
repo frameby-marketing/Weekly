@@ -292,7 +292,7 @@ body.presentation-mode #cashReportSection .cash-report-card{padding:24px}body.pr
 
 
     <section class="card span6">
-      <div class="head"><div><h2>주력 제품 재고 현황</h2><small>품목별 재고 · TOP!B169:G177 기준</small></div><span class="badge" id="inventoryCount">실시간</span></div>
+      <div class="head"><div><h2>주력 제품 재고 현황</h2><small>품목별 재고 · TOP!B173:G186 기준 · 운영 대시보드와 동일</small></div><span class="badge" id="inventoryCount">실시간</span></div>
       <div id="inventoryList" class="stock-summary-wrap"><div class="empty">데이터 로딩 중...</div></div>
     </section>
 
@@ -342,7 +342,7 @@ body.presentation-mode #cashReportSection .cash-report-card{padding:24px}body.pr
     <div class="modal-head">
       <div>
         <h2 id="stockModalTitle">주력 제품 재고 상세</h2>
-        <small>품목별 재고 · TOP!B169:G177 기준</small>
+        <small>품목별 재고 · TOP!B173:G186 기준 · 운영 대시보드와 동일</small>
       </div>
       <button type="button" class="btn" id="stockModalClose">닫기</button>
     </div>
@@ -503,27 +503,32 @@ const PO_PRODUCT_ORDER=['킥프레임','PH - 실버','PH - 블랙','DW프로 - �
 const PO_LEAD_TIMES={'킥프레임':30,'PH - 실버':50,'PH - 블랙':50,'DW프로 - 실버':50,'DW프로 - 블랙':50,'DW플러스 - 실버':50,'DW플러스 - 블랙':50,'DW플러스 - 그린':50};
 function poIsDiscontinued(item){return /단종\s*\/\s*리뉴얼\s*예정/.test(String(item.restockAt||'').trim())}
 function poGetStockStatus(item){
-  if(item.preorderStartAt&&poParseKoreanDate(item.preorderStartAt))return'preorder';
-  if(item.soldOutAt==='품절')return'soldOut';
-  const dl=num(item.daysLeft);
-  if(dl!=null&&dl<=0)return'soldOut';
-  if(poIsDiscontinued(item))return'ok';
-  const leadTime=PO_LEAD_TIMES[item.name]||50,daysLeftNum=dl==null?9999:dl,restockDate=poParseKoreanDate(item.restockAt),soldOutDate=poParseKoreanDate(item.soldOutAt);
-  if(!restockDate)return daysLeftNum>leadTime+14?'ok':'out';
-  if(!soldOutDate)return'ok';
-  const diffDays=Math.round((soldOutDate-restockDate)/86400000);
-  return diffDays>=0?'ok':'out'
+  const today=d0(new Date()), soldDate=poParseKoreanDate(item.soldOutAt), restockDate=poParseKoreanDate(item.restockAt);
+  const explicitSold=String(item.soldOutAt||'').trim()==='품절';
+  const days=item.daysLeft===''?null:Math.round(Number(String(item.daysLeft).replace(/,/g,'')));
+  const remaining=explicitSold?0:Number.isFinite(days)?days:soldDate?Math.round((d0(soldDate)-today)/86400000):null;
+  const sold=explicitSold||(remaining!==null&&remaining<=0);
+  const planned=!!restockDate&&d0(restockDate)>=today;
+  const overdue=!!restockDate&&d0(restockDate)<today;
+  const gap=planned&&soldDate&&restockDate>soldDate?Math.round((restockDate-soldDate)/86400000):0;
+  const lead=item.name==='킥프레임'?30:50;
+  const due=sold||(remaining!==null&&remaining<=lead);
+  if(sold)return 'soldOut';
+  if(gap>0||overdue||(remaining!==null&&remaining<=14&&!planned))return 'out';
+  if(due)return 'warn';
+  if(remaining===null)return 'unknown';
+  return 'ok';
 }
 function parsePOStockRows(rows){
   let header=rows[0]||[];
-  if(String(header[0]||'').trim()!=='제품명')throw new Error('TOP!B169:G177 재고 헤더를 확인해 주세요.');
-  return rows.slice(1,9).filter(row=>PO_PRODUCT_ORDER.includes(String(row[0]||'').trim())).map(row=>{
+  if(String(header[0]||'').trim()!=='제품명')throw new Error('TOP!B173:G186 재고 헤더를 확인해 주세요.');
+  return rows.slice(headerIndex+1).filter(row=>String(row[0]||'').trim()).slice(0,8).map(row=>{
     let name=String(row[0]||'').trim(),soldOutAt=String(row[1]||'').trim(),soldOutDate=poParseKoreanDate(row[1]),remaining=soldOutAt==='품절'?0:soldOutDate?Math.max(0,Math.ceil((d0(soldOutDate)-d0(new Date()))/86400000)):num(row[2]);
     let raw={};header.forEach((h,i)=>{if(h)raw[String(h).trim()]=String(row[i]??'').trim()});
     return {name,soldOutAt,daysLeft:remaining==null?'':String(remaining),restockAt:String(row[3]||'').trim(),restockQty:String(row[4]||'').trim(),preorderStartAt:String(row[5]||'').trim(),raw};
   });
 }
-async function loadPOStock(){return parsePOStockRows(parseCSV(await publicCSV(CFG.poStockId,'TOP','&range=B169:G177')));}
+async function loadPOStock(){return parsePOStockRows(parseCSV(await publicCSV(CFG.poStockId,'TOP','&range=B173:G186&headers=1')));}
 async function loadOps(){
   setSource('srcOps','loading','로딩');
   let [poText,b2bText,stockItems]=await Promise.all([publicCSV(CFG.poId,'타임라인'),publicCSV(CFG.b2bId,'B2B 현황','&range=B5:L'),loadPOStock()]);
@@ -650,9 +655,9 @@ function render(){
     let bi=o.b2b.filter(x=>x.date>=addDays(today,-45)).filter(x=>!/(완료|납품완료)/.test(x.delivery)||!/(완료|정산완료|입금완료)/.test(x.settlement)).sort((a,b)=>b.date-a.date).slice(0,8);
     $('b2bCount').textContent=`${bi.length}건 점검`;
     $('b2bIssues').innerHTML=bi.map(x=>`<div class="issue"><div class="name">${x.company}</div><div class="desc"><b>${x.product}</b> · 제작 ${x.production||'-'} · 납품 ${x.delivery||'-'} · 정산 ${x.settlement||'-'}${x.note?' · '+x.note:''}</div><div>${x.qty.toLocaleString()}EA<br>${fmtMoney(x.amount)}</div></div>`).join('')||'<div class="empty">점검할 미완료 B2B가 없습니다.</div>';
-    let groups={ok:[],out:[],preorder:[],soldOut:[]};(o.stockItems||[]).forEach(i=>groups[poGetStockStatus(i)].push(i));
+    let groups={ok:[],out:[],warn:[],unknown:[],preorder:[],soldOut:[]};(o.stockItems||[]).forEach(i=>groups[poGetStockStatus(i)].push(i));
     $('inventoryCount').textContent=`${o.stockItems.length}개 품목`;
-    $('inventoryList').innerHTML=`<div class="stock-badges">${[['ok','ok','정상'],['soldOut','sold','품절'],['out','out','위험'],['preorder','pre','사전예약']].map(([status,cls,label])=>`<button type="button" class="stock-chip ${cls}" data-stock-status="${status}">${label}<strong>${groups[status].length}개</strong></button>`).join('')}</div>`;
+    $('inventoryList').innerHTML=`<div class="stock-badges">${[['ok','ok','정상'],['soldOut','sold','품절'],['out','out','위험'],['warn','pre','주의'],['unknown','pre','미확인']].map(([status,cls,label])=>`<button type="button" class="stock-chip ${cls}" data-stock-status="${status}">${label}<strong>${groups[status].length}개</strong></button>`).join('')}</div>`;
     document.querySelectorAll('[data-stock-status]').forEach(el=>el.onclick=()=>openStockDetail(el.dataset.stockStatus));
   }
 }
@@ -871,7 +876,7 @@ if($('evalWeekBtn'))$('evalWeekBtn').onclick=()=>{activeEvalPeriod='week';render
 if($('detailModalClose'))$('detailModalClose').onclick=()=>$('detailModal')?.classList.add('hidden');
 if($('detailModal'))$('detailModal').onclick=e=>{if(e.target.id==='detailModal')$('detailModal').classList.add('hidden')};
 
-function stockStatusLabel(s){return s==='ok'?'정상':s==='out'?'위험':s==='preorder'?'사전예약':'품절'}
+function stockStatusLabel(s){return ({ok:'정상',out:'위험',warn:'주의',unknown:'미확인',preorder:'사전예약',soldOut:'품절'})[s]||s}
 function rawValue(raw,names){
   for(let n of names){let k=Object.keys(raw||{}).find(x=>norm(x)===norm(n)||norm(x).includes(norm(n)));if(k&&raw[k])return raw[k]}return '—'
 }
@@ -881,8 +886,8 @@ function stockTimelineModel(item,today=d0(new Date())){
   return {item,lead,sold:sold&&d0(sold),restock:restock&&d0(restock),order,today,remaining,gap,discontinued,alreadySold};
 }
 function stockTimelineRange(items){
-  const today=d0(new Date()),models=items.map(i=>stockTimelineModel(i,today)),dates=models.flatMap(m=>[m.order,m.sold,m.restock,poParseKoreanDate(m.item.preorderStartAt)]).filter(Boolean);
-  return {start:addDays(new Date(Math.min(addDays(today,-14).getTime(),...dates.map(d=>d.getTime()))),-14),end:addDays(new Date(Math.max(addDays(today,60).getTime(),...dates.map(d=>d.getTime()))),14)};
+ const start=d0(new Date());
+ return {start,end:addDays(start,90)};
 }
 function stockTimelineCard(item,range){
   const m=stockTimelineModel(item),span=Math.max(1,range.end-range.start),pos=d=>Math.max(0,Math.min(100,(d-range.start)/span*100)),todayX=pos(m.today),soldX=m.sold?pos(m.sold):todayX,restockX=m.restock?pos(m.restock):100,pre=poParseKoreanDate(item.preorderStartAt);
