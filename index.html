@@ -271,6 +271,29 @@ body.presentation-mode #cashReportSection .cash-report-card{padding:24px}body.pr
 </style>
 <style>
 .weekly-cash-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.weekly-cash-value{font-size:clamp(22px,2.4vw,34px);font-weight:900;letter-spacing:-.04em;margin:16px 0 20px;overflow-wrap:anywhere}.weekly-cash-line{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid var(--line);font-size:13px}.weekly-cash-line span,.weekly-cash-metric small{color:var(--sub)}.weekly-cash-line b{text-align:right;white-space:nowrap}.weekly-cash-metric{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-top:10px}.weekly-cash-metric .weekly-cash-line{border:0;padding:0 0 8px}.weekly-cash-metric small{font-size:12px}.weekly-cash-warning{color:var(--yellow);font-size:12px;line-height:1.6}.weekly-cash-card .head h2{font-size:18px}@media(max-width:600px){.weekly-cash-card{padding:12px}.weekly-cash-card .head h2{font-size:14px}.weekly-cash-line{flex-direction:column;gap:5px}.weekly-cash-line b{text-align:left}.weekly-cash-value{font-size:21px}.weekly-cash-grid{gap:8px}}
+</style><style>
+/* Stable presentation controls and viewport-sized slides. */
+.presentation-content{display:contents}
+body.presentation-mode{--slide-height:calc(100dvh - 104px)}
+body.presentation-mode .wrap{height:100dvh;padding:20px 28px 84px;overflow:hidden}
+body.presentation-mode .presentation-toolbar{display:grid;grid-template-columns:84px minmax(0,1fr) 94px 94px 70px;width:min(760px,calc(100vw - 32px));box-sizing:border-box;bottom:16px}
+body.presentation-mode .presentation-toolbar .btn{width:100%;white-space:nowrap;padding:10px 8px}
+body.presentation-mode .presentation-toolbar .slide-count{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+body.presentation-mode .grid:has(>.presentation-active){height:var(--slide-height)}
+body.presentation-mode .grid:not(:has(>.presentation-active)){display:none}
+body.presentation-mode .grid>section.presentation-active,body.presentation-mode .presentation-cover.presentation-active{height:var(--slide-height);margin:0;box-sizing:border-box;padding:24px 28px;overflow:auto}
+body.presentation-mode .presentation-content{display:block;margin:0 auto}
+body.presentation-mode .kpis.presentation-active{height:var(--slide-height);box-sizing:border-box;margin:0;padding:12px;gap:20px;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));align-content:stretch}
+body.presentation-mode .kpis.presentation-active .kpi{min-height:0;padding:clamp(20px,3vw,42px);justify-content:center}
+body.presentation-mode .kpis .label{font-size:clamp(17px,1.5vw,25px);line-height:1.5}
+body.presentation-mode .kpis .value{font-size:clamp(36px,3.8vw,66px)}
+body.presentation-mode .kpis .meta{font-size:clamp(15px,1.35vw,22px)!important}
+body.presentation-mode .product-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+body.presentation-mode .product-card{padding:24px;min-height:230px}
+body.presentation-mode .product-card h3{font-size:24px}
+body.presentation-mode .product-card .pm{font-size:17px}
+body.presentation-mode .presentation-cover .cover-title-main{font-size:clamp(48px,6vw,96px)}
+body.presentation-mode .presentation-cover .cover-title-date{font-size:clamp(24px,2.5vw,40px)}
 </style></head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -1067,6 +1090,14 @@ function syncDashboardModalArea(){
  const host=document.getElementById('meetingEvalHost');if(host)host.style.setProperty('--modal-safe-left','0px');
 }
 MEETING_EVAL_EXTRA_CSS+=`
+/* Compact all four cash cards together in presentation mode. */
+:host-context(body.presentation-mode) .meeting-eval-root>.card>.head{display:none}
+:host-context(body.presentation-mode) .executive-layout{gap:14px}
+:host-context(body.presentation-mode) .executive-hero,:host-context(body.presentation-mode) .executive-comparison{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+:host-context(body.presentation-mode) .executive-hero-primary,:host-context(body.presentation-mode) .executive-hero-side,:host-context(body.presentation-mode) .executive-group{padding:16px 20px!important}
+:host-context(body.presentation-mode) .executive-hero .profit-result{font-size:44px!important;margin:10px 0!important}
+:host-context(body.presentation-mode) .executive-group .eval-item{padding:6px 0 12px!important}
+:host-context(body.presentation-mode) .selected-profit-target{margin-top:10px;padding-top:10px}
 /* Keep source layout and formatting; inherit Weekly colors and surfaces. */
 :host{display:block;width:100%;color:var(--text);font-family:inherit}
 .meeting-eval-root>.card{padding:0;background:transparent;border:0;box-shadow:none}
@@ -1500,15 +1531,29 @@ const orderedSections=['제품별 성과','주력 제품 재고','발주 관련'
 orderedSections.forEach(section=>reportGrid.appendChild(section));
 reportGrid.appendChild($('weeklyCashSection'));
 const presentationCover=$('presentationCover');
-const presentationTargets=[presentationCover,document.querySelector('.kpis'),...reportSections].filter(Boolean);
-const presentationFlow=[
- ...Array.from(document.querySelectorAll('.kpis .kpi')).map((card,i)=>({el:document.querySelector('.kpis'),card,title:card.querySelector('.label')?.textContent||`매출 지표 ${i+1}`})),
- {el:sectionByTitle('제품별 성과'),title:'제품별 성과 현황'},
- {el:sectionByTitle('주력 제품 재고'),title:'주력 제품 재고 현황'},
- {el:sectionByTitle('발주 관련'),title:'발주 관련 특이사항'},
- {el:sectionByTitle('B2B'),title:'B2B 진행 특이사항'},
- {el:sectionByTitle('자금 수지 상황'),title:'자금 수지 상황'}
-].filter(x=>x.el&&!x.el.hidden);
+let presentationTargets=[],presentationFlow=[];
+function refreshPresentationFlow(){
+ const kpis=document.querySelector('.kpis');
+ const sections=Array.from(reportGrid.children).filter(el=>el.tagName==='SECTION'&&!el.hidden&&!el.classList.contains('hidden'));
+ presentationTargets=[presentationCover,kpis,...sections].filter(Boolean);
+ presentationFlow=[{el:kpis,title:'매출 · 광고 핵심 지표'},...sections.map(el=>({el,title:el.querySelector('.head h2')?.textContent||el.getAttribute('aria-label')||'주간보고'}))].filter(x=>x.el);
+}
+function fitPresentationSlide(){
+ if(!document.body.classList.contains('presentation-mode'))return;
+ const active=document.querySelector('.presentation-active');if(!active)return;
+ if(active===presentationCover||active.classList.contains('kpis'))return;
+ let content=active.querySelector(':scope > .presentation-content');
+ if(!content){content=document.createElement('div');content.className='presentation-content';while(active.firstChild)content.appendChild(active.firstChild);active.appendChild(content);}
+ content.style.zoom='1';content.style.width='100%';
+ const style=getComputedStyle(active), available=active.clientHeight-parseFloat(style.paddingTop)-parseFloat(style.paddingBottom);
+ const natural=content.scrollHeight;
+ if(natural>available){const scale=Math.max(.1,available/natural);content.style.width=(content.offsetWidth)+'px';content.style.zoom=String(scale);}
+}
+let presentationFitTimer;
+function queuePresentationFit(){clearTimeout(presentationFitTimer);presentationFitTimer=setTimeout(fitPresentationSlide,100)}
+new MutationObserver(queuePresentationFit).observe(reportGrid,{childList:true,subtree:true,characterData:true});
+window.addEventListener('resize',queuePresentationFit);
+new ResizeObserver(queuePresentationFit).observe($('meetingEvalHost'));
 let presentationIndex=-1;
 function resizeDashboardCharts(){setTimeout(()=>Object.values(charts).forEach(c=>{try{c.resize()}catch(e){}}),80)}
 function hidePresentationTargets(){presentationTargets.forEach(el=>el.classList.remove('presentation-active'))}
@@ -1517,20 +1562,21 @@ function showPresentationSlide(index){
  presentationIndex=Math.max(-1,index);hidePresentationTargets();
  const current=presentationIndex===-1?{el:presentationCover,title:'주간보고'}:presentationFlow[presentationIndex];
  current.el.classList.add('presentation-active');
+ current.el.scrollTop=0;queuePresentationFit();
  document.querySelectorAll('.kpis .kpi').forEach(card=>card.classList.toggle('presentation-kpi-hidden',!!current.card&&card!==current.card));
  $('presentationCount').textContent=`${presentationIndex+2} / ${presentationFlow.length+1} · ${current.title}`;
  $('presentationNext').textContent=presentationIndex===presentationFlow.length-1?'발표 종료':'다음 →';
  $('presentationPrev').disabled=presentationIndex===-1;
  resizeDashboardCharts();
 }
-function enterPresentation(){document.body.classList.add('presentation-mode');showPresentationSlide(-1);syncModalCenter();if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{})}
-function exitPresentation(){document.body.classList.remove('presentation-mode');hidePresentationTargets();document.querySelectorAll('.kpis .kpi').forEach(card=>card.classList.remove('presentation-kpi-hidden'));presentationIndex=-1;if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});resizeDashboardCharts();syncModalCenter()}
+function enterPresentation(){refreshPresentationFlow();document.body.classList.add('presentation-mode');showPresentationSlide(-1);syncModalCenter();if(!document.fullscreenElement)document.documentElement.requestFullscreen?.().catch(()=>{})}
+function exitPresentation(){document.body.classList.remove('presentation-mode');document.querySelectorAll('.presentation-content').forEach(el=>{el.style.zoom='';el.style.width=''});hidePresentationTargets();document.querySelectorAll('.kpis .kpi').forEach(card=>card.classList.remove('presentation-kpi-hidden'));presentationIndex=-1;if(document.fullscreenElement)document.exitFullscreen().catch(()=>{});resizeDashboardCharts();syncModalCenter()}
 if($('presentationBtn'))$('presentationBtn').onclick=enterPresentation;
 if($('presentationPrev'))$('presentationPrev').onclick=()=>showPresentationSlide(presentationIndex-1);
 if($('presentationNext'))$('presentationNext').onclick=()=>showPresentationSlide(presentationIndex+1);
 if($('presentationExit'))$('presentationExit').onclick=exitPresentation;
 if($('presentationFullscreen'))$('presentationFullscreen').onclick=()=>{if(!document.fullscreenElement)document.documentElement.requestFullscreen?.();else document.exitFullscreen?.()};
-document.addEventListener('keydown',e=>{if(!document.body.classList.contains('presentation-mode'))return;if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();showPresentationSlide(presentationIndex+1)}else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();showPresentationSlide(presentationIndex-1)}else if(e.key==='Escape'&&!document.fullscreenElement)exitPresentation()});
+document.addEventListener('keydown',e=>{if(!document.body.classList.contains('presentation-mode'))return;if(document.querySelector('.modal:not(.hidden)')||$('meetingEvalHost')?.shadowRoot?.querySelector('.modal:not(.hidden)')||e.composedPath().some(el=>el.matches?.('input,textarea,select,[contenteditable]')))return;if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();showPresentationSlide(presentationIndex+1)}else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();showPresentationSlide(presentationIndex-1)}else if(e.key==='Escape'&&!document.fullscreenElement)exitPresentation()});
 
 if($('refreshBtn')) $('refreshBtn').onclick=()=>TOKEN&&loadAll(); if($('themeBtn')) $('themeBtn').onclick=()=>{let light=document.documentElement.getAttribute('data-theme')==='light';document.documentElement.setAttribute('data-theme',light?'dark':'light');$('themeBtn').textContent=light?'라이트 모드':'다크 모드';render()};
 
