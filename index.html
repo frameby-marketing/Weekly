@@ -309,6 +309,8 @@ body.presentation-mode .presentation-cover .cover-title-date{font-size:clamp(24p
  .status-strip{grid-template-columns:repeat(5,minmax(0,1fr))}.source{padding:8px 5px;font-size:10px;gap:4px}
 }
 @media(max-width:599px){.product-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.status-strip{grid-template-columns:repeat(2,minmax(0,1fr))}.card{min-width:0}.modal{padding:8px}.modal-card{width:100%;max-height:94vh}.chart.xl{height:340px}}
+</style><style>
+.incoming-section{border-top:1px solid var(--line);margin-top:18px;padding-top:16px}.incoming-section h3{font-size:15px;margin:0 0 10px}.incoming-list{display:grid;gap:8px}.incoming-item{background:var(--panel2);border:1px solid var(--line);border-radius:11px}.incoming-item summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px;font-size:12px}.incoming-item summary::-webkit-details-marker{display:none}.incoming-product{font-weight:800;overflow-wrap:anywhere}.incoming-meta{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap;text-align:right}.incoming-dday{color:var(--blue);font-weight:900;white-space:nowrap}.incoming-expand{color:var(--sub);font-size:11px;white-space:nowrap}.incoming-item[open] .incoming-expand{font-size:0}.incoming-item[open] .incoming-expand:after{content:'접기';font-size:11px}.incoming-options{padding:0 12px 10px}.incoming-option{display:flex;justify-content:space-between;gap:8px;border-top:1px solid var(--line);padding:8px 2px;font-size:11px;color:var(--sub)}.incoming-option b{color:var(--text)}@media(max-width:600px){.incoming-item summary{align-items:flex-start;flex-direction:column}.incoming-meta{justify-content:flex-start;text-align:left}}
 </style></head>
 <body>
 <div id="authGate" class="auth-gate">
@@ -360,8 +362,8 @@ body.presentation-mode .presentation-cover .cover-title-date{font-size:clamp(24p
     </section>
 
     <section class="card span6">
-      <div class="head"><div><h2>발주 관련 특이사항</h2><small>오늘~다음 주 일요일 일정/지출만 표시</small></div><span class="badge" id="poCount">—</span></div>
-      <div class="issue-list" id="poIssues"><div class="empty">데이터 로딩 중...</div></div>
+      <div class="head"><div><h2>발주 관련 특이사항</h2><small>발주 일정·지출 및 예정된 입고 현황</small></div><span class="badge" id="poCount">—</span></div>
+      <div class="issue-list" id="poIssues"><div class="empty">데이터 로딩 중...</div></div><div class="incoming-section"><h3>입고 예정</h3><div id="incomingList" class="incoming-list"><div class="empty">데이터 로딩 중...</div></div></div>
     </section>
 
 
@@ -625,9 +627,10 @@ async function loadOps(){
   const results=await Promise.allSettled([
     publicCSV(CFG.poId,'타임라인'),
     publicCSV(CFG.b2bId,'B2B 현황','&range=B5:Z'),
-    loadPOStock()
+    loadPOStock(),
+    apiValues(CFG.inventoryId,"'입고_예정'!A:J",false)
   ]);
-  const [poResult,b2bResult,stockResult]=results;
+  const [poResult,b2bResult,stockResult,incomingResult]=results;
   let po=[],b2b=[],stockItems=stockResult.status==='fulfilled'?stockResult.value:[];
   if(poResult.status==='fulfilled'){
     const pr=parseCSV(poResult.value),ph=(pr[0]||[]).map(x=>String(x).trim());
@@ -648,9 +651,25 @@ async function loadOps(){
       settlement:String(o['정산현황']||'').trim(),note:String(o['비고']||'').trim()
     }}).filter(x=>x.date);
   }
-  DATA.ops={po,b2b,stockItems,errors:results.map((r,i)=>r.status==='rejected'?['발주','B2B','재고'][i]+': '+r.reason.message:null).filter(Boolean)};
+  let incoming=incomingResult.status==='fulfilled'?incomingResult.value.slice(1).map(r=>({name:String(r[1]??'').trim(),option:String(r[2]??'').trim(),qty:num(r[4]),date:dateFlexible(r[5],2026)})).filter(x=>x.name&&x.date):[];
+  DATA.ops={po,b2b,stockItems,incoming,incomingError:incomingResult.status==='rejected',errors:results.map((r,i)=>r.status==='rejected'?['발주','B2B','재고','입고 예정'][i]+': '+r.reason.message:null).filter(Boolean)};
   if(DATA.ops.errors.length){console.error('운영 데이터 일부 조회 실패',DATA.ops.errors);setSource('srcOps','err','일부 오류');}
   else setSource('srcOps','ok','정상');
+}
+function renderIncoming(o){
+  const host=$('incomingList');
+  if(o.incomingError){host.innerHTML='<div class="empty">입고 예정 데이터를 불러오지 못했습니다. 새로고침하거나 시트 접근 권한을 확인해 주세요.</div>';return;}
+  const today=reportToday(),groups=new Map();
+  (o.incoming||[]).filter(x=>x.date>=today).sort((a,b)=>a.date-b.date||a.name.localeCompare(b.name,'ko')).forEach(x=>{
+    const key=iso(x.date)+'\u0000'+x.name;
+    if(!groups.has(key))groups.set(key,{name:x.name,date:x.date,rows:[]});groups.get(key).rows.push(x);
+  });
+  host.innerHTML=Array.from(groups.values()).map(g=>{
+    const n=Math.round((Date.UTC(g.date.getFullYear(),g.date.getMonth(),g.date.getDate())-Date.UTC(today.getFullYear(),today.getMonth(),today.getDate()))/86400000);
+    const qty=g.rows.some(x=>x.qty!=null)?sum(g.rows,x=>x.qty).toLocaleString('ko-KR')+'개':'수량 미정';
+    const options=g.rows.map(x=>`<div class="incoming-option"><span>${reportEsc(x.option||'옵션 없음')}</span><b>${x.qty==null?'수량 미정':x.qty.toLocaleString('ko-KR')+'개'}</b></div>`).join('');
+    return `<details class="incoming-item"><summary><span class="incoming-product">${reportEsc(g.name)}</span><span class="incoming-meta"><b>${g.date.getFullYear()}.${String(g.date.getMonth()+1).padStart(2,'0')}.${String(g.date.getDate()).padStart(2,'0')}</b><span class="incoming-dday">${n===0?'D-DAY':'D-'+n}</span><b>${qty}</b><span class="incoming-expand">상세보기</span></span></summary><div class="incoming-options">${options}</div></details>`;
+  }).join('')||'<div class="empty">예정된 입고가 없습니다.</div>';
 }
 function ratioClass(actual,target,lower=false){if(!target)return'';let r=actual/target;return lower?(r<=1?'good':r<=1.1?'warn':'bad'):(r>=1?'good':r>=.9?'warn':'bad')}
 function emphasizedBarHeight(value,max,height,min){let normalized=Math.min(1,Math.abs(value||0)/Math.max(max,1));return Math.max(min,Math.pow(normalized,1.8)*height)}
@@ -761,10 +780,9 @@ function render(){
   }
   if(o){
     let today=d0(new Date()),orderMonth=MONTH_REPORT?{start:new Date(RR.end.getFullYear(),RR.end.getMonth()+1,1),end:new Date(RR.end.getFullYear(),RR.end.getMonth()+2,0)}:RR,typeLabel={'신':'신규 생산 발주','추':'추가 입고','요':'입고 요청','기':'기존 잔금'},daysToThisSunday=(7-today.getDay())%7,nextWeekEnd=addDays(today,daysToThisSunday+7),po=o.po.filter(x=>x.type!=='요'&&!/입고\s*요청/.test(x.note||'')).filter(x=>MONTH_REPORT?inRange(x.date,orderMonth):x.date>=today&&x.date<=nextWeekEnd).sort((a,b)=>a.date-b.date);
-    let alertItems=(o.stockItems||[]).filter(i=>poGetStockStatus(i)==='out'||poGetStockStatus(i)==='soldOut'),stockAlerts='';
-    if(alertItems.length){let late=alertItems.filter(i=>{let so=poParseKoreanDate(i.soldOutAt),ri=poParseKoreanDate(i.restockAt);return so&&ri&&ri>so}),soon=alertItems.filter(i=>{let dl=parseInt(String(i.daysLeft||'').replace(/[^\d]/g,''));return !isNaN(dl)&&dl<=14});stockAlerts=`<div class="issue expense-alert" id="stockAlertIssue"><div class="name">재고 관련</div><div class="desc"><b>${alertItems.length}개 품목 점검</b> · ${late.length?`재입고 선행 필요 ${late.length}개`:''}${late.length&&soon.length?' · ':''}${soon.length?`품절 임박 ${soon.length}개`:''}</div><div>상세보기</div></div>`;setTimeout(()=>{let el=$('stockAlertIssue');if(el)el.onclick=()=>openDetailModal('재고 관련 특이사항','품절 예상과 재입고 일정 기준',`<div class="issue-list">${alertItems.map(i=>{let so=poParseKoreanDate(i.soldOutAt),ri=poParseKoreanDate(i.restockAt),msg=so&&ri&&ri>so?`예정 재입고보다 품절이 ${Math.ceil((ri-so)/86400000)}일 먼저 예상 · 입고 시점 앞당김 필요`:`품절 임박 여부 및 재입고 일정 점검`;return `<div class="issue expense-alert"><div class="name">${i.name}</div><div class="desc">${msg}</div><div>${i.daysLeft||''}</div></div>`}).join('')}</div>`)},0)}
     let byDate={};po.forEach(x=>{let k=iso(x.date);(byDate[k]??=[]).push(x)});let dayIssues=Object.entries(byDate).slice(0,MONTH_REPORT?31:7).map(([k,arr])=>{let d=arr[0].date,amt=sum(arr,x=>x.amount||0);return `<div class="issue ${amt>0?'expense-alert':''} expense-day" data-po-date="${k}"><div class="name">${md(d)} · ${arr.length}건</div><div class="desc">${MONTH_REPORT?'월 예상 발주 및 발주비':'향후 일정 및 지출'} ${arr.map(x=>`<div><b>${reportEsc(x.product)}</b>${x.note?' · '+reportEsc(x.note):''}${x.memo?`<div class="po-agreement">협의사항: ${reportEsc(x.memo)}</div>`:''}</div>`).join('')}</div><div>${amt?`<span style="color:var(--red);font-weight:900">${fmtMoney(amt)}</span>`:'금액 없음'}</div></div>`}).join('');
-    $('poCount').textContent=MONTH_REPORT?`${orderMonth.start.getMonth()+1}월 ${po.length}건 · ${fmtMoney(sum(po,x=>x.amount||0))}`:`${Object.keys(byDate).length}일`;$('poIssues').innerHTML=(MONTH_REPORT?'':stockAlerts)+dayIssues||'<div class="empty">표시할 발주/재고 이슈가 없습니다.</div>';
+    $('poCount').textContent=MONTH_REPORT?`${orderMonth.start.getMonth()+1}월 ${po.length}건 · ${fmtMoney(sum(po,x=>x.amount||0))}`:`${Object.keys(byDate).length}일`;$('poIssues').innerHTML=dayIssues||'<div class="empty">표시할 발주 일정이 없습니다.</div>';
+    renderIncoming(o);
     document.querySelectorAll('[data-po-date]').forEach(el=>el.onclick=()=>{let arr=byDate[el.dataset.poDate]||[];openDetailModal(`${md(arr[0].date)} 발주 상세`,`날짜별 묶음 상세 내역`,`<div class="issue-list">${arr.map(x=>`<div class="issue"><div class="name">${typeLabel[x.type]}</div><div class="desc"><b>${x.product}</b>${x.note?' · '+x.note:''}${x.memo?' · '+x.memo:''}</div><div>${x.qty?x.qty.toLocaleString()+'EA<br>':''}${x.amount?fmtMoney(x.amount):''}</div></div>`).join('')}</div>`) });
     // 운영 대시보드 opB2BPipeline과 동일한 대상 필터 및 단계 표시.
     const bi=o.b2b.filter(x=>x.confirm==='확정'&&String(x.delivery||'').replace(/\s/g,'')!=='납품완료')
