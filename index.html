@@ -367,7 +367,7 @@ body.presentation-mode .presentation-cover .cover-title-date{font-size:clamp(24p
     </section>
 
 
-    <section class="card span12"><div class="head"><div><h2>B2B 진행단계 파이프라인</h2><small>확정 · 납품 미완료 · 등록 월 무관 · 운영 대시보드 기준</small></div><span class="badge" id="b2bCount">—</span></div><div class="weekly-b2b-pipeline" id="b2bIssues"><div class="empty">데이터 로딩 중...</div></div></section>
+    <section class="card span12"><div class="head"><div><h2>B2B 진행단계 파이프라인</h2><small>기준 월 확정 건 · 정산완료 제외 · 납품완료 후에도 미정산 건 표시</small></div><span class="badge" id="b2bCount">—</span></div><div class="weekly-b2b-pipeline" id="b2bIssues"><div class="empty">데이터 로딩 중...</div></div></section>
 
     <section class="span12" id="weeklyCashSection" aria-label="월별 자금수지 현황">
       <div class="head"><div><h2>월별 자금수지 현황</h2><small id="weeklyCashBasis">어제까지 누적 · 자금수지 시뮬레이션 기준</small></div></div>
@@ -784,13 +784,13 @@ function render(){
     $('poCount').textContent=MONTH_REPORT?`${orderMonth.start.getMonth()+1}월 ${po.length}건 · ${fmtMoney(sum(po,x=>x.amount||0))}`:`${Object.keys(byDate).length}일`;$('poIssues').innerHTML=dayIssues||'<div class="empty">표시할 발주 일정이 없습니다.</div>';
     renderIncoming(o);
     document.querySelectorAll('[data-po-date]').forEach(el=>el.onclick=()=>{let arr=byDate[el.dataset.poDate]||[];openDetailModal(`${md(arr[0].date)} 발주 상세`,`날짜별 묶음 상세 내역`,`<div class="issue-list">${arr.map(x=>`<div class="issue"><div class="name">${typeLabel[x.type]}</div><div class="desc"><b>${x.product}</b>${x.note?' · '+x.note:''}${x.memo?' · '+x.memo:''}</div><div>${x.qty?x.qty.toLocaleString()+'EA<br>':''}${x.amount?fmtMoney(x.amount):''}</div></div>`).join('')}</div>`) });
-    // 운영 대시보드 opB2BPipeline과 동일한 대상 필터 및 단계 표시.
-    const bi=o.b2b.filter(x=>x.confirm==='확정'&&String(x.delivery||'').replace(/\s/g,'')!=='납품완료')
+    // 보고 기준 월의 확정 건은 납품 여부와 무관하게 최종 정산까지 표시한다.
+    const bi=o.b2b.filter(x=>x.confirm==='확정'&&x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&String(x.settlement||'').replace(/\s/g,'')!=='정산완료')
       .sort((a,b)=>b.date-a.date);
     $('b2bCount').textContent=`진행중 ${bi.length}건`;
     $('b2bIssues').innerHTML=bi.map(x=>{
       const settlement=String(x.settlement||'').replace(/\s/g,'');
-      const stage=/^(정산완료|입금완료|완납|완료)$/.test(settlement)?'정산완료':
+      const stage=settlement==='정산완료'?'정산완료':
         /납품\s*완료|배송\s*완료|수령\s*완료/.test(x.delivery)?'납품완료':
         /출고\s*예정|출고\s*완료|배송중|발송|제작\s*완료|생산\s*완료/.test(x.delivery+' '+x.production)?'출고예정':
         /제작\s*중|생산\s*중|진행\s*중/.test(x.production)?'제작중':'확정';
@@ -1556,8 +1556,8 @@ modalElements.forEach(modal=>{
   document.body.appendChild(modal);
   new MutationObserver(syncModalOpenState).observe(modal,{attributes:true,attributeFilter:['class']});
   modal.onclick=e=>{
-    if(e.target.closest('button,a,input,select,textarea,[data-product-view],[data-product-granularity],[data-sales-view],[data-mtd-month]'))return;
-    modal.classList.add('hidden');
+    // 팝업 내용 클릭은 유지하고 배경 자체를 클릭했을 때만 닫는다.
+    if(e.target===modal)modal.classList.add('hidden');
   };
 });
 syncModalOpenState();
