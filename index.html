@@ -367,7 +367,7 @@ body.presentation-mode .presentation-cover .cover-title-date{font-size:clamp(24p
     </section>
 
 
-    <section class="card span12"><div class="head"><div><h2>B2B 진행단계 파이프라인</h2><small>기준 월 확정 건 · 정산완료 제외 · 납품완료 후에도 미정산 건 표시</small></div><span class="badge" id="b2bCount">—</span></div><div class="weekly-b2b-pipeline" id="b2bIssues"><div class="empty">데이터 로딩 중...</div></div></section>
+    <section class="card span12"><div class="head"><div><h2>B2B 진행단계 파이프라인</h2><small>출고 예정일이 기준 월인 확정 건 · 정산완료 제외</small></div><span class="badge" id="b2bCount">—</span></div><div class="weekly-b2b-pipeline" id="b2bIssues"><div class="empty">데이터 로딩 중...</div></div></section>
 
     <section class="span12" id="weeklyCashSection" aria-label="월별 자금수지 현황">
       <div class="head"><div><h2>월별 자금수지 현황</h2><small id="weeklyCashBasis">어제까지 누적 · 자금수지 시뮬레이션 기준</small></div></div>
@@ -784,8 +784,11 @@ function render(){
     $('poCount').textContent=MONTH_REPORT?`${orderMonth.start.getMonth()+1}월 ${po.length}건 · ${fmtMoney(sum(po,x=>x.amount||0))}`:`${Object.keys(byDate).length}일`;$('poIssues').innerHTML=dayIssues||'<div class="empty">표시할 발주 일정이 없습니다.</div>';
     renderIncoming(o);
     document.querySelectorAll('[data-po-date]').forEach(el=>el.onclick=()=>{let arr=byDate[el.dataset.poDate]||[];openDetailModal(`${md(arr[0].date)} 발주 상세`,`날짜별 묶음 상세 내역`,`<div class="issue-list">${arr.map(x=>`<div class="issue"><div class="name">${typeLabel[x.type]}</div><div class="desc"><b>${x.product}</b>${x.note?' · '+x.note:''}${x.memo?' · '+x.memo:''}</div><div>${x.qty?x.qty.toLocaleString()+'EA<br>':''}${x.amount?fmtMoney(x.amount):''}</div></div>`).join('')}</div>`) });
-    // 보고 기준 월의 확정 건은 납품 여부와 무관하게 최종 정산까지 표시한다.
-    const bi=o.b2b.filter(x=>x.confirm==='확정'&&x.date.getFullYear()===RR.end.getFullYear()&&x.date.getMonth()===RR.end.getMonth()&&String(x.settlement||'').replace(/\s/g,'')!=='정산완료')
+    // 최초 인입일과 무관하게 출고 예정일의 연월로 판정하며 최종 정산 전까지 표시한다.
+    const bi=o.b2b.filter(x=>{
+      const shippingDate=dateFlexible(x.shippingDate,RR.end.getFullYear());
+      return x.confirm==='확정'&&shippingDate&&shippingDate.getFullYear()===RR.end.getFullYear()&&shippingDate.getMonth()===RR.end.getMonth()&&String(x.settlement||'').replace(/\s/g,'')!=='정산완료';
+    })
       .sort((a,b)=>b.date-a.date);
     $('b2bCount').textContent=`진행중 ${bi.length}건`;
     $('b2bIssues').innerHTML=bi.map(x=>{
