@@ -513,9 +513,18 @@ async function loadProducts(){
       own=parseProductCSV(o),nav=parseProductCSV(n),names=['MK','PH','DW PRO','DW PLUS','FT'];
   function ftRows(csv,exCol,cvCol){return parseCSV(csv).slice(2).map(r=>({date:dateFlexible(r[0],2026),exposure:num(r[exCol]),conversion:num(r[cvCol])})).filter(r=>r.date&&r.date>=new Date(2026,9,7)&&r.exposure!=null&&r.conversion!=null).map(r=>({...r,add:0}));}
   own.FT=ftRows(o,33,35);nav.FT=ftRows(n,21,23);
+  // Confirmed self-store + Naver totals supplied for 2026-11-01 through 2026-11-03.
+  // Apply once per date before every daily, weekly and monthly aggregation.
+  const confirmedProductSales={'MK':[19,25,10],'PH':[15,16,10],'DW PRO':[2,2,5],'DW PLUS':[3,5,9],'FT':[32,20,36]};
   let rows=names.map(k=>{
-    let all=[...(own[k]||[]),...(nav[k]||[])].sort((a,b)=>a.date-b.date),
-        c=all.filter(x=>inRange(x.date,RR)),p=all.filter(x=>inRange(x.date,previousRange(RR))),
+    let all=[...(own[k]||[]),...(nav[k]||[])].map(r=>({...r})).sort((a,b)=>a.date-b.date);
+    confirmedProductSales[k].forEach((quantity,i)=>{
+      const date=new Date(2026,10,i+1),key=iso(date),matches=all.filter(r=>iso(r.date)===key);
+      if(matches.length){matches.forEach((r,j)=>{r.conversion=j===0?quantity:0});}
+      else all.push({date,exposure:0,add:0,conversion:quantity});
+    });
+    all.sort((a,b)=>a.date-b.date);
+    let c=all.filter(x=>inRange(x.date,RR)),p=all.filter(x=>inRange(x.date,previousRange(RR))),
         ce=sum(c,x=>x.exposure),cc=sum(c,x=>x.conversion),pe=sum(p,x=>x.exposure),pc=sum(p,x=>x.conversion),
         cdays=7,pdays=7,
         cea=ce/cdays,cca=cc/cdays,pea=pe/pdays,pca=pc/pdays,cr=ce?cc/ce:0,pr=pe?pc/pe:0;
