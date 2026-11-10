@@ -391,7 +391,9 @@ body.presentation-mode .presentation-cover .cover-title-date{font-size:clamp(24p
           <button class="btn active" data-product-view="sales">판매수량</button>
           <button class="btn" data-product-view="exposure">노출량</button>
           <button class="btn" data-product-view="rate">전환율</button>
+          <button class="btn" data-product-view="options">옵션별 판매비중</button>
         </div>
+        <div class="product-option-periods" style="display:none;gap:7px"><button class="btn active" data-option-days="7">최근 7일</button><button class="btn" data-option-days="30">최근 30일</button><button class="btn" data-option-days="90">최근 90일</button></div>
         <div class="product-granularity">
           <button class="btn active" data-product-granularity="daily">일별</button>
           <button class="btn" data-product-granularity="weekly">주차별</button><button class="btn" data-product-granularity="monthly">월별</button>
@@ -507,22 +509,32 @@ async function loadSales(){
 
 function findHeader(rows){for(let i=0;i<Math.min(rows.length,12);i++)if(rows[i].some(x=>String(x).trim()==='노출수'))return i;return 1}function findNameRow(rows,hi){return Math.max(0,hi-1)}function norm(s){return String(s||'').replace(/\s/g,'').toLowerCase()}function detectBlocks(nameRow,header){let out=[];for(let i=0;i<header.length;i++){let lab=String(header[i]||'').trim();if(norm(lab).endsWith('일자')){let name=lab.replace(/일자$/,'').trim()||String(nameRow[i]||nameRow[i+1]||'').trim()||`제품${out.length+1}`;out.push({name,start:i,metrics:['일자']})}else if(out.length&&lab)out[out.length-1].metrics.push(lab)}return out}
 function parseProductCSV(text){let rows=parseCSV(text),hi=findHeader(rows),ni=findNameRow(rows,hi),blocks=detectBlocks(rows[ni]||[],rows[hi]||[]),out={};blocks.forEach(b=>out[normalizeProduct(b.name)]=[]);for(let r of rows.slice(hi+1)){let d=dateFlexible(r[0],2026);if(!d)continue;for(let b of blocks){let ms=b.metrics.map(norm),e=ms.indexOf('노출수'),a=ms.indexOf('담김수'),c=ms.indexOf('전환수');let exposure=e>=0?num(r[b.start+e]):null;if(exposure==null)continue;let key=normalizeProduct(b.name);out[key].push({date:d,exposure,add:a>=0?(num(r[b.start+a])||0):0,conversion:c>=0?(num(r[b.start+c])||0):0})}}return out}
+// 실판매 수량은 유입·전환 데이터와 독립적으로 집계한다 (0-based column indices).
+const PRODUCT_SALES_OPTIONS={
+ 'MK':[['킥프레임',4]],'PH':[['실버',12],['블랙',16]],
+ 'DW PRO':[['실버',20],['블랙',24]],'DW PLUS':[['실버',28],['블랙',32],['그린',36]],
+ 'FT':[['라이트',40],['밸런스드',44],['펌',48],['솔리드',52],['스타터팩',56]]
+};
+function parseActualProductSales(values){
+ const result=Object.fromEntries(Object.keys(PRODUCT_SALES_OPTIONS).map(k=>[k,[]]));
+ for(const row of values){const date=dateFlexible(row[0],RR.end.getFullYear());if(!date||date>RR.end)continue;
+  for(const [name,options] of Object.entries(PRODUCT_SALES_OPTIONS)){
+   const quantities=options.map(([,column])=>num(row[column]));
+   if(quantities.every(v=>v==null))continue;
+   result[name].push({date,sales:sum(quantities),options:quantities.map(v=>v||0)});
+  }
+ }
+ return result;
+}
 async function loadProducts(){
   setSource('srcProduct','loading','로딩');
-  let [o,n]=await Promise.all([publicCSV(CFG.productId,CFG.productOwn),publicCSV(CFG.productId,CFG.productNaver)]),
+  let [o,n,actualValues]=await Promise.all([publicCSV(CFG.productId,CFG.productOwn),publicCSV(CFG.productId,CFG.productNaver),apiValues(CFG.poStockId,"'실판매'!A:BE",false)]),
+      actual=parseActualProductSales(actualValues),
       own=parseProductCSV(o),nav=parseProductCSV(n),names=['MK','PH','DW PRO','DW PLUS','FT'];
   function ftRows(csv,exCol,cvCol){return parseCSV(csv).slice(2).map(r=>({date:dateFlexible(r[0],2026),exposure:num(r[exCol]),conversion:num(r[cvCol])})).filter(r=>r.date&&r.date>=new Date(2026,9,7)&&r.exposure!=null&&r.conversion!=null).map(r=>({...r,add:0}));}
   own.FT=ftRows(o,33,35);nav.FT=ftRows(n,21,23);
-  // Confirmed self-store + Naver totals supplied for 2026-11-01 through 2026-11-03.
-  // Apply once per date before every daily, weekly and monthly aggregation.
-  const confirmedProductSales={'MK':[19,25,10],'PH':[15,16,10],'DW PRO':[2,2,5],'DW PLUS':[3,5,9],'FT':[32,20,36]};
   let rows=names.map(k=>{
     let all=[...(own[k]||[]),...(nav[k]||[])].map(r=>({...r})).sort((a,b)=>a.date-b.date);
-    confirmedProductSales[k].forEach((quantity,i)=>{
-      const date=new Date(2026,10,i+1),key=iso(date),matches=all.filter(r=>iso(r.date)===key);
-      if(matches.length){matches.forEach((r,j)=>{r.conversion=j===0?quantity:0});}
-      else all.push({date,exposure:0,add:0,conversion:quantity});
-    });
     all.sort((a,b)=>a.date-b.date);
     let c=all.filter(x=>inRange(x.date,RR)),p=all.filter(x=>inRange(x.date,previousRange(RR))),
         ce=sum(c,x=>x.exposure),cc=sum(c,x=>x.conversion),pe=sum(p,x=>x.exposure),pc=sum(p,x=>x.conversion),
@@ -532,9 +544,9 @@ async function loadProducts(){
     if(k==='FT'&&start<new Date(2026,9,7))start=new Date(2026,9,7);
     for(let d=start;d<=end;d=addDays(d,1)){
       let z=all.filter(x=>iso(x.date)===iso(d)),ex=sum(z,x=>x.exposure),cv=sum(z,x=>x.conversion);
-      daily.push({date:new Date(d),sales:cv,exposure:ex,rate:ex?cv/ex*100:0});
+      daily.push({date:new Date(d),sales:sum(actual[k].filter(r=>iso(r.date)===iso(d)),r=>r.sales),conversion:cv,exposure:ex,rate:ex?cv/ex*100:0});
     }
-    return{name:k,all,exposure:cea,conversion:cca,rate:cr,prevExposure:pea,prevConversion:pca,prevRate:pr,wowExposure:pct(cea,pea),wowConv:pct(cca,pca),rateDelta:(cr-pr)*100,daily,latestDate:end}
+    return{name:k,all,salesRows:actual[k],exposure:cea,conversion:cca,rate:cr,prevExposure:pea,prevConversion:pca,prevRate:pr,wowExposure:pct(cea,pea),wowConv:pct(cca,pca),rateDelta:(cr-pr)*100,daily,latestDate:end}
   });
   DATA.products={rows};setSource('srcProduct','ok','정상');
 }
@@ -914,10 +926,10 @@ function draw(id,type,labels,datasets,opt={}){
   charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:(hasAverage&&!opt.averageInline)||opt.cornerLabel?82:(labelPadding?58:12)}},plugins:{valueLabelPlugin:{barLabels:!!opt.valueLabels,largeValueLabels:!!opt.largeValueLabels,pointLabels:!!opt.pointValueLabels,rawBarLabels:!!opt.rawBarLabels,rateLabels:!!opt.rateLabels,multiPointLabels:!!opt.multiPointLabels,multiPointPercent:!!opt.multiPointPercent,averageLine:opt.averageLine,averagePercent:!!opt.averagePercent,averageMoney:!!opt.averageMoney,averageInline:!!opt.averageInline,recentAverageLine:opt.recentAverageLine,recentAveragePercent:!!opt.recentAveragePercent,recentAverageMoney:!!opt.recentAverageMoney,pieLabels:!!opt.pieLabels,benchmarkLine:opt.benchmarkLine,cornerLabel:opt.cornerLabel},legend:{display:opt.legend!==false,labels:{color:text,boxWidth:13,font:{size:14,weight:'700'}}},tooltip:{callbacks:{label:c=>opt.money?`${c.dataset.label}: ${fmtMoney(c.raw)}`:opt.percent?`${c.dataset.label}: ${Number(c.raw).toFixed(2)}%`:`${c.dataset.label}: ${c.raw}`}}},scales:type==='doughnut'?{}:{x:{ticks:{color:text,font:{size:13,weight:'700'}},grid:{display:false}},y:{beginAtZero:opt.yMin==null,min:opt.yMin,max:opt.yMax,ticks:{color:text,font:{size:12,weight:'700'},callback:v=>opt.money?(Math.abs(v)>=1e8?(v/1e8).toFixed(1)+'억':Math.round(v/1e4)+'만'):opt.percent?v+'%':v},grid:{color:line}}}}})
 }
 
-let activeProductIndex=0,activeProductView='sales',activeProductGranularity='daily';
+let activeProductIndex=0,activeProductView='sales',activeProductGranularity='daily',activeOptionDays=7;
 function openProduct(i,view='sales'){
   if(MONTH_REPORT){openMonthlyProduct(i,view);return;}
-  activeProductIndex=i;activeProductView=view;activeProductGranularity='daily';let x=DATA.products.rows[i];
+  activeProductIndex=i;activeProductView=view;activeProductGranularity='daily';activeOptionDays=7;let x=DATA.products.rows[i];
   $('modalTitle').textContent=`${x.name} · 어제까지 데이터 상세`;
   $('modalSub').textContent=`자사몰+네이버 합산 · ${x.daily.length?md(x.daily[0].date):'10/7'}~${md(x.latestDate)} · 어제까지 집계${x.name==='FT'?' · FT 데이터는 2026년 10월 7일부터 제공':''}`;
   $('productModal').classList.remove('hidden');syncModalCenter();
@@ -927,11 +939,18 @@ function openProduct(i,view='sales'){
 }
 function renderProductDetail(){
   let x=DATA.products.rows[activeProductIndex],rows=x.daily,view=activeProductView,labels=rows.map(r=>md(r.date));
+  const optionView=view==='options';
+  document.querySelector('[data-product-view="options"]').style.display=PRODUCT_SALES_OPTIONS[x.name].length>1?'':'none';
+  document.querySelector('#productModal .product-granularity').style.display=optionView?'none':'flex';
+  document.querySelector('#productModal .product-option-periods').style.display=optionView?'flex':'none';
+  document.querySelectorAll('[data-option-days]').forEach(b=>b.classList.toggle('active',+b.dataset.optionDays===activeOptionDays));
+  $('modalSub').textContent=view==='sales'||optionView?'판매수량: 실판매 시트 · 옵션 합산 · 어제까지 집계':'노출량·전환율: 기존 자사몰+네이버 데이터 · 어제까지 집계';
+  if(optionView){renderProductOptionShare(x);return;}
   if(activeProductGranularity==='monthly'){renderProductMonthlyAverage(x,view);return;}
-  let totalEx=sum(rows,r=>r.exposure),totalCv=sum(rows,r=>r.sales),rate=totalEx?totalCv/totalEx*100:0;
+  let totalEx=sum(rows,r=>r.exposure),totalCv=sum(rows,r=>r.sales),rate=totalEx?sum(rows,r=>r.conversion)/totalEx*100:0;
   $('productDetailStats').innerHTML=`
     <div class="detail-stat"><div class="t">최근 30일 노출</div><div class="v">${Math.round(totalEx).toLocaleString()}</div><div class="s">${md(rows[0].date)}~${md(x.latestDate)}</div></div>
-    <div class="detail-stat"><div class="t">최근 30일 판매수량</div><div class="v">${Math.round(totalCv).toLocaleString()}개</div><div class="s">자사몰+네이버 합산</div></div>
+    <div class="detail-stat"><div class="t">최근 30일 판매수량</div><div class="v">${Math.round(totalCv).toLocaleString()}개</div><div class="s">실판매 시트 · 옵션 합산</div></div>
     <div class="detail-stat"><div class="t">최근 30일 전환율</div><div class="v">${rate.toFixed(2)}%</div><div class="s">집계 기준일 ${md(x.latestDate)}</div></div>`;
   if(activeProductGranularity==='daily'){
     if(view==='sales'||view==='exposure'){
@@ -950,6 +969,15 @@ function renderProductDetail(){
   let sets=weekDays.map((wd,i)=>({label:`${md(wd[0])}~${md(wd[6])}`,data:wd.map(dt=>{let r=map.get(iso(dt));if(!r)return null;return view==='sales'?r.sales:view==='exposure'?r.exposure:r.rate}),borderColor:colors[i],backgroundColor:colors[i],pointRadius:5,borderWidth:i===2?4:2,tension:0,spanGaps:true}));
   draw('product30Chart','line',dayLabels,sets,view==='rate'?{percent:true,multiPointLabels:true,multiPointPercent:true}:{multiPointLabels:true});
 }
+function renderProductOptionShare(x){
+ const start=addDays(x.latestDate,1-activeOptionDays),options=PRODUCT_SALES_OPTIONS[x.name],rows=x.salesRows.filter(r=>r.date>=start&&r.date<=x.latestDate);
+ const values=options.map((_,i)=>sum(rows,r=>r.options[i])),total=sum(values);
+ const colors=['#6c7bff','#34d399','#fbbf24','#fb7185','#22d3ee'];
+ $('modalSub').textContent=`실판매 시트 · ${rangeLabel(start,x.latestDate)} · 옵션별 판매수량 합계 기준`;
+ $('productDetailStats').innerHTML=statCard(`최근 ${activeOptionDays}일 판매수량`,`${total.toLocaleString()}개`,rows.length?`${rows.length}일 입력 데이터`:'입력 데이터 없음')+options.map(([name],i)=>statCard(name,`${values[i].toLocaleString()}개`,total?`${(values[i]/total*100).toFixed(1)}%`:'판매 데이터 없음')).join('');
+ draw('product30Chart','doughnut',options.map(([name],i)=>`${name} · ${values[i].toLocaleString()}개 (${total?(values[i]/total*100).toFixed(1):'0.0'}%)`),[{label:'판매수량',data:values,backgroundColor:colors.slice(0,options.length),borderWidth:2}],{pieLabels:total>0});
+}
+document.querySelectorAll('[data-option-days]').forEach(b=>b.onclick=()=>{activeOptionDays=+b.dataset.optionDays;renderProductDetail()});
 document.querySelectorAll('[data-product-view]').forEach(b=>b.onclick=()=>{activeProductView=b.dataset.productView;document.querySelectorAll('[data-product-view]').forEach(x=>x.classList.toggle('active',x===b));renderProductDetail()});
 document.querySelectorAll('[data-product-granularity]').forEach(b=>b.onclick=()=>{activeProductGranularity=b.dataset.productGranularity;document.querySelectorAll('[data-product-granularity]').forEach(x=>x.classList.toggle('active',x===b));renderProductDetail()});
 if($('modalClose')) $('modalClose').onclick=()=>$('productModal')?.classList.add('hidden');
@@ -1659,7 +1687,7 @@ document.addEventListener('click',event=>{
 
 function renderProductMonthlyAverage(x,view){
  const end=x.latestDate, year=end.getFullYear(), months=Array.from({length:end.getMonth()+1},(_,i)=>i), metric=view==='sales'?'판매수량':view==='exposure'?'노출량':'전환율';
- const vals=months.map(m=>{let r=x.all.filter(r=>r.date.getFullYear()===year&&r.date.getMonth()===m&&r.date<=end);if(!r.length)return null;let days=m===end.getMonth()?end.getDate():new Date(year,m+1,0).getDate();if(x.name==='FT'&&year===2026&&m===9)days=Math.max(0,days-6);let ex=sum(r,z=>z.exposure),cv=sum(r,z=>z.conversion);return view==='rate'?(ex?cv/ex*100:0):(view==='sales'?cv:ex)/days});
+ const vals=months.map(m=>{let r=(view==='sales'?x.salesRows:x.all).filter(r=>r.date.getFullYear()===year&&r.date.getMonth()===m&&r.date<=end);if(!r.length)return null;let days=m===end.getMonth()?end.getDate():new Date(year,m+1,0).getDate();if(view!=='sales'&&x.name==='FT'&&year===2026&&m===9)days=Math.max(0,days-6);let ex=sum(r,z=>z.exposure),cv=sum(r,z=>z.conversion);return view==='rate'?(ex?cv/ex*100:0):(view==='sales'?sum(r,z=>z.sales):ex)/days});
  $('modalSub').textContent=`${year}년 1월~${md(end)} · 판매·노출은 월별 일평균, 전환율은 월 합산 기준 · 현재 월은 어제까지${x.name==='FT'?' · FT 데이터는 2026년 10월 7일부터 제공':''}`;
  $('productDetailStats').innerHTML=statCard('집계 기간',`${year}년 1월~${end.getMonth()+1}월`,'미입력 월은 공란')+statCard('집계 방식',view==='rate'?'월 전환수 ÷ 월 노출수':'월 합계 ÷ 경과 일수',metric);
  draw('product30Chart',view==='rate'?'line':'bar',months.map(m=>`${m+1}월`),[{label:metric+(view==='rate'?'':' 일평균'),data:vals,backgroundColor:'#6c7bff',borderColor:'#6c7bff',borderRadius:6,pointRadius:4}],view==='rate'?{percent:true,rateLabels:true,legend:false}:{rawBarLabels:true,legend:false});
