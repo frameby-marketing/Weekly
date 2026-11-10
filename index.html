@@ -395,8 +395,8 @@ body.presentation-mode .presentation-cover .cover-title-date{font-size:clamp(24p
         </div>
         <div class="product-option-periods" style="display:none;gap:7px"><button class="btn active" data-option-days="7">최근 7일</button><button class="btn" data-option-days="30">최근 30일</button><button class="btn" data-option-days="90">최근 90일</button></div>
         <div class="product-granularity">
-          <button class="btn active" data-product-granularity="daily">일별</button>
-          <button class="btn" data-product-granularity="weekly">주차별</button><button class="btn" data-product-granularity="monthly">월별</button>
+          <button class="btn" data-product-granularity="daily">일별</button>
+          <button class="btn" data-product-granularity="weekly">주차별</button><button class="btn active" data-product-granularity="monthly">월별</button>
         </div>
       </div>
       <div class="chart xl"><canvas id="product30Chart"></canvas></div>
@@ -926,15 +926,15 @@ function draw(id,type,labels,datasets,opt={}){
   charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:(hasAverage&&!opt.averageInline)||opt.cornerLabel?82:(labelPadding?58:12)}},plugins:{valueLabelPlugin:{barLabels:!!opt.valueLabels,largeValueLabels:!!opt.largeValueLabels,pointLabels:!!opt.pointValueLabels,rawBarLabels:!!opt.rawBarLabels,rateLabels:!!opt.rateLabels,multiPointLabels:!!opt.multiPointLabels,multiPointPercent:!!opt.multiPointPercent,averageLine:opt.averageLine,averagePercent:!!opt.averagePercent,averageMoney:!!opt.averageMoney,averageInline:!!opt.averageInline,recentAverageLine:opt.recentAverageLine,recentAveragePercent:!!opt.recentAveragePercent,recentAverageMoney:!!opt.recentAverageMoney,pieLabels:!!opt.pieLabels,benchmarkLine:opt.benchmarkLine,cornerLabel:opt.cornerLabel},legend:{display:opt.legend!==false,labels:{color:text,boxWidth:13,font:{size:14,weight:'700'}}},tooltip:{callbacks:{label:c=>opt.money?`${c.dataset.label}: ${fmtMoney(c.raw)}`:opt.percent?`${c.dataset.label}: ${Number(c.raw).toFixed(2)}%`:`${c.dataset.label}: ${c.raw}`}}},scales:type==='doughnut'?{}:{x:{ticks:{color:text,font:{size:13,weight:'700'}},grid:{display:false}},y:{beginAtZero:opt.yMin==null,min:opt.yMin,max:opt.yMax,ticks:{color:text,font:{size:12,weight:'700'},callback:v=>opt.money?(Math.abs(v)>=1e8?(v/1e8).toFixed(1)+'억':Math.round(v/1e4)+'만'):opt.percent?v+'%':v},grid:{color:line}}}}})
 }
 
-let activeProductIndex=0,activeProductView='sales',activeProductGranularity='daily',activeOptionDays=7;
+let activeProductIndex=0,activeProductView='sales',activeProductGranularity='monthly',activeOptionDays=7;
 function openProduct(i,view='sales'){
   if(MONTH_REPORT){openMonthlyProduct(i,view);return;}
-  activeProductIndex=i;activeProductView=view;activeProductGranularity='daily';activeOptionDays=7;let x=DATA.products.rows[i];
+  activeProductIndex=i;activeProductView=view;activeProductGranularity='monthly';activeOptionDays=7;let x=DATA.products.rows[i];
   $('modalTitle').textContent=`${x.name} · 어제까지 데이터 상세`;
   $('modalSub').textContent=`자사몰+네이버 합산 · ${x.daily.length?md(x.daily[0].date):'10/7'}~${md(x.latestDate)} · 어제까지 집계${x.name==='FT'?' · FT 데이터는 2026년 10월 7일부터 제공':''}`;
   $('productModal').classList.remove('hidden');syncModalCenter();
   document.querySelectorAll('[data-product-view]').forEach(b=>b.classList.toggle('active',b.dataset.productView===view));
-  document.querySelectorAll('[data-product-granularity]').forEach(b=>b.classList.toggle('active',b.dataset.productGranularity==='daily'));
+  document.querySelectorAll('[data-product-granularity]').forEach(b=>b.classList.toggle('active',b.dataset.productGranularity==='monthly'));
   renderProductDetail()
 }
 function renderProductDetail(){
