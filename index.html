@@ -1726,4 +1726,62 @@ $('kAdRatioCard').onclick=openAdRatioDetail;
 
 
 </script>
+
+<style>
+.weekly-linked-frame{width:100%;border:0;display:block;min-height:140px;background:transparent}
+.weekly-linked-status{color:var(--sub);font-size:12px;margin:0 0 10px}
+.weekly-linked-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+</style>
+<script>
+(()=>{
+ const configs=[{id:'weeklyMailSummary',title:'B2B 영업 메일 진행 현황',url:'https://frameby-marketing.github.io/B2B/',kind:'mail'},{id:'weeklyInterviewSummary',title:'프레임팁 인터뷰 섭외 현황',url:'https://frameby-marketing.github.io/FT_influencer/',kind:'ft'}];
+ const cash=document.getElementById('weeklyCashSection');
+ const states=configs.map(c=>{
+  const section=document.createElement('section');section.className='card span12';section.id=c.id;
+  section.innerHTML=`<div class="head"><h2>${c.title}</h2><div class="weekly-linked-actions"><a href="${c.url}" target="_blank" rel="noopener">원본 대시보드 ↗</a><button class="btn" type="button">↻ 새로고침</button></div></div><p class="weekly-linked-status" role="status">원본 데이터 불러오는 중…</p>`;
+  const frame=document.createElement('iframe');frame.title=c.title;frame.className='weekly-linked-frame';frame.setAttribute('sandbox','allow-scripts allow-popups allow-popups-to-escape-sandbox');section.append(frame);cash.before(section);
+  const state={...c,section,frame,status:section.querySelector('[role=status]'),busy:false};section.querySelector('button').onclick=()=>refresh(state);return state;
+ });
+ function theme(){return document.documentElement.getAttribute('data-theme')==='light'?'light':'dark'}
+ function bridge(kind){
+  const root=document.createElement('div');root.id='weeklyEmbedRoot';document.body.append(root);
+  const kpis=document.getElementById('kpis');if(!kpis)throw Error('요약 카드 영역을 찾을 수 없습니다');root.append(kpis);
+  if(kind==='ft'){const cats=document.getElementById('cats');if(!cats)throw Error('영역별 현황을 찾을 수 없습니다');const h=document.createElement('h2');h.textContent='영역별 현황';root.append(h,cats)}
+  const style=document.createElement('style');style.textContent=`html,body{margin:0!important;padding:0!important;background:transparent!important;overflow:hidden!important}body>:not(#weeklyEmbedRoot){display:none!important}#weeklyEmbedRoot{padding:2px;width:100%;box-sizing:border-box}#weeklyEmbedRoot .kpis{margin:0 0 16px;gap:12px;grid-template-columns:repeat(${kind==='ft'?6:4},minmax(0,1fr))}#weeklyEmbedRoot .kpi{min-width:0}#weeklyEmbedRoot .val{font-size:28px}#weeklyEmbedRoot .cat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}#weeklyEmbedRoot h2{font-size:17px;margin:20px 0 14px}@media(max-width:1000px){#weeklyEmbedRoot .kpis{grid-template-columns:repeat(${kind==='ft'?3:2},minmax(0,1fr))}}@media(max-width:650px){#weeklyEmbedRoot .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#weeklyEmbedRoot .cat{grid-template-columns:1fr}#weeklyEmbedRoot .wide{grid-column:span 2}}`;document.head.append(style);
+  addEventListener('message',e=>{if(e.source===parent&&e.data?.type==='weekly-theme')document.documentElement.setAttribute('data-theme',e.data.theme)});
+  function report(){
+   let error='',ready=!!kpis.children.length;
+   if(kind==='ft'&&typeof SOURCE!=='undefined'&&SOURCE==='fallback'){error='원본 시트를 불러오지 못했습니다. 원본 대시보드의 공유 설정을 확인해 주세요.';ready=false}
+   const err=document.getElementById('err');if(kind==='mail'&&err&&err.style.display==='block'){error=err.textContent;ready=false}
+   root.style.visibility=error?'hidden':'visible';
+   parent.postMessage({type:'weekly-linked-state',kind,height:Math.ceil(root.getBoundingClientRect().height)+6,ready,error},'*');
+  }
+  new ResizeObserver(report).observe(root);new MutationObserver(report).observe(root,{childList:true,subtree:true,characterData:true});setInterval(report,1000);report();
+ }
+ async function refresh(state){
+  if(state.busy)return;state.busy=true;state.status.textContent='원본 데이터 불러오는 중…';
+  try{
+   const response=await fetch(state.url+'?weekly='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(20000)});if(!response.ok)throw Error('HTTP '+response.status);
+   const doc=new DOMParser().parseFromString(await response.text(),'text/html');
+   doc.querySelectorAll('script[src*="Dashboard_Hub"]').forEach(el=>el.remove());
+   const base=doc.createElement('base');base.href=state.url;doc.head.prepend(base);
+   const script=doc.createElement('script');script.textContent='('+bridge.toString()+')('+JSON.stringify(state.kind)+');';doc.body.append(script);
+   state.frame.srcdoc='<!doctype html>'+doc.documentElement.outerHTML;
+   clearTimeout(state.timer);state.timer=setTimeout(()=>{state.status.textContent='연결이 지연되고 있습니다. 새로고침하거나 원본 대시보드를 확인해 주세요.'},30000);
+  }catch(e){state.status.textContent='원본 대시보드를 불러오지 못했습니다. 새로고침 버튼으로 다시 시도해 주세요.'}finally{state.busy=false}
+ }
+ addEventListener('message',e=>{
+  const state=states.find(s=>s.frame.contentWindow===e.source);if(!state||e.data?.type!=='weekly-linked-state'||e.data.kind!==state.kind)return;
+  state.frame.contentWindow.postMessage({type:'weekly-theme',theme:theme()},'*');
+  state.frame.style.height=Math.max(140,Math.min(30000,Number(e.data.height)||140))+'px';
+  if(e.data.error){clearTimeout(state.timer);state.status.textContent=e.data.error;state.frame.style.height='0px';state.frame.style.minHeight='0px'}
+  else if(e.data.ready){clearTimeout(state.timer);state.frame.style.minHeight='140px';state.status.textContent='원본 연동 · 최근 확인 '+new Date().toLocaleTimeString('ko-KR')+' · 5분마다 자동 갱신'}
+ });
+ new MutationObserver(()=>states.forEach(s=>s.frame.contentWindow.postMessage({type:'weekly-theme',theme:theme()},'*'))).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+ states.forEach(refresh);setInterval(()=>{if(!document.hidden)states.forEach(refresh)},300000);
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)states.forEach(refresh)});
+ document.getElementById('refreshBtn')?.addEventListener('click',()=>states.forEach(refresh));
+})();
+</script>
+
 </body></html>
