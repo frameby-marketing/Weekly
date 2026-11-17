@@ -1747,7 +1747,7 @@ $('kAdRatioCard').onclick=openAdRatioDetail;
   const root=document.createElement('div');root.id='weeklyEmbedRoot';document.body.append(root);
   const kpis=document.getElementById('kpis');if(!kpis)throw Error('요약 카드 영역을 찾을 수 없습니다');root.append(kpis);
   if(kind==='ft'){const cats=document.getElementById('cats');if(!cats)throw Error('영역별 현황을 찾을 수 없습니다');const h=document.createElement('h2');h.textContent='영역별 현황';root.append(h,cats)}
-  const style=document.createElement('style');style.textContent=`html,body{margin:0!important;padding:0!important;background:transparent!important;overflow:hidden!important}body>:not(#weeklyEmbedRoot){display:none!important}#weeklyEmbedRoot{padding:2px;width:100%;box-sizing:border-box}#weeklyEmbedRoot .kpis{margin:0 0 16px;gap:12px;grid-template-columns:repeat(${kind==='ft'?6:4},minmax(0,1fr))}#weeklyEmbedRoot .kpi{min-width:0}#weeklyEmbedRoot .val{font-size:28px}#weeklyEmbedRoot .cat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}#weeklyEmbedRoot h2{font-size:17px;margin:20px 0 14px}@media(max-width:1000px){#weeklyEmbedRoot .kpis{grid-template-columns:repeat(${kind==='ft'?3:2},minmax(0,1fr))}}@media(max-width:650px){#weeklyEmbedRoot .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#weeklyEmbedRoot .cat{grid-template-columns:1fr}#weeklyEmbedRoot .wide{grid-column:span 2}}`;document.head.append(style);
+  const style=document.createElement('style');style.textContent=`html,body{margin:0!important;padding:0!important;background:transparent!important;overflow:hidden!important}body>:not(#weeklyEmbedRoot){display:none!important}#weeklyEmbedRoot{padding:2px;width:100%;box-sizing:border-box}#weeklyEmbedRoot .kpis{margin:0 0 16px;gap:12px;grid-template-columns:repeat(${kind==='ft'?6:4},minmax(0,1fr))}#weeklyEmbedRoot .kpi{min-width:0}#weeklyEmbedRoot .val{font-size:28px}#weeklyEmbedRoot .area-person:not(.is-shipped){display:none!important}#weeklyEmbedRoot .cat{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}#weeklyEmbedRoot h2{font-size:17px;margin:20px 0 14px}@media(max-width:1000px){#weeklyEmbedRoot .kpis{grid-template-columns:repeat(${kind==='ft'?3:2},minmax(0,1fr))}}@media(max-width:650px){#weeklyEmbedRoot .kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#weeklyEmbedRoot .cat{grid-template-columns:1fr}#weeklyEmbedRoot .wide{grid-column:span 2}}`;document.head.append(style);
   addEventListener('message',e=>{if(e.source===parent&&e.data?.type==='weekly-theme')document.documentElement.setAttribute('data-theme',e.data.theme)});
   function report(){
    let error='',ready=!!kpis.children.length;
@@ -1764,6 +1764,29 @@ $('kAdRatioCard').onclick=openAdRatioDetail;
    const response=await fetch(state.url+'?weekly='+Date.now(),{cache:'no-store',signal:AbortSignal.timeout(20000)});if(!response.ok)throw Error('HTTP '+response.status);
    const doc=new DOMParser().parseFromString(await response.text(),'text/html');
    doc.querySelectorAll('script[src*="Dashboard_Hub"]').forEach(el=>el.remove());
+   if(state.kind==='mail'){
+    // The source's CSV fetch is blocked in opaque sandbox origins in some browsers.
+    // Use Google Visualization's script callback, like the working interview source.
+    const loader=doc.createElement('script');
+    loader.textContent=`function weeklyMailTable(){return new Promise((resolve,reject)=>{
+     const cb='__weeklyMail_'+Date.now(),el=document.createElement('script');
+     const cleanup=()=>{clearTimeout(timer);delete window[cb];el.remove()};
+     const timer=setTimeout(()=>{cleanup();reject(Error('시트 응답 시간이 초과되었습니다'))},20000);
+     window[cb]=res=>{cleanup();if(!res||res.status==='error'||!res.table){reject(Error('시트를 읽지 못했습니다'));return}
+      const t=res.table;resolve(t.rows.map(r=>t.cols.map((_,i)=>{const c=r.c&&r.c[i];return c==null?'':String(c.f??c.v??'')})))};
+     el.onerror=()=>{cleanup();reject(Error('시트 연결에 실패했습니다'))};
+     el.src='https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/gviz/tq?gid='+encodeURIComponent(SHEET_GID)+'&headers=0&range='+encodeURIComponent(RANGE)+'&tqx='+encodeURIComponent('out:json;responseHandler:'+cb)+'&_='+Date.now();document.head.append(el);
+    })}`;
+    doc.head.append(loader);
+    let patched=false;
+    doc.querySelectorAll('script:not([src])').forEach(el=>{
+     if(!el.textContent.includes('const rows = buildRows(parseCSV(text))'))return;
+     el.textContent=el.textContent.replace(/const res = await fetch\(CSV_URL\(\), \{ cache: "no-store" \}\);[\s\S]*?const rows = buildRows\(parseCSV\(text\)\);/,'const rows = buildRows(await weeklyMailTable());');
+     patched=el.textContent.includes('buildRows(await weeklyMailTable())');
+    });
+    if(!patched)throw Error('원본 B2B 로더 구조가 변경되었습니다');
+   }
+
    const base=doc.createElement('base');base.href=state.url;doc.head.prepend(base);
    const script=doc.createElement('script');script.textContent='('+bridge.toString()+')('+JSON.stringify(state.kind)+');';doc.body.append(script);
    state.frame.srcdoc='<!doctype html>'+doc.documentElement.outerHTML;
@@ -1775,7 +1798,7 @@ $('kAdRatioCard').onclick=openAdRatioDetail;
   state.frame.contentWindow.postMessage({type:'weekly-theme',theme:theme()},'*');
   state.frame.style.height=Math.max(140,Math.min(30000,Number(e.data.height)||140))+'px';
   if(e.data.error){clearTimeout(state.timer);state.status.textContent=e.data.error;state.frame.style.height='0px';state.frame.style.minHeight='0px'}
-  else if(e.data.ready){clearTimeout(state.timer);state.frame.style.minHeight='140px';state.status.textContent='원본 연동 · 최근 확인 '+new Date().toLocaleTimeString('ko-KR')+' · 5분마다 자동 갱신'}
+  else if(e.data.ready){clearTimeout(state.timer);state.frame.style.minHeight='140px';state.frame.style.height=Math.max(140,Number(e.data.height)||140)+'px';state.status.textContent='원본 연동 · 최근 확인 '+new Date().toLocaleTimeString('ko-KR')+' · 5분마다 자동 갱신'}
  });
  new MutationObserver(()=>states.forEach(s=>s.frame.contentWindow.postMessage({type:'weekly-theme',theme:theme()},'*'))).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
  states.forEach(refresh);setInterval(()=>{if(!document.hidden)states.forEach(refresh)},300000);
