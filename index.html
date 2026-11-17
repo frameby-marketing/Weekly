@@ -325,7 +325,7 @@ body.presentation-mode .presentation-cover .cover-title-date{font-size:clamp(24p
     <div class="card kpi week-clickable" id="kWeekSalesCard"><div class="label">어제까지 최근 7일 매출 일평균</div><div class="value" id="kWeekSales">—</div><div class="meta" id="kWeekSalesMeta">어제까지 최근 7일 기준</div></div>
     <div class="card kpi clickable" id="kMtdCard"><div class="label">월 누적 매출</div><div class="value" id="kMtd">—</div><div class="meta" id="kMtdMeta">—</div></div>
     <div class="card kpi clickable" id="kTotalAvgCard"><div class="label">현재 전체매출 일평균</div><div class="value" id="kTotalAvg">—</div><div class="meta" id="kTotalAvgMeta">월 계획 대비</div></div>
-    <div class="card kpi clickable" id="kAdRatioCard"><div class="label">어제까지 최근 7일 매출액 대비 광고비</div><div class="value" id="kAdSpend">—</div><div class="meta" id="kAdMeta">—</div></div>
+    <div class="card kpi clickable" id="kAdRatioCard"><div class="label">11월 전체 매출액 대비 광고비</div><div class="value" id="kAdSpend">—</div><div class="meta" id="kAdMeta">—</div></div>
   </section>
   <section class="presentation-cover" id="presentationCover">
     <div class="presentation-cover-inner">
@@ -469,7 +469,7 @@ function updateReportLabels(){
   $('periodBadge').textContent=`어제까지 최근 7일 · ${rangeLabel(RR.start,RR.end)}`;
   $('presentationCoverDate').textContent=rangeLabel(RR.start,RR.end);
   $('kWeekSalesCard').querySelector('.label').textContent=`${weeklyPeriodText()} 매출 일평균`;
-  $('kAdRatioCard').querySelector('.label').textContent=`${weeklyPeriodText()} 매출액 대비 광고비`;
+  $('kAdRatioCard').querySelector('.label').textContent=`${RR.end.getMonth()+1}월 전체 매출액 대비 광고비`;
   $('kWeekSalesMeta').textContent=rangeLabel(RR.start,RR.end);
   $('productCards').closest('section').querySelector('small').textContent=`5개 주력제품 · ${rangeLabel(RR.start,RR.end)} vs 직전 7일 · 클릭하면 일별·주차별·월별 상세 추이`;
   $('evalWeekBtn').textContent=weeklyPeriodText();
@@ -1714,6 +1714,11 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&TOKEN&&is
 setInterval(()=>{if(!document.hidden&&TOKEN&&iso(reportRange().end)!==iso(RR.end))loadAll();},60000);
 const requestedRender=render;
 render=function(){requestedRender();let s=DATA.sales,m=RR.end.getMonth()+1;
+ $('kAdRatioCard').querySelector('.label').textContent=`${m}월 전체 매출액 대비 광고비`;
+ const a=DATA.ads;
+ if(s&&a){const sales=sum(s.monthAll.filter(r=>r.date<=RR.end),r=>r.total),ad=sum(a.monthAll.filter(r=>r.date<=RR.end),r=>r.ad);$('kAdSpend').textContent=sales?(ad/sales*100).toFixed(1)+'%':'—';$('kAdMeta').textContent=`${m}/1~${md(RR.end)} · 전체 광고비 ${fmtMoney(ad)} ÷ 전체 매출 ${fmtMoney(sales)}`;}
+ else{$('kAdSpend').textContent='—';$('kAdMeta').textContent='월 누적 전체 매출·광고비 데이터 확인 중';}
+
  $('kTotalAvgCard').querySelector('.label').textContent=`${m}월 전체 매출 일평균`;$('kMtdCard').querySelector('.label').textContent=`${m}월 누적 매출`;
  if(s){let prior=s.priorSum/7,cur=s.currentSum/7;$('kWeekSalesMeta').innerHTML=`전주 일평균 <b>${fmtWon(prior)}</b> · 전주 대비 <b class="${cur>=prior?'up':'down'}">${fmtPct(pct(cur,prior))}</b>`;let total=s.latestMtd,days=s.latestDate.getDate();$('kTotalAvg').textContent=fmtMoney(total/days);$('kTotalAvgMeta').textContent=`${m}/1~${md(s.latestDate)} · ${days}일 기준`;$('kMtd').textContent=fmtMoney(total);$('kMtdMeta').textContent=`${m}/1~${md(s.latestDate)} 누적 · 전체 플랫폼`;}
 };
