@@ -113,7 +113,7 @@ html[data-theme="light"]{--bg:#f3f5f8;--panel:#fff;--panel2:#f7f8fb;--line:#e1e5
 .detail-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:12px 0 16px}
 .detail-stat{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:15px}
 .detail-stat .t{font-size:11px;color:var(--sub);margin-bottom:7px}.detail-stat .v{font-size:22px;font-weight:900}.detail-stat .s{font-size:11px;color:var(--sub);margin-top:5px}
-.product-toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.product-granularity{display:flex;gap:7px}.product-granularity .btn.active{background:var(--blue);border-color:var(--blue);color:white}
+.product-toolbar{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}.product-granularity{display:flex;gap:7px;flex-wrap:wrap}.product-option-periods,.sales-toggle{flex-wrap:wrap}.product-option-periods .btn.active{background:var(--blue);border-color:var(--blue);color:#fff}.product-granularity .btn.active{background:var(--blue);border-color:var(--blue);color:white}
 .ad-chart-card{border:1px solid transparent;border-radius:13px;padding:8px;margin:-8px}
 .preorder-detail{grid-column:1/-1;border:2px solid rgba(251,191,36,.5);background:linear-gradient(180deg,rgba(251,191,36,.06),var(--panel2));padding:22px;border-radius:18px}
 .preorder-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.preorder-title h3{font-size:20px;margin:0}.preorder-badge{color:var(--yellow);border:1px solid rgba(251,191,36,.35);background:rgba(251,191,36,.1);padding:8px 12px;border-radius:999px;font-weight:900}
@@ -393,10 +393,11 @@ body.presentation-mode .presentation-cover .cover-title-date{font-size:clamp(24p
           <button class="btn" data-product-view="rate">전환율</button>
           <button class="btn" data-product-view="options">옵션별 판매비중</button>
         </div>
-        <div class="product-option-periods" style="display:none;gap:7px"><button class="btn active" data-option-days="7">최근 7일</button><button class="btn" data-option-days="30">최근 30일</button><button class="btn" data-option-days="90">최근 90일</button></div>
+        <div class="product-option-periods" style="display:none;gap:7px"><button class="btn active" data-option-days="7">최근 7일</button><button class="btn" data-option-days="30">최근 30일</button><button class="btn" data-option-days="90">최근 90일</button><button type="button" class="btn" data-option-days="blackFriday">블랙프라이데이</button></div>
         <div class="product-granularity">
           <button class="btn" data-product-granularity="daily">일별</button>
           <button class="btn" data-product-granularity="weekly">주차별</button><button class="btn active" data-product-granularity="monthly">월별</button>
+          <button type="button" class="btn" data-product-granularity="blackFriday">블랙프라이데이</button>
         </div>
       </div>
       <div class="chart xl"><canvas id="product30Chart"></canvas></div>
@@ -405,11 +406,13 @@ body.presentation-mode .presentation-cover .cover-title-date{font-size:clamp(24p
 
   <div id="salesModal" class="modal hidden">
     <div class="modal-card">
-      <div class="modal-head"><div><h2>최근 3주 일별 매출</h2><small>최근 21일 일별 막대그래프 · 평균선 포함</small></div><button class="btn" id="salesModalClose">닫기</button></div>
+      <div class="modal-head"><div><h2 id="salesModalTitle">최근 3주 일별 매출</h2><small id="salesModalSub">최근 21일 일별 막대그래프 · 평균선 포함</small></div><button class="btn" id="salesModalClose">닫기</button></div>
       <div class="sales-toggle">
         <button class="btn active" data-sales-view="total">전체 플랫폼 합산</button>
         <button class="btn" data-sales-view="selfNaver">자사몰+네이버 합산</button>
+        <button type="button" class="btn" id="salesBlackFriday" aria-pressed="false">블랙프라이데이 데이터 보기</button>
       </div>
+      <div id="salesCampaignStats" class="detail-stats hidden"></div>
       <div class="chart xl" style="margin-top:12px"><canvas id="sales3WeekChart"></canvas></div>
     </div>
   </div>
@@ -550,7 +553,7 @@ async function loadProducts(){
   });
   DATA.products={rows};setSource('srcProduct','ok','정상');
 }
-function parseAdRows(vals){return vals.slice(1).map(r=>{let av=num(r[1]),rv=num(r[2]),ratio=num(r[3]);return{date:dateFlexible(r[0],2026),ad:av||0,revenue:rv||0,ratio,hasData:av!=null||rv!=null||ratio!=null}}).filter(x=>x.date&&x.hasData)}
+function parseAdRows(vals){return vals.slice(1).map(r=>{let av=num(r[1]),rv=num(r[2]),ratio=num(r[3]);return{date:dateFlexible(r[0],2026),ad:av||0,hasAd:av!=null,revenue:rv||0,ratio,hasData:av!=null||rv!=null||ratio!=null}}).filter(x=>x.date&&x.hasData)}
 function parseAdChannelRows(vals){let hi=vals.findIndex(r=>r.some(v=>/meta|메타/i.test(String(v)))&&r.some(v=>String(v).includes('네이버'))&&r.some(v=>String(v).includes('쿠팡')));if(hi<0)return[];let header=vals[hi],cols={meta:header.findIndex(v=>/meta|메타/i.test(String(v))),naver:header.findIndex(v=>String(v).includes('네이버')),google:header.findIndex(v=>String(v).includes('구글')),coupang:header.findIndex(v=>String(v).includes('쿠팡'))};return vals.slice(hi+1).map(r=>{let di=header.findIndex(v=>/날짜|일자|date/i.test(String(v))),date=dateFlexible(r[di<0?0:di],RR.end.getFullYear());let out={date};for(let [key,i]of Object.entries(cols))out[key]=i<0?null:num(r[i]);return out;}).filter(r=>r.date&&Object.keys(cols).some(k=>r[k]!=null));}
 async function loadAds(){
   setSource('srcAds','loading','로딩');
@@ -937,7 +940,7 @@ function draw(id,type,labels,datasets,opt={}){
   if(charts[id])charts[id].destroy();
   let cs=getComputedStyle(document.documentElement),text=cs.getPropertyValue('--sub').trim(),line=cs.getPropertyValue('--line').trim();
   let hasAverage=opt.averageLine!=null||opt.recentAverageLine!=null,labelPadding=opt.barLabels||opt.pointLabels||opt.rawBarLabels||opt.rateLabels||opt.multiPointLabels;
-  charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:(hasAverage&&!opt.averageInline)||opt.cornerLabel?82:(labelPadding?58:12)}},plugins:{valueLabelPlugin:{barLabels:!!opt.valueLabels,largeValueLabels:!!opt.largeValueLabels,pointLabels:!!opt.pointValueLabels,rawBarLabels:!!opt.rawBarLabels,rateLabels:!!opt.rateLabels,multiPointLabels:!!opt.multiPointLabels,multiPointPercent:!!opt.multiPointPercent,averageLine:opt.averageLine,averagePercent:!!opt.averagePercent,averageMoney:!!opt.averageMoney,averageInline:!!opt.averageInline,recentAverageLine:opt.recentAverageLine,recentAveragePercent:!!opt.recentAveragePercent,recentAverageMoney:!!opt.recentAverageMoney,pieLabels:!!opt.pieLabels,productPieLabels:!!opt.productPieLabels,benchmarkLine:opt.benchmarkLine,cornerLabel:opt.cornerLabel},legend:{display:opt.legend!==false,labels:{color:text,boxWidth:13,font:{size:14,weight:'700'}}},tooltip:{callbacks:{label:c=>opt.money?`${c.dataset.label}: ${fmtMoney(c.raw)}`:opt.percent?`${c.dataset.label}: ${Number(c.raw).toFixed(2)}%`:`${c.dataset.label}: ${c.raw}`}}},scales:['doughnut','pie'].includes(type)?{}:{x:{ticks:{color:text,font:{size:13,weight:'700'}},grid:{display:false}},y:{beginAtZero:opt.yMin==null,min:opt.yMin,max:opt.yMax,ticks:{color:text,font:{size:12,weight:'700'},callback:v=>opt.money?(Math.abs(v)>=1e8?(v/1e8).toFixed(1)+'억':Math.round(v/1e4)+'만'):opt.percent?v+'%':v},grid:{color:line}}}}})
+  charts[id]=new Chart($(id),{type,data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,layout:{padding:{top:(hasAverage&&!opt.averageInline)||opt.cornerLabel?82:(labelPadding?58:12)}},plugins:{valueLabelPlugin:{barLabels:!!opt.valueLabels,largeValueLabels:!!opt.largeValueLabels,pointLabels:!!opt.pointValueLabels,rawBarLabels:!!opt.rawBarLabels,rateLabels:!!opt.rateLabels,multiPointLabels:!!opt.multiPointLabels,multiPointPercent:!!opt.multiPointPercent,averageLine:opt.averageLine,averageLabel:opt.averageLabel,averagePercent:!!opt.averagePercent,averageMoney:!!opt.averageMoney,averageInline:!!opt.averageInline,recentAverageLine:opt.recentAverageLine,recentAveragePercent:!!opt.recentAveragePercent,recentAverageMoney:!!opt.recentAverageMoney,pieLabels:!!opt.pieLabels,productPieLabels:!!opt.productPieLabels,benchmarkLine:opt.benchmarkLine,cornerLabel:opt.cornerLabel},legend:{display:opt.legend!==false,labels:{color:text,boxWidth:13,font:{size:14,weight:'700'}}},tooltip:{callbacks:{label:c=>opt.money?`${c.dataset.label}: ${fmtMoney(c.raw)}`:opt.percent?`${c.dataset.label}: ${Number(c.raw).toFixed(2)}%`:`${c.dataset.label}: ${c.raw}`}}},scales:['doughnut','pie'].includes(type)?{}:{x:{ticks:{color:text,font:{size:13,weight:'700'}},grid:{display:false}},y:{beginAtZero:opt.yMin==null,min:opt.yMin,max:opt.yMax,ticks:{color:text,font:{size:12,weight:'700'},callback:v=>opt.money?(Math.abs(v)>=1e8?(v/1e8).toFixed(1)+'억':Math.round(v/1e4)+'만'):opt.percent?v+'%':v},grid:{color:line}}}}})
 }
 
 let activeProductIndex=0,activeProductView='sales',activeProductGranularity='monthly',activeOptionDays=7;
@@ -957,9 +960,10 @@ function renderProductDetail(){
   document.querySelector('[data-product-view="options"]').style.display=PRODUCT_SALES_OPTIONS[x.name].length>1?'':'none';
   document.querySelector('#productModal .product-granularity').style.display=optionView?'none':'flex';
   document.querySelector('#productModal .product-option-periods').style.display=optionView?'flex':'none';
-  document.querySelectorAll('[data-option-days]').forEach(b=>b.classList.toggle('active',+b.dataset.optionDays===activeOptionDays));
+  document.querySelectorAll('[data-option-days]').forEach(b=>b.classList.toggle('active',b.dataset.optionDays===String(activeOptionDays)));
   $('modalSub').textContent=view==='sales'||optionView?'판매수량: 실판매 시트 · 옵션 합산 · 어제까지 집계':'노출량·전환율: 기존 자사몰+네이버 데이터 · 어제까지 집계';
   if(optionView){renderProductOptionShare(x);return;}
+  if(activeProductGranularity==='blackFriday'){renderBlackFridayProduct(x,view);return;}
   if(activeProductGranularity==='monthly'){renderProductMonthlyAverage(x,view);return;}
   let totalEx=sum(rows,r=>r.exposure),totalCv=sum(rows,r=>r.sales),rate=totalEx?sum(rows,r=>r.conversion)/totalEx*100:0;
   $('productDetailStats').innerHTML=`
@@ -984,23 +988,39 @@ function renderProductDetail(){
   draw('product30Chart','line',dayLabels,sets,view==='rate'?{percent:true,multiPointLabels:true,multiPointPercent:true}:{multiPointLabels:true});
 }
 function renderProductOptionShare(x){
- const start=addDays(x.latestDate,1-activeOptionDays),options=PRODUCT_SALES_OPTIONS[x.name],rows=x.salesRows.filter(r=>r.date>=start&&r.date<=x.latestDate);
+ const campaign=activeOptionDays==='blackFriday',options=PRODUCT_SALES_OPTIONS[x.name];
+ const start=campaign?blackFridayRange().start:addDays(x.latestDate,1-activeOptionDays);
+ const rows=campaign?blackFridayRows(x.salesRows):x.salesRows.filter(r=>r.date>=start&&r.date<=x.latestDate);
+ if(campaign&&!rows.length){renderEmptyBlackFridayProduct('실판매 시트');return;}
  const values=options.map((_,i)=>sum(rows,r=>r.options[i])),total=sum(values);
  const colors=x.name==='FT'?['#f58220','#800020','#f5cf35','#17191d','#3478db']:['#aeb4bd','#17191d','#32985a'];
- $('modalSub').textContent=`실판매 시트 · ${rangeLabel(start,x.latestDate)} · 옵션별 판매수량 합계 기준`;
- $('productDetailStats').innerHTML=statCard(`최근 ${activeOptionDays}일 판매수량`,`${total.toLocaleString()}개`,rows.length?`${rows.length}일 입력 데이터`:'입력 데이터 없음')+options.map(([name],i)=>statCard(name,`${values[i].toLocaleString()}개`,total?`${(values[i]/total*100).toFixed(1)}%`:'판매 데이터 없음')).join('');
+ $('modalSub').textContent=`실판매 시트 · ${campaign?blackFridaySummary(rows):rangeLabel(start,x.latestDate)} · 옵션별 판매수량 합계 기준`;
+ $('productDetailStats').innerHTML=statCard(campaign?'행사 누적 판매수량':`최근 ${activeOptionDays}일 판매수량`,`${total.toLocaleString()}개`,rows.length?`${rows.length}일 입력 데이터`:'입력 데이터 없음')+options.map(([name],i)=>statCard(name,`${values[i].toLocaleString()}개`,total?`${(values[i]/total*100).toFixed(1)}%`:'판매 데이터 없음')).join('');
  draw('product30Chart','pie',options.map(([name],i)=>`${name} · ${values[i].toLocaleString()}개 (${total?(values[i]/total*100).toFixed(1):'0.0'}%)`),[{label:'판매수량',data:values,backgroundColor:colors.slice(0,options.length),borderColor:'#ffffff',borderWidth:2}],{productPieLabels:total>0});
 }
-document.querySelectorAll('[data-option-days]').forEach(b=>b.onclick=()=>{activeOptionDays=+b.dataset.optionDays;renderProductDetail()});
+document.querySelectorAll('[data-option-days]').forEach(b=>b.onclick=()=>{activeOptionDays=b.dataset.optionDays==='blackFriday'?'blackFriday':+b.dataset.optionDays;renderProductDetail()});
 document.querySelectorAll('[data-product-view]').forEach(b=>b.onclick=()=>{activeProductView=b.dataset.productView;document.querySelectorAll('[data-product-view]').forEach(x=>x.classList.toggle('active',x===b));renderProductDetail()});
 document.querySelectorAll('[data-product-granularity]').forEach(b=>b.onclick=()=>{activeProductGranularity=b.dataset.productGranularity;document.querySelectorAll('[data-product-granularity]').forEach(x=>x.classList.toggle('active',x===b));renderProductDetail()});
 if($('modalClose')) $('modalClose').onclick=()=>$('productModal')?.classList.add('hidden');
 if($('productModal')) $('productModal').onclick=e=>{if(e.target.id==='productModal')$('productModal').classList.add('hidden')};
 
-let activeSalesView='total';
-function openSalesDetail(view='total'){if(MONTH_REPORT){openMonthlySalesDetail(true,view==='total'?'total':'selfNaver');return;}activeSalesView=view;$('salesModal').classList.remove('hidden');syncModalCenter();document.querySelectorAll('[data-sales-view]').forEach(b=>b.classList.toggle('active',b.dataset.salesView===view));renderSales3Week()}
+let activeSalesView='total',salesBlackFriday=false;
+function openSalesDetail(view='total'){if(MONTH_REPORT){openMonthlySalesDetail(true,view==='total'?'total':'selfNaver');return;}activeSalesView=view;salesBlackFriday=false;$('salesModal').classList.remove('hidden');syncModalCenter();document.querySelectorAll('[data-sales-view]').forEach(b=>b.classList.toggle('active',b.dataset.salesView===view));renderSales3Week()}
 function renderSales3Week(){
  if(!DATA.sales)return;
+ const button=$('salesBlackFriday'),stats=$('salesCampaignStats');
+ button.classList.toggle('active',salesBlackFriday);
+ button.setAttribute('aria-pressed',String(salesBlackFriday));
+ stats.classList.toggle('hidden',!salesBlackFriday);
+ $('salesModalTitle').textContent=salesBlackFriday?'블랙프라이데이 매출 일평균':'최근 3주 일별 매출';
+ if(salesBlackFriday){
+   const report=blackFridaySalesReport('average',activeSalesView);
+   $('salesModalSub').textContent=report.sub;
+   stats.innerHTML=report.stats;
+   report.draw('sales3WeekChart');
+   return;
+ }
+ $('salesModalSub').textContent='최근 21일 일별 막대그래프 · 평균선 포함';
  const end=RR.end,start=addDays(end,-20),previousStart=addDays(end,-13),previousEnd=addDays(end,-7),recentStart=addDays(end,-6);
  const map=new Map(DATA.sales.days.filter(r=>r.date>=start&&r.date<=end).map(r=>[iso(r.date),r]));
  const rows=Array.from({length:21},(_,i)=>{const date=addDays(start,i);return map.get(iso(date))||{date,total:0,selfNaver:0}});
@@ -1012,6 +1032,7 @@ function renderSales3Week(){
 if($('salesMainCard')) $('salesMainCard').onclick=null;
 if($('kWeekSalesCard')) $('kWeekSalesCard').onclick=()=>openSalesDetail('total');
 document.querySelectorAll('[data-sales-view]').forEach(b=>b.onclick=()=>{activeSalesView=b.dataset.salesView;document.querySelectorAll('[data-sales-view]').forEach(x=>x.classList.toggle('active',x===b));renderSales3Week()});
+$('salesBlackFriday').onclick=()=>{salesBlackFriday=!salesBlackFriday;renderSales3Week();};
 if($('salesModalClose')) $('salesModalClose').onclick=()=>$('salesModal')?.classList.add('hidden');
 if($('salesModal')) $('salesModal').onclick=e=>{if(e.target.id==='salesModal')$('salesModal').classList.add('hidden')};
 
@@ -1028,7 +1049,7 @@ function openMtdDetail(){if(MONTH_REPORT){openMonthlySalesDetail(false);return;}
     let y=RR.end.getFullYear(),rows=s.days.filter(r=>r.date.getFullYear()===y&&r.date.getMonth()===viewMonth&&(viewMonth===curMonth?r.date<=RR.end:true)),channels=[['자사몰','self','#6c7bff'],['네이버','naver','#34d399'],['쿠팡','coupang','#ef4444'],['M몰','mmall','#374151']],vals=channels.map(c=>sum(rows,r=>r[c[1]]||0)),total=sum(rows,r=>r.total),daysInMonth=new Date(y,viewMonth+1,0).getDate(),forecast=viewMonth===curMonth&&rows.length?total/RR.end.getDate()*daysInMonth:total;
     $('detailModalTitle').textContent=`${viewMonth+1}월 누적 매출 플랫폼 비중`;$('detailModalSub').textContent=`${rows.length}일 반영${viewMonth===curMonth?' · ~'+md(RR.end):' · 월 전체'}`;
     let monthButtons=Array.from({length:curMonth+1},(_,i)=>curMonth-i).map(m=>`<button class="btn ${viewMonth===m?'active':''}" data-mtd-month="${m}">${m+1}월</button>`).join('');
-    $('detailModalBody').innerHTML=`<div class="detail-actions">${monthButtons}</div><div class="detail-stats">${statCard('월 누적 매출',fmtMoney(total),`${rows.length}일 반영`)}${statCard('현재 평균 유지 시 월말 누적 예상 매출',fmtMoney(forecast),`일평균 ${fmtMoney(total/(viewMonth===curMonth?RR.end.getDate():daysInMonth))} 기준`)}${statCard('자사몰+네이버 합산 매출 비중',total?(100*(vals[0]+vals[1])/total).toFixed(1)+'%':'—','월 누적 전체 플랫폼 매출 대비')}</div>`;
+    $('detailModalBody').innerHTML=`<div class="detail-actions">${monthButtons}${blackFridayButton('cumulative')}</div><div class="detail-stats">${statCard('월 누적 매출',fmtMoney(total),`${rows.length}일 반영`)}${statCard('현재 평균 유지 시 월말 누적 예상 매출',fmtMoney(forecast),`일평균 ${fmtMoney(total/(viewMonth===curMonth?RR.end.getDate():daysInMonth))} 기준`)}${statCard('자사몰+네이버 합산 매출 비중',total?(100*(vals[0]+vals[1])/total).toFixed(1)+'%':'—','월 누적 전체 플랫폼 매출 대비')}</div>`;
     draw('detailChart','doughnut',channels.map(c=>c[0]),[{label:'매출 비중',data:vals,backgroundColor:channels.map(c=>c[2]),borderWidth:0}],{legend:true,pieLabels:true});
     document.querySelectorAll('[data-mtd-month]').forEach(b=>b.onclick=()=>{viewMonth=+b.dataset.mtdMonth;renderMonth()});
   }
@@ -1049,7 +1070,7 @@ function openTotalAvgDetail(){
  const currentAvg=s.latestMtd/s.latestDate.getDate();
  openDetailModal(`${currentMonth+1}월 포함 월별 전체매출 일평균`,
   `1월~${currentMonth+1}월 · 당월은 ${md(s.latestDate)}까지 ${s.latestDate.getDate()}일 기준`,
-  `<div class="detail-stats">${statCard(`${currentMonth+1}월 현재 일평균`,fmtMoney(currentAvg),
+  `<div class="detail-actions">${blackFridayButton('average')}</div><div class="detail-stats">${statCard(`${currentMonth+1}월 현재 일평균`,fmtMoney(currentAvg),
    `누적 매출 ÷ ${s.latestDate.getDate()}일 · 상단 KPI와 동일 기준`)}
    ${statCard('월별 평균',mean==null?'—':fmtMoney(mean),'데이터가 있는 월의 일평균')}</div>`,
   ()=>draw('detailChart','bar',months.map(x=>x.label),
@@ -1724,9 +1745,101 @@ render=function(){requestedRender();let s=DATA.sales,m=RR.end.getMonth()+1;
 };
 $('kMtdCard').before($('kTotalAvgCard'));
 openAdRatioDetail=function(){let s=DATA.sales,a=DATA.ads;if(!s||!a)return;let end=RR.end,rows=s.monthAll.filter(r=>r.date<=end),ads=a.monthAll.filter(r=>r.date<=end),sales=sum(rows,r=>r.total),ad=sum(ads,r=>r.ad),ratio=sales?ad/sales*100:null;
- openDetailModal(`${RR.end.getMonth()+1}월 누적 매출액 대비 광고비`,`${RR.end.getMonth()+1}/1~${md(end)} · 어제까지 집계 기준`,statCard('매출액 대비 광고비',ratio==null?'—':ratio.toFixed(1)+'%','월 누적 전체 광고비 ÷ 월 누적 전체 매출'),()=>draw('detailChart','bar',['월 누적 전체 매출','월 누적 전체 광고비'],[{label:'금액',data:[sales,ad],backgroundColor:['#6c7bff','#34d399'],borderRadius:8}],{money:true,valueLabels:true,legend:false}));
+ openDetailModal(`${RR.end.getMonth()+1}월 누적 매출액 대비 광고비`,`${RR.end.getMonth()+1}/1~${md(end)} · 어제까지 집계 기준`,`<div class="detail-actions">${blackFridayButton('ratio')}</div>`+statCard('매출액 대비 광고비',ratio==null?'—':ratio.toFixed(1)+'%','월 누적 전체 광고비 ÷ 월 누적 전체 매출'),()=>draw('detailChart','bar',['월 누적 전체 매출','월 누적 전체 광고비'],[{label:'금액',data:[sales,ad],backgroundColor:['#6c7bff','#34d399'],borderRadius:8}],{money:true,valueLabels:true,legend:false}));
 };
 $('kAdRatioCard').onclick=openAdRatioDetail;
+function blackFridayRange(){
+  const start=new Date(2026,10,20),lastDay=new Date(2026,10,30);
+  return {start,end:new Date(Math.min(lastDay,reportRange().end)),lastDay};
+}
+function blackFridayRows(rows){
+  const range=blackFridayRange();
+  return rows.filter(row=>inRange(row.date,range)).sort((a,b)=>a.date-b.date);
+}
+function blackFridaySummary(rows){
+  const {start,lastDay}=blackFridayRange();
+  const period=`행사 ${md(start)}~${md(lastDay)}`;
+  if(!rows.length)return `${period} · 확인된 데이터 없음`;
+  const days=new Set(rows.map(row=>iso(row.date))).size;
+  return `${period} · ${md(rows[0].date)}~${md(rows.at(-1).date)} 중 ${days}일 반영`;
+}
+function blackFridayButton(metric){
+  return `<button type="button" class="btn" data-black-friday-detail="${metric}">블랙프라이데이 데이터 보기</button>`;
+}
+function blackFridaySalesReport(metric,key='total'){
+  let rows=blackFridayRows(DATA.sales.days);
+  const ads=new Map(blackFridayRows(DATA.ads?.allRecent||[]).filter(r=>r.hasAd).map(r=>[iso(r.date),r.ad]));
+  if(metric==='ratio')rows=rows.filter(r=>ads.has(iso(r.date)));
+  const total=sum(rows,r=>r[key]),days=new Set(rows.map(r=>iso(r.date))).size;
+  const sub=blackFridaySummary(rows);
+  const empty={sub,stats:statCard('확인된 데이터','—',metric==='ratio'?'매출과 광고비가 모두 입력된 날짜가 없습니다.':'행사 기간에 입력된 매출이 없습니다.'),
+    draw:id=>draw(id,'bar',[],[],{legend:false})};
+  if(!days)return empty;
+  if(metric==='ratio'){
+    const ad=sum(rows,r=>ads.get(iso(r.date))),ratio=total?ad/total*100:null;
+    return {sub,stats:statCard('전체 매출액 대비 광고비',ratio==null?'—':`${ratio.toFixed(1)}%`,'매출·광고비가 모두 입력된 날짜 기준')+statCard('누적 전체 매출',fmtWon(total))+statCard('누적 전체 광고비',fmtWon(ad)),
+      draw:id=>draw(id,'bar',['누적 전체 매출','누적 전체 광고비'],[{label:'금액',data:[total,ad],backgroundColor:['#6c7bff','#34d399'],borderRadius:8}],{money:true,valueLabels:true,legend:false})};
+  }
+  if(metric==='cumulative'){
+    const channels=[['자사몰','self','#6c7bff'],['네이버','naver','#34d399'],['쿠팡','coupang','#ef4444'],['M몰','mmall','#374151']];
+    const values=channels.map(([,channel])=>sum(rows,r=>r[channel]));
+    const other=total-sum(values);
+    if(other){channels.push(['기타','','#fbbf24']);values.push(other);}
+    return {sub,stats:statCard('행사 누적 매출',fmtWon(total))+statCard('자사몰+네이버 합산 매출 비중',total?`${((values[0]+values[1])/total*100).toFixed(1)}%`:'—'),
+      draw:id=>draw(id,'doughnut',channels.map(([label])=>label),[{label:'매출 비중',data:values,backgroundColor:channels.map(([, ,color])=>color),borderWidth:0}],{legend:true,pieLabels:true})};
+  }
+  const mean=total/days,label=key==='total'?'전체 플랫폼':'자사몰+네이버';
+  return {sub,stats:statCard(`${label} 매출 일평균`,fmtWon(mean),`누적 매출 ÷ 입력된 ${days}일`),
+    draw:id=>draw(id,'bar',rows.map(r=>md(r.date)),[{label,data:rows.map(r=>r[key]),backgroundColor:'#6c7bff',borderRadius:5}],
+      {money:true,valueLabels:true,legend:false,averageLine:mean,averageLabel:'행사 일평균',averageMoney:true})};
+}
+const blackFridayDetails={
+  average:['매출 일평균',openTotalAvgDetail],
+  cumulative:['누적 매출',openMtdDetail],
+  ratio:['전체 매출액 대비 광고비',openAdRatioDetail]
+};
+$('detailModalBody').addEventListener('click',event=>{
+  const button=event.target.closest('[data-black-friday-detail]');
+  if(!button)return;
+  const [title,openDefault]=blackFridayDetails[button.dataset.blackFridayDetail];
+  const report=blackFridaySalesReport(button.dataset.blackFridayDetail);
+  openDetailModal(`블랙프라이데이 ${title}`,report.sub,
+    `<div class="detail-actions"><button type="button" class="btn" id="blackFridayBack">기본 보기</button><button type="button" class="btn active" aria-pressed="true">블랙프라이데이 데이터 보기</button></div><div class="detail-stats">${report.stats}</div>`,
+    ()=>report.draw('detailChart'));
+  $('blackFridayBack').onclick=openDefault;
+});
+
+function renderEmptyBlackFridayProduct(source){
+  $('modalSub').textContent=blackFridaySummary([]);
+  $('productDetailStats').innerHTML=statCard('확인된 데이터','—',`${source} · 행사 기간에 입력된 데이터가 없습니다.`);
+  draw('product30Chart','bar',[],[],{legend:false});
+}
+function renderBlackFridayProduct(product,view){
+  const sales=view==='sales',rate=view==='rate',source=sales?'실판매 시트':'자사몰+네이버 합산';
+  const inputs=blackFridayRows(sales?product.salesRows:product.all);
+  if(!inputs.length){renderEmptyBlackFridayProduct(source);return;}
+  const byDay=new Map();
+  for(const row of inputs){
+    const key=iso(row.date);
+    if(!byDay.has(key))byDay.set(key,{date:row.date,sales:0,exposure:0,conversion:0});
+    const day=byDay.get(key);
+    day.sales+=row.sales||0;
+    day.exposure+=row.exposure||0;
+    day.conversion+=row.conversion||0;
+  }
+  const rows=[...byDay.values()],metric=sales?'판매수량':rate?'전환율':'노출량',unit=sales?'개':'회';
+  const total=sum(rows,r=>r[sales?'sales':'exposure']),conversions=sum(rows,r=>r.conversion);
+  const mean=rate?(total?conversions/total*100:null):total/rows.length;
+  const format=value=>value==null?'—':rate?`${value.toFixed(2)}%`:`${value.toLocaleString('ko-KR',{maximumFractionDigits:2})}${unit}`;
+  $('modalSub').textContent=`${source} · ${blackFridaySummary(rows)}`;
+  $('productDetailStats').innerHTML=rate?
+    statCard('행사 전환율',format(mean),'누적 전환수 ÷ 누적 노출수')+statCard('누적 전환수',`${conversions.toLocaleString()}회`)+statCard('누적 노출량',`${total.toLocaleString()}회`):
+    statCard(`누적 ${metric}`,format(total))+statCard(`일평균 ${metric}`,format(mean),`누적 ${metric} ÷ 입력된 ${rows.length}일`);
+  const values=rows.map(r=>sales?r.sales:rate?(r.exposure?r.conversion/r.exposure*100:null):r.exposure);
+  draw('product30Chart',rate?'line':'bar',rows.map(r=>md(r.date)),[{label:metric,data:values,backgroundColor:'#6c7bff',borderColor:'#6c7bff',borderRadius:5,pointRadius:4}],
+    {rawBarLabels:!rate,rateLabels:rate,percent:rate,legend:false,averageLine:mean,averageLabel:rate?'행사 전환율':'행사 일평균',averagePercent:rate});
+}
+
 // Refresh the imported component when the common theme changes.
 
 
